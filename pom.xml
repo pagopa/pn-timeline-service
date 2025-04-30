@@ -37,11 +37,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>it.pagopa.pn</groupId>
-			<artifactId>pn-model</artifactId>
-			<version>2.7.0</version>
-		</dependency>
-		<dependency>
-			<groupId>it.pagopa.pn</groupId>
 			<artifactId>pn-commons</artifactId>
 			<version>2.12.0-SPRINGBOOT3</version>
 		</dependency>
