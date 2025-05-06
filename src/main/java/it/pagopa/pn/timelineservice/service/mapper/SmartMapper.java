@@ -2,10 +2,15 @@ package it.pagopa.pn.timelineservice.service.mapper;
 
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.ElementTimestampTimelineElementDetails;
+import it.pagopa.pn.timelineservice.dto.timeline.details.NormalizedAddressDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationCancelledDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.PrepareAnalogDomicileFailureDetailsInt;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.PropertyMap;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -27,6 +32,24 @@ public class SmartMapper {
         this.featureEnabledUtils = featureEnabledUtils;
     }
 
+    private static String SERCQ_SEND = "send-self";
+
+
+    /*static PropertyMap<NormalizedAddressDetailsInt, TimelineElementDetailsV26> addressDetailPropertyMap = new PropertyMap<>() {
+        @Override
+        protected void configure() {
+            skip(destination.getNewAddress());
+            skip(destination.getPhysicalAddress());
+        }
+    };
+
+
+    static PropertyMap<PrepareAnalogDomicileFailureDetailsInt, TimelineElementDetailsV26> prepareAnalogDomicileFailureDetailsInt = new PropertyMap<>() {
+        @Override
+        protected void configure() {
+            skip(destination.getPhysicalAddress());
+        }
+    };*/
     static Converter<TimelineElementInternal, TimelineElementInternal> timelineElementInternalTimestampConverter =
             ctx -> {
                 // se il detail estende l'interfaccia e l'elementTimestamp non è nullo, lo sovrascrivo nel source originale
@@ -40,6 +63,28 @@ public class SmartMapper {
 
                 return ctx.getSource();
             };
+
+    static{
+        modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+//        modelMapper.addMappings(addressDetailPropertyMap);
+//        modelMapper.addMappings(prepareAnalogDomicileFailureDetailsInt);
+
+        modelMapper.createTypeMap(TimelineElementInternal.class, TimelineElementInternal.class).setPostConverter(timelineElementInternalTimestampConverter);
+
+        /*List<BiFunction> postMappingTransformers = new ArrayList<>();
+        postMappingTransformers.add( (source, result)-> {
+            if (!(source instanceof NotificationCancelledDetailsInt) && result instanceof TimelineElementDetailsV26 ){
+                ((TimelineElementDetailsV26) result).setNotRefinedRecipientIndexes(null);
+            }
+            return result;
+        });
+
+        postMappingTransformer =  postMappingTransformers.stream()
+            .reduce((f, g) -> (i, s) -> f.apply(i, g.apply(i, s)))
+            .get();*/
+    }
+
 
 //        Mapping effettuato per la modifica dei timestamp per gli
 //        elementi di timeline che implementano l'interfaccia ElementTimestampTimelineElementDetails
