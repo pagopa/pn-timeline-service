@@ -1,13 +1,11 @@
 package it.pagopa.pn.timelineservice.service.mapper;
 
-import it.pagopa.pn.timelineservice.dto.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.details.ElementTimestampTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.details.NormalizedAddressDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.ElementTimestampTimelineElementDetails;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -23,30 +21,12 @@ public class SmartMapper {
     private final TimelineMapperFactory timelineMapperFactory;
     private static ModelMapper modelMapper;
     private static BiFunction postMappingTransformer;
-    
+
     public SmartMapper(TimelineMapperFactory timelineMapperFactory, FeatureEnabledUtils featureEnabledUtils){
         this.timelineMapperFactory = timelineMapperFactory;
         this.featureEnabledUtils = featureEnabledUtils;
     }
 
-    private static String SERCQ_SEND = "send-self";
-
-
-    /*static PropertyMap<NormalizedAddressDetailsInt, TimelineElement> addressDetailPropertyMap = new PropertyMap<>() {
-        @Override
-        protected void configure() {
-            skip(destination.getNewAddress());
-            skip(destination.getPhysicalAddress());
-        }
-    };*/
-
-
-    /*static PropertyMap<PrepareAnalogDomicileFailureDetailsInt, TimelineElementDetailsV26> prepareAnalogDomicileFailureDetailsInt = new PropertyMap<>() {
-        @Override
-        protected void configure() {
-            skip(destination.getPhysicalAddress());
-        }
-    };*/
     static Converter<TimelineElementInternal, TimelineElementInternal> timelineElementInternalTimestampConverter =
             ctx -> {
                 // se il detail estende l'interfaccia e l'elementTimestamp non è nullo, lo sovrascrivo nel source originale
@@ -61,31 +41,8 @@ public class SmartMapper {
                 return ctx.getSource();
             };
 
-    /*static{
-        modelMapper = new ModelMapper();
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.addMappings(addressDetailPropertyMap);
-        modelMapper.addMappings(prepareAnalogDomicileFailureDetailsInt);
-
-        modelMapper.createTypeMap(TimelineElementInternal.class, TimelineElementInternal.class).setPostConverter(timelineElementInternalTimestampConverter);
-
-        List<BiFunction> postMappingTransformers = new ArrayList<>();
-        postMappingTransformers.add( (source, result)-> {
-            if (!(source instanceof NotificationCancelledDetailsInt) && result instanceof TimelineElementDetailsV26){
-                ((TimelineElementDetailsV26) result).setNotRefinedRecipientIndexes(null);
-            }
-            return result;
-        });
-
-        postMappingTransformer =  postMappingTransformers.stream()
-            .reduce((f, g) -> (i, s) -> f.apply(i, g.apply(i, s)))
-            .get();
-    }*/
-
-    /*
-        Mapping effettuato per la modifica dei timestamp per gli
-        elementi di timeline che implementano l'interfaccia ElementTimestampTimelineElementDetails
-     */
+//        Mapping effettuato per la modifica dei timestamp per gli
+//        elementi di timeline che implementano l'interfaccia ElementTimestampTimelineElementDetails
     public static  <S,T> T mapToClass(S source, Class<T> destinationClass ){
         T result;
         if( source != null) {

@@ -1,9 +1,8 @@
 package it.pagopa.pn.timelineservice.service;
 
-import it.pagopa.pn.timelineservice.dto.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;

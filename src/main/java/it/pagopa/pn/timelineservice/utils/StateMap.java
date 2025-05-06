@@ -1,7 +1,7 @@
 package it.pagopa.pn.timelineservice.utils;
 
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
-import it.pagopa.pn.timelineservice.dto.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;

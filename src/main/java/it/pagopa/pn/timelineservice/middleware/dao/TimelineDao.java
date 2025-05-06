@@ -1,6 +1,6 @@
 package it.pagopa.pn.timelineservice.middleware.dao;
 
-import it.pagopa.pn.timelineservice.dto.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 
 import java.util.Optional;
 import java.util.Set;

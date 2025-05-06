@@ -3,8 +3,8 @@ package it.pagopa.pn.timelineservice.service.mapper;
 import it.pagopa.pn.commons.exceptions.PnExceptionsCodes;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
-import it.pagopa.pn.timelineservice.dto.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.details.*;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes;
 import lombok.extern.slf4j.Slf4j;
 

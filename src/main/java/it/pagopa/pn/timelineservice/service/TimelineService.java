@@ -1,16 +1,14 @@
 package it.pagopa.pn.timelineservice.service;
 
-import it.pagopa.pn.timelineservice.dto.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.TimelineEventId;
-import it.pagopa.pn.timelineservice.dto.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.dto.details.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.ProbableSchedulingAnalogDateDto;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventId;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationHistoryResponse;
 import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.ProbableSchedulingAnalogDateResponse;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,11 +34,9 @@ public interface TimelineService {
     
     Set<TimelineElementInternal> getTimelineByIunTimelineId(String iun, String timelineId, boolean confidentialInfoRequired);
 
-    NotificationHistoryResponse getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
+//    NotificationHistoryResponse getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
 
-    boolean isPresentTimeLineElement(String iun, Integer recIndex, TimelineEventId timelineEventId);
-
-    Mono<ProbableSchedulingAnalogDateResponse> getSchedulingAnalogDate(String iun, String recipientId);
+    Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, String recipientId);
 
     void enrichTimelineElementWithConfidentialInformation(TimelineElementDetailsInt details,
                                                           ConfidentialTimelineElementDtoInt confidentialDto);

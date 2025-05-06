@@ -2,10 +2,10 @@ package it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper;
 
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
-import it.pagopa.pn.timelineservice.dto.StatusInfoInternal;
-import it.pagopa.pn.timelineservice.dto.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.dto.details.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.LegalFactsIdEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.StatusInfoEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementDetailsEntity;

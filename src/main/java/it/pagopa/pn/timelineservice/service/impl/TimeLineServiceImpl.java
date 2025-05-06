@@ -7,20 +7,17 @@ import it.pagopa.pn.commons.log.PnAuditLogEvent;
 import it.pagopa.pn.commons.log.PnAuditLogEventType;
 import it.pagopa.pn.commons.utils.MDCUtils;
 import it.pagopa.pn.timelineservice.config.PnDeliveryPushConfigs;
-import it.pagopa.pn.timelineservice.dto.EventId;
-import it.pagopa.pn.timelineservice.dto.StatusInfoInternal;
-import it.pagopa.pn.timelineservice.dto.TimelineEventId;
+import it.pagopa.pn.timelineservice.dto.*;
 import it.pagopa.pn.timelineservice.dto.address.CourtesyDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
-import it.pagopa.pn.timelineservice.dto.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.details.*;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationHistoryResponse;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationStatusV26;
-import it.pagopa.pn.timelineservice.dto.ext.notification.ProbableSchedulingAnalogDateResponse;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventId;
+import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.exceptions.PnValidationRecipientIdNotValidException;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
@@ -29,9 +26,7 @@ import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.NotificationService;
 import it.pagopa.pn.timelineservice.service.StatusService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
-import it.pagopa.pn.timelineservice.service.mapper.NotificationStatusHistoryElementMapper;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
-import it.pagopa.pn.timelineservice.service.mapper.TimelineElementMapper;
 import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
 import it.pagopa.pn.timelineservice.utils.MdcKey;
@@ -44,12 +39,11 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import javax.management.Notification;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
-import static it.pagopa.pn.timelineservice.dto.details.TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE;
+import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE;
 import static it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED;
 import static it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND;
 import static it.pagopa.pn.timelineservice.utils.StatusUtils.COMPLETED_DELIVERY_WORKFLOW_CATEGORY;
@@ -340,7 +334,9 @@ public class TimeLineServiceImpl implements TimelineService {
         return setTimelineElements;
     }
 
-    @Override
+
+    //TODO: rivedere successivamente a definizione openapi
+    /*@Override
     public NotificationHistoryResponse getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
         log.debug("getTimelineAndStatusHistory Start - iun={} ", iun);
 
@@ -356,7 +352,7 @@ public class TimeLineServiceImpl implements TimelineService {
         log.debug("getTimelineAndStatusHistory Ok - iun={} ", iun);
 
         return createResponse(timelineElements, statusHistory, currentStatus);
-    }
+    }*/
 
     private void removeNotToBeReturnedElements(List<NotificationStatusHistoryElementInt> statusHistory) {
 
@@ -387,7 +383,7 @@ public class TimeLineServiceImpl implements TimelineService {
         }
     }
 
-    private NotificationHistoryResponse createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,
+    /*private NotificationHistoryResponse createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,
                                                        NotificationStatusInt currentStatus) {
 
         var timelineList = timelineElements.stream()
@@ -406,35 +402,26 @@ public class TimeLineServiceImpl implements TimelineService {
                 )
                 .notificationStatus(currentStatus != null ? NotificationStatusV26.valueOf(currentStatus.getValue()) : null)
                 .build();
-    }
+    }*/
 
     public boolean isNotDiagnosticTimelineElement(TimelineElementInternal timelineElementInternal) {
         if (timelineElementInternal.getCategory() == null) {
             return true;
         }
-        String internalCategory = timelineElementInternal.getCategory().getValue();
-        return Arrays.stream(TimelineElementCategoryV26.values())
-                .anyMatch(TimelineElementCategoryV26 -> TimelineElementCategoryV26.getValue().equalsIgnoreCase(internalCategory));
+        String internalCategory = timelineElementInternal.getCategory().name();
+        return Arrays.stream(TimelineElementCategory.values())
+                .anyMatch(TimelineElementCategory -> TimelineElementCategory.getValue().equalsIgnoreCase(internalCategory));
 
     }
 
     @Override
-    public boolean isPresentTimeLineElement(String iun, Integer recIndex, TimelineEventId timelineEventId) {
-        EventId eventId = EventId.builder()
-                .iun(iun)
-                .recIndex(recIndex)
-                .build();
-        return this.timelineDao.getTimelineElement(iun, timelineEventId.buildEventId(eventId)).isPresent();
-    }
-
-    @Override
-    public Mono<ProbableSchedulingAnalogDateResponse> getSchedulingAnalogDate(String iun, String recipientId) {
+    public Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, String recipientId) {
 
         return notificationService.getNotificationByIunReactive(iun)
                 .map(notificationRecipientInts -> getRecipientIndex(notificationRecipientInts, recipientId))
                 .map(recIndex -> getTimelineElementDetailForSpecificRecipient(iun, recIndex, false, PROBABLE_SCHEDULING_ANALOG_DATE, ProbableDateAnalogWorkflowDetailsInt.class))
                 .flatMap(optionalDetails -> optionalDetails.map(Mono::just).orElseGet(Mono::empty))
-                .map(details -> new ProbableSchedulingAnalogDateResponse()
+                .map(details -> new ProbableSchedulingAnalogDateDto()
                         .iun(iun)
                         .recIndex(details.getRecIndex())
                         .schedulingAnalogDate(details.getSchedulingAnalogDate()))

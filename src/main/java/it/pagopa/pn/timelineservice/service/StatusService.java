@@ -2,7 +2,7 @@ package it.pagopa.pn.timelineservice.service;
 
 import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
-import it.pagopa.pn.timelineservice.dto.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
