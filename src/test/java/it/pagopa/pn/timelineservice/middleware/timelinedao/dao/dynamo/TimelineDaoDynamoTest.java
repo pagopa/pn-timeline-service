@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.middleware.timelinedao;
+package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.dynamo;
 
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;

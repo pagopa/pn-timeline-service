@@ -14,6 +14,8 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -25,7 +27,7 @@ public class SmartMapper {
     private FeatureEnabledUtils featureEnabledUtils;
     private final TimelineMapperFactory timelineMapperFactory;
     private static ModelMapper modelMapper;
-    private static BiFunction postMappingTransformer;
+//    private static BiFunction postMappingTransformer;
 
     public SmartMapper(TimelineMapperFactory timelineMapperFactory, FeatureEnabledUtils featureEnabledUtils){
         this.timelineMapperFactory = timelineMapperFactory;
@@ -72,7 +74,7 @@ public class SmartMapper {
 
         modelMapper.createTypeMap(TimelineElementInternal.class, TimelineElementInternal.class).setPostConverter(timelineElementInternalTimestampConverter);
 
-        /*List<BiFunction> postMappingTransformers = new ArrayList<>();
+       /* List<BiFunction> postMappingTransformers = new ArrayList<>();
         postMappingTransformers.add( (source, result)-> {
             if (!(source instanceof NotificationCancelledDetailsInt) && result instanceof TimelineElementDetailsV26 ){
                 ((TimelineElementDetailsV26) result).setNotRefinedRecipientIndexes(null);
@@ -93,7 +95,7 @@ public class SmartMapper {
         if( source != null) {
             result = modelMapper.map(source, destinationClass );
 
-            result = (T) postMappingTransformer.apply(source, result);
+//            result = (T) postMappingTransformer.apply(source, result);
         } else {
             result = null;
         }
@@ -109,7 +111,7 @@ public class SmartMapper {
         if( source != null) {
             TimelineElementInternal elementToMap = source.toBuilder().build();
             result = modelMapper.map(elementToMap, TimelineElementInternal.class );
-            result = (TimelineElementInternal) postMappingTransformer.apply(source, result);
+//            result = (TimelineElementInternal) postMappingTransformer.apply(source, result);
         } else {
             result = null;
         }
