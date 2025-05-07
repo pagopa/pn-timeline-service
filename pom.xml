@@ -94,6 +94,11 @@
 		</dependency>
 		<dependency>
 			<groupId>net.javacrumbs.shedlock</groupId>
+			<artifactId>shedlock-spring</artifactId>
+			<version>4.42.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.javacrumbs.shedlock</groupId>
 			<artifactId>shedlock-provider-dynamodb2</artifactId>
 			<version>4.42.0</version>
 		</dependency>
@@ -101,6 +106,17 @@
 			<groupId>org.modelmapper</groupId>
 			<artifactId>modelmapper</artifactId>
 			<version>3.1.0</version>
+		</dependency>
+		<!--LOCALSTACK/TESTCONTAINERS-->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>localstack</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
@@ -223,6 +239,8 @@
 							</configOptions>
 						</configuration>
 					</execution>
+
+					<!-- OPEN API CLIENT PN-DATA-VAULT -->
 					<execution>
 						<phase>generate-resources</phase>
 						<id>generate-client-pn-data-vault</id>
@@ -253,39 +271,73 @@
 					</execution>
 
 					<!-- OPEN API CLIENT PN-DATA-VAULT REACTIVE-->
-				<execution>
-					<phase>generate-resources</phase>
-					<id>generate-client-pn-data-vault-reactive</id>
-					<goals>
-						<goal>generate</goal>
-					</goals>
-					<configuration>
-						<inputSpec>https://raw.githubusercontent.com/pagopa/pn-data-vault/49b6943f95dfac51c2c8fd1aa381e9200ff7f97c/docs/openapi/pn-datavault-api-v1.yaml</inputSpec>
-						<generatorName>java</generatorName>
-						<library>webclient</library>
-						<generateApiTests>false</generateApiTests>
-						<generateModelTests>false</generateModelTests>
-						<typeMappings><typeMapping>OffsetDateTime=Instant</typeMapping></typeMappings>
-						<importMappings><importMapping>java.time.OffsetDateTime=java.time.Instant</importMapping></importMappings>
-						<templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>
-						<configOptions>
-							<apiPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault-reactive.api</apiPackage>
-							<modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault.model</modelPackage>
-							<dateLibrary>java8</dateLibrary>
-							<delegatePattern>true</delegatePattern>
-							<interfaceOnly>true</interfaceOnly>
-							<annotationLibrary>none</annotationLibrary>
-							<documentationProvider>source</documentationProvider>
-							<openApiNullable>false</openApiNullable>
-							<reactive>true</reactive>
-							<skipDefaultInterface>false</skipDefaultInterface>
-							<useTags>true</useTags>
-							<additionalModelTypeAnnotations>@lombok.Builder(toBuilder = true); @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
+					<execution>
+						<phase>generate-resources</phase>
+						<id>generate-client-pn-data-vault-reactive</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>https://raw.githubusercontent.com/pagopa/pn-data-vault/49b6943f95dfac51c2c8fd1aa381e9200ff7f97c/docs/openapi/pn-datavault-api-v1.yaml</inputSpec>
+							<generatorName>java</generatorName>
+							<library>webclient</library>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<typeMappings><typeMapping>OffsetDateTime=Instant</typeMapping></typeMappings>
+							<importMappings><importMapping>java.time.OffsetDateTime=java.time.Instant</importMapping></importMappings>
+							<templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>
+							<configOptions>
+								<apiPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault-reactive.api</apiPackage>
+								<modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault.model</modelPackage>
+								<dateLibrary>java8</dateLibrary>
+								<delegatePattern>true</delegatePattern>
+								<interfaceOnly>true</interfaceOnly>
+								<annotationLibrary>none</annotationLibrary>
+								<documentationProvider>source</documentationProvider>
+								<openApiNullable>false</openApiNullable>
+								<reactive>true</reactive>
+								<skipDefaultInterface>false</skipDefaultInterface>
+								<useTags>true</useTags>
+								<additionalModelTypeAnnotations>@lombok.Builder(toBuilder = true); @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
 
-						</configOptions>
-					</configuration>
-				</execution>
-			</executions>
+							</configOptions>
+						</configuration>
+					</execution>
+
+					<!-- OPEN API CLIENT PN-DELIVERY REACTIVE-->
+					<execution>
+						<phase>generate-resources</phase>
+						<id>generate-client-pn-delivery-reactive</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>https://raw.githubusercontent.com/pagopa/pn-delivery/1e1201d3ad84013cd77f17c79cd560f897b6ca09/docs/openapi/api-private.yaml</inputSpec>
+							<skipValidateSpec>true</skipValidateSpec>
+							<generatorName>java</generatorName>
+							<library>webclient</library>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<typeMappings>
+								<typeMapping>OffsetDateTime=java.time.Instant</typeMapping>
+							</typeMappings>
+							<templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>
+							<configOptions>
+								<apiPackage>${project.groupId}.timelineservice.generated.openapi.msclient.delivery-reactive.api</apiPackage>
+								<modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.delivery.model</modelPackage>
+								<dateLibrary>java8</dateLibrary>
+								<delegatePattern>true</delegatePattern>
+								<interfaceOnly>true</interfaceOnly>
+								<annotationLibrary>none</annotationLibrary>
+								<documentationProvider>source</documentationProvider>
+								<openApiNullable>false</openApiNullable>
+								<reactive>true</reactive>
+								<skipDefaultInterface>false</skipDefaultInterface>
+								<useTags>true</useTags>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

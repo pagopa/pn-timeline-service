@@ -4,14 +4,11 @@ import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElemen
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
-import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementId;
 import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClient;
-import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClientReactive;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.mapper.ConfidentialTimelineElementDtoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
@@ -23,12 +20,9 @@ import java.util.stream.Collectors;
 @Service
 public class ConfidentialInformationServiceImpl implements ConfidentialInformationService {
     private final PnDataVaultClient pnDataVaultClient;
-    private final PnDataVaultClientReactive pnDataVaultClientReactive;
-    
-    public ConfidentialInformationServiceImpl(PnDataVaultClient pnDataVaultClient,
-                                              PnDataVaultClientReactive pnDataVaultClientReactive) {
+
+    public ConfidentialInformationServiceImpl(PnDataVaultClient pnDataVaultClient) {
         this.pnDataVaultClient = pnDataVaultClient;
-        this.pnDataVaultClientReactive = pnDataVaultClientReactive;
     }
 
     @Override
@@ -45,13 +39,6 @@ public class ConfidentialInformationServiceImpl implements ConfidentialInformati
 
             log.debug("UpdateNotificationTimelineByIunAndTimelineElementId OK for - iun {} timelineElementId {}", iun, dtoInt.getTimelineElementId());
         }
-    }
-
-    @Override
-    public Flux<ConfidentialTimelineElementDtoInt> getTimelineConfidentialInformation(List<TimelineElementInternal> timelineElementInternal) {
-        List<ConfidentialTimelineElementId> request = timelineElementInternal.stream().map(this::getConfidentialElementId).toList();
-        return this.pnDataVaultClientReactive.getNotificationTimelines(request)
-                .map( ConfidentialTimelineElementDtoMapper::externalToInternal);
     }
 
     private ConfidentialTimelineElementDtoInt getConfidentialDtoFromTimeline(TimelineElementInternal timelineElement) {
@@ -121,12 +108,5 @@ public class ConfidentialInformationServiceImpl implements ConfidentialInformati
         log.debug("getTimelineConfidentialInformation haven't confidential information for - iun {} ", iun);
         return Optional.empty();
        
-    }
-
-    private ConfidentialTimelineElementId getConfidentialElementId(TimelineElementInternal internal) {
-        return ConfidentialTimelineElementId.builder()
-                .iun(internal.getIun())
-                .timelineElementId(internal.getElementId())
-                .build();
     }
 }

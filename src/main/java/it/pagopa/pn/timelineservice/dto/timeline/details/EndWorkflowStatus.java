@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.action.utils;
+package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 public enum EndWorkflowStatus {
     SUCCESS,

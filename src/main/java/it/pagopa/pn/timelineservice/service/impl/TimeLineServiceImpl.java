@@ -6,7 +6,7 @@ import it.pagopa.pn.commons.log.PnAuditLogBuilder;
 import it.pagopa.pn.commons.log.PnAuditLogEvent;
 import it.pagopa.pn.commons.log.PnAuditLogEventType;
 import it.pagopa.pn.commons.utils.MDCUtils;
-import it.pagopa.pn.timelineservice.config.PnDeliveryPushConfigs;
+import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.*;
 import it.pagopa.pn.timelineservice.dto.address.CourtesyDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
@@ -16,7 +16,6 @@ import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStat
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventId;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.exceptions.PnValidationRecipientIdNotValidException;
@@ -62,7 +61,7 @@ public class TimeLineServiceImpl implements TimelineService {
     private final NotificationService notificationService;
     private final SmartMapper smartMapper;
     private final LockProvider lockProvider;
-    private final PnDeliveryPushConfigs pnDeliveryPushConfigs;
+    private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
 
     @Override
     public boolean addTimelineElement(TimelineElementInternal dto, NotificationInt notification) {
@@ -95,7 +94,7 @@ public class TimeLineServiceImpl implements TimelineService {
     private boolean addCriticalTimelineElement(TimelineElementInternal dto, NotificationInt notification, PnAuditLogEvent logEvent) {
         log.debug("addCriticalTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
 
-        Optional<SimpleLock> optSimpleLock = lockProvider.lock(new LockConfiguration(Instant.now(), notification.getIun(), pnDeliveryPushConfigs.getTimelineLockDuration(), Duration.ZERO));
+        Optional<SimpleLock> optSimpleLock = lockProvider.lock(new LockConfiguration(Instant.now(), notification.getIun(), pnTimelineServiceConfigs.getTimelineLockDuration(), Duration.ZERO));
         if (optSimpleLock.isEmpty()) {
             logEvent.generateFailure("Lock not acquired for iun={} and timelineId={}", notification.getIun(), dto.getElementId()).log();
             throw new PnInternalException("Lock not acquired for iun " + notification.getIun(), ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED);
@@ -136,7 +135,7 @@ public class TimeLineServiceImpl implements TimelineService {
         TimelineElementInternal dtoWithStatusInfo = enrichWithStatusInfo(dto, currentTimeline, notificationStatuses, notification.getSentAt());
 
         Instant now = Instant.now();
-        if(now.isAfter(pnDeliveryPushConfigs.getStartWriteBusinessTimestamp()) && now.isBefore(pnDeliveryPushConfigs.getStopWriteBusinessTimestamp())) {
+        if(now.isAfter(pnTimelineServiceConfigs.getStartWriteBusinessTimestamp()) && now.isBefore(pnTimelineServiceConfigs.getStopWriteBusinessTimestamp())) {
             Instant cachedTimestamp = dtoWithStatusInfo.getTimestamp();
             // calcolo e aggiungo il businessTimestamp
             dtoWithStatusInfo = smartMapper.mapTimelineInternal(dtoWithStatusInfo, currentTimeline);
@@ -450,7 +449,7 @@ public class TimeLineServiceImpl implements TimelineService {
             CourtesyDigitalAddressInt address = courtesyAddressRelatedTimelineElement.getDigitalAddress();
 
             address = getCourtesyDigitalAddress(confidentialDto, address);
-            ((CourtesyAddressRelatedTimelineElement) details).setDigitalAddress(address);
+            courtesyAddressRelatedTimelineElement.setDigitalAddress(address);
         }
 
         if (details instanceof DigitalAddressRelatedTimelineElement digitalAddressRelatedTimelineElement && confidentialDto.getDigitalAddress() != null) {
@@ -459,7 +458,7 @@ public class TimeLineServiceImpl implements TimelineService {
 
             address = getDigitalAddress(confidentialDto, address);
 
-            ((DigitalAddressRelatedTimelineElement) details).setDigitalAddress(address);
+            digitalAddressRelatedTimelineElement.setDigitalAddress(address);
         }
 
         if (details instanceof PhysicalAddressRelatedTimelineElement physicalAddressRelatedTimelineElement && confidentialDto.getPhysicalAddress() != null) {
@@ -467,7 +466,7 @@ public class TimeLineServiceImpl implements TimelineService {
 
             physicalAddress = getPhysicalAddress(physicalAddress, confidentialDto.getPhysicalAddress());
 
-            ((PhysicalAddressRelatedTimelineElement) details).setPhysicalAddress(physicalAddress);
+            physicalAddressRelatedTimelineElement.setPhysicalAddress(physicalAddress);
         }
 
         if (details instanceof NewAddressRelatedTimelineElement newAddressRelatedTimelineElement && confidentialDto.getNewPhysicalAddress() != null) {
@@ -476,7 +475,7 @@ public class TimeLineServiceImpl implements TimelineService {
 
             newAddress = getPhysicalAddress(newAddress, confidentialDto.getNewPhysicalAddress());
 
-            ((NewAddressRelatedTimelineElement) details).setNewAddress(newAddress);
+            newAddressRelatedTimelineElement.setNewAddress(newAddress);
         }
 
         if (details instanceof PersonalInformationRelatedTimelineElement personalInformationRelatedTimelineElement) {

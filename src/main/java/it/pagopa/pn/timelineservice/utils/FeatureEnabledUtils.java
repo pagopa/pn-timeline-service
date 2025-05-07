@@ -1,27 +1,16 @@
 package it.pagopa.pn.timelineservice.utils;
 
-import it.pagopa.pn.timelineservice.config.PnDeliveryPushConfigs;
+import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.Optional;
 
 @AllArgsConstructor
 @Component
 public class FeatureEnabledUtils {
 
-    private final PnDeliveryPushConfigs configs;
-
-    public boolean isPerformanceImprovementEnabled(Instant notBefore) {
-        boolean isEnabled = false;
-        Instant startDate = Instant.parse(configs.getPerformanceImprovementStartDate());
-        Instant endDate = Instant.parse(configs.getPerformanceImprovementEndDate());
-        if ( notBefore.compareTo(startDate) >= 0 && notBefore.compareTo(endDate) <= 0) {
-            isEnabled = true;
-        }
-        return isEnabled;
-    }
+    private final PnTimelineServiceConfigs configs;
 
     public boolean isPfNewWorkflowEnabled(Instant notificationSentAt) {
         boolean isEnabled = false;
@@ -31,12 +20,6 @@ public class FeatureEnabledUtils {
             isEnabled = true;
         }
         return isEnabled;
-    }
-
-    public boolean isFeatureAAROnlyPECForRADDAndPFEnabled(){
-        return Optional.ofNullable(configs.getAAROnlyPECForRADDAndPF())
-                .map("true"::equalsIgnoreCase)
-                .orElse(false);
     }
 
 }

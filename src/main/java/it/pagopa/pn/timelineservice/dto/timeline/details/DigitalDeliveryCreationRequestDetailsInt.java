@@ -1,6 +1,5 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
-import it.pagopa.pn.timelineservice.action.utils.EndWorkflowStatus;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;

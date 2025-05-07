@@ -1,6 +1,6 @@
 package it.pagopa.pn.timelineservice.middleware.externalclient.pnclient.datavault;
 
-import it.pagopa.pn.timelineservice.config.PnDeliveryPushConfigs;
+import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.api.NotificationsApi;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.AddressDto;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
@@ -31,7 +31,7 @@ class PnDataVaultClientImplTest {
     private RestTemplate restTemplate;
 
     @Mock
-    private PnDeliveryPushConfigs cfg;
+    private PnTimelineServiceConfigs cfg;
 
     @Mock
     private NotificationsApi pnDataVaultNotificationApi;

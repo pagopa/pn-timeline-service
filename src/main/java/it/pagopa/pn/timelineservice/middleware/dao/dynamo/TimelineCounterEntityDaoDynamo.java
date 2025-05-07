@@ -4,7 +4,7 @@ package it.pagopa.pn.timelineservice.middleware.dao.dynamo;
 import it.pagopa.pn.commons.abstractions.impl.AbstractDynamoKeyValueStore;
 import it.pagopa.pn.commons.abstractions.impl.MiddlewareTypes;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
-import it.pagopa.pn.timelineservice.config.PnDeliveryPushConfigs;
+import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +19,11 @@ import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 @Slf4j
 public class TimelineCounterEntityDaoDynamo extends AbstractDynamoKeyValueStore<TimelineCounterEntity> implements TimelineCounterEntityDao {
 
-    protected TimelineCounterEntityDaoDynamo(DynamoDbEnhancedClient dynamoDbEnhancedClient, PnDeliveryPushConfigs cfg) {
+    protected TimelineCounterEntityDaoDynamo(DynamoDbEnhancedClient dynamoDbEnhancedClient, PnTimelineServiceConfigs cfg) {
         super(dynamoDbEnhancedClient.table( tableName(cfg), TableSchema.fromClass(TimelineCounterEntity.class)));
     }
  
-    private static String tableName( PnDeliveryPushConfigs cfg ) {
+    private static String tableName( PnTimelineServiceConfigs cfg ) {
         return cfg.getTimelinecounterDao().getTableName();
     }
 

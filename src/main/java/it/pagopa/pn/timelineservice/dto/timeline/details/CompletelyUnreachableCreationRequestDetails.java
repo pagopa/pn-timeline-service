@@ -1,6 +1,5 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
-import it.pagopa.pn.timelineservice.action.utils.EndWorkflowStatus;
 import lombok.*;
 
 import java.time.Instant;

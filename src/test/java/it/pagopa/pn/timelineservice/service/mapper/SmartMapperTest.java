@@ -1,9 +1,7 @@
 package it.pagopa.pn.timelineservice.service.mapper;
 
-import it.pagopa.pn.timelineservice.config.PnDeliveryPushConfigs;
-import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
+import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
-import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
@@ -13,8 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -24,12 +20,12 @@ class SmartMapperTest {
 
     private SmartMapper smartMapper;
     private FeatureEnabledUtils featureEnabledUtils;
-    private PnDeliveryPushConfigs pnDeliveryPushConfig;
+    private PnTimelineServiceConfigs pnDeliveryPushConfig;
 
 
     @BeforeEach
     void setUp() {
-        pnDeliveryPushConfig = mock(PnDeliveryPushConfigs.class);
+        pnDeliveryPushConfig = mock(PnTimelineServiceConfigs.class);
         Mockito.when(pnDeliveryPushConfig.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(Instant.now());
         featureEnabledUtils = mock(FeatureEnabledUtils.class);
         smartMapper = new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfig), featureEnabledUtils);
@@ -147,8 +143,6 @@ class SmartMapperTest {
     void testTimelineElementInternalMappingTransformerNo1(){
         Instant elementTimestamp = Instant.EPOCH.plusMillis(100);
 
-        Instant eventTimestamp = Instant.EPOCH.plusMillis(10);
-
         TimelineElementInternal source = TimelineElementInternal.builder()
                 .elementId("elementid")
                 .iun("iun")
@@ -167,8 +161,6 @@ class SmartMapperTest {
     @Test
     void testTimelineElementInternalMappingTransformerNo2(){
         Instant elementTimestamp = Instant.EPOCH.plusMillis(100);
-
-        Instant eventTimestamp = Instant.EPOCH.plusMillis(10);
 
         TimelineElementInternal source = TimelineElementInternal.builder()
                 .elementId("elementid")

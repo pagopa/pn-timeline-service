@@ -17,7 +17,7 @@ import java.util.List;
 @ConfigurationProperties( prefix = "pn.delivery-push")
 @Data
 @Import({SharedAutoConfiguration.class})
-public class PnDeliveryPushConfigs {
+public class PnTimelineServiceConfigs {
 
     private String templatesEngineBaseUrl;
 
