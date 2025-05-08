@@ -1,3 +1,3 @@
-# pn-template-ms-be
+# pn-timeline-service
 
-A template project for a new PN backend microservice 
+Backend microservice to provide timeline integration for the PN platform.
