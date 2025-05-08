@@ -206,7 +206,7 @@
 					</execution>
 					-->
 					<!-- OPEN API CLIENT PN-PAPER-CHANNEL -->
-					<execution>
+					<!--<execution>
 						<phase>generate-resources</phase>
 						<id>generate-client-pn-paperchannel</id>
 						<goals>
@@ -222,6 +222,7 @@
 							<importMappings><importMapping>java.time.OffsetDateTime=java.time.Instant</importMapping></importMappings>
 							<templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>
 							<configOptions>
+								<useJakartaEe>true</useJakartaEe>
 								<apiPackage>${project.groupId}.deliverypush.generated.openapi.msclient.paperchannel.api</apiPackage>
 								<modelPackage>${project.groupId}.deliverypush.generated.openapi.msclient.paperchannel.model</modelPackage>
 								<annotationLibrary>none</annotationLibrary>
@@ -233,10 +234,10 @@
 								<additionalModelTypeAnnotations>@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)</additionalModelTypeAnnotations>
 							</configOptions>
 						</configuration>
-					</execution>
+					</execution>-->
 
 					<!-- OPEN API CLIENT PN-DATA-VAULT -->
-					<execution>
+					<!--<execution>
 						<phase>generate-resources</phase>
 						<id>generate-client-pn-data-vault</id>
 						<goals>
@@ -252,7 +253,6 @@
 							<importMappings><importMapping>java.time.OffsetDateTime=java.time.Instant</importMapping></importMappings>
 							<templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>
 							<configOptions>
-								<useSpringBoot3>true</useSpringBoot3>
 								<useJakartaEe>true</useJakartaEe>
 								<apiPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault.api</apiPackage>
 								<modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault.model</modelPackage>
@@ -265,10 +265,10 @@
 								<additionalModelTypeAnnotations>@lombok.Builder(toBuilder = true); @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
 							</configOptions>
 						</configuration>
-					</execution>
+					</execution>-->
 
 					<!-- OPEN API CLIENT PN-DATA-VAULT REACTIVE-->
-					<execution>
+					<!--<execution>
 						<phase>generate-resources</phase>
 						<id>generate-client-pn-data-vault-reactive</id>
 						<goals>
@@ -284,6 +284,7 @@
 							<importMappings><importMapping>java.time.OffsetDateTime=java.time.Instant</importMapping></importMappings>
 							<templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>
 							<configOptions>
+								<useJakartaEe>true</useJakartaEe>
 								<apiPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault-reactive.api</apiPackage>
 								<modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault.model</modelPackage>
 								<dateLibrary>java8</dateLibrary>
@@ -299,10 +300,10 @@
 
 							</configOptions>
 						</configuration>
-					</execution>
+					</execution>-->
 
 					<!-- OPEN API CLIENT PN-DELIVERY REACTIVE-->
-					<execution>
+					<!--<execution>
 						<phase>generate-resources</phase>
 						<id>generate-client-pn-delivery-reactive</id>
 						<goals>
@@ -320,6 +321,7 @@
 							</typeMappings>
 							<templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>
 							<configOptions>
+								<useJakartaEe>true</useJakartaEe>
 								<apiPackage>${project.groupId}.timelineservice.generated.openapi.msclient.delivery-reactive.api</apiPackage>
 								<modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.delivery.model</modelPackage>
 								<dateLibrary>java8</dateLibrary>
@@ -332,6 +334,107 @@
 								<skipDefaultInterface>false</skipDefaultInterface>
 								<useTags>true</useTags>
 							</configOptions>
+						</configuration>
+					</execution>-->
+					<execution>
+						<phase>generate-resources</phase>
+						<id>generate-client-pn-delivery-reactive</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>https://raw.githubusercontent.com/pagopa/pn-delivery/1e1201d3ad84013cd77f17c79cd560f897b6ca09/docs/openapi/api-private.yaml</inputSpec>
+							<generatorName>java</generatorName>
+							<library>webclient</library>
+							<generateApiDocumentation>false</generateApiDocumentation>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<generateSupportingFiles>true</generateSupportingFiles>
+							<!--                            <templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>-->
+							<typeMappings>
+								<typeMapping>OffsetDateTime=java.time.Instant</typeMapping>
+							</typeMappings>
+							<configOptions>
+								<useJakartaEe>true</useJakartaEe>
+								<swaggerAnnotations>false</swaggerAnnotations>
+								<openApiNullable>false</openApiNullable>
+							</configOptions>
+							<modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.delivery.model</modelPackage>
+							<apiPackage>${project.groupId}.timelineservice.generated.openapi.msclient.delivery-reactive.api</apiPackage>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>generate-resources</phase>
+						<id>generate-client-pn-paper-channel</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>https://raw.githubusercontent.com/pagopa/pn-paper-channel/3c6df304e1bd5b8359f4e186a7e5c388f4b3061e/docs/openapi/api-internal-v1.yaml</inputSpec>
+							<generatorName>java</generatorName>
+							<library>webclient</library>
+							<generateApiDocumentation>false</generateApiDocumentation>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<generateSupportingFiles>true</generateSupportingFiles>
+							<!--                            <templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>-->
+							<configOptions>
+								<useJakartaEe>true</useJakartaEe>
+								<swaggerAnnotations>false</swaggerAnnotations>
+								<openApiNullable>false</openApiNullable>
+								<additionalModelTypeAnnotations>@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)</additionalModelTypeAnnotations>
+							</configOptions>
+							<apiPackage>${project.groupId}.deliverypush.generated.openapi.msclient.paperchannel.api</apiPackage>
+							<modelPackage>${project.groupId}.deliverypush.generated.openapi.msclient.paperchannel.model</modelPackage>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>generate-resources</phase>
+						<id>generate-client-pn-data-vault-reactive</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>https://raw.githubusercontent.com/pagopa/pn-data-vault/49b6943f95dfac51c2c8fd1aa381e9200ff7f97c/docs/openapi/pn-datavault-api-v1.yaml</inputSpec>
+							<generatorName>java</generatorName>
+							<library>webclient</library>
+							<generateApiDocumentation>false</generateApiDocumentation>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<generateSupportingFiles>true</generateSupportingFiles>
+							<!--                            <templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>-->
+							<configOptions>
+								<useJakartaEe>true</useJakartaEe>
+								<openApiNullable>false</openApiNullable>
+								<additionalModelTypeAnnotations>@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)</additionalModelTypeAnnotations>
+							</configOptions>
+							<apiPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault-reactive.api</apiPackage>
+							<modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault.model</modelPackage>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>generate-resources</phase>
+						<id>generate-client-pn-data-vault</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>https://raw.githubusercontent.com/pagopa/pn-data-vault/49b6943f95dfac51c2c8fd1aa381e9200ff7f97c/docs/openapi/pn-datavault-api-v1.yaml</inputSpec>
+							<generatorName>java</generatorName>
+							<library>resttemplate</library>
+							<generateApiDocumentation>false</generateApiDocumentation>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<generateSupportingFiles>true</generateSupportingFiles>
+							<!--                            <templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>-->
+							<configOptions>
+								<useJakartaEe>true</useJakartaEe>
+								<openApiNullable>false</openApiNullable>
+								<additionalModelTypeAnnotations>@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)</additionalModelTypeAnnotations>
+								<additionalModelTypeAnnotations>@lombok.Builder(toBuilder = true); @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
+							</configOptions>
+							<apiPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault.api</apiPackage>
+							<modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault.model</modelPackage>
 						</configuration>
 					</execution>
 				</executions>

@@ -7,6 +7,7 @@ import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationSenderInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.ServiceLevelTypeInt;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.delivery.model.SentNotificationV24;
 import it.pagopa.pn.timelineservice.middleware.externalclient.delivery.PnDeliveryClientReactive;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,6 +74,7 @@ class NotificationServiceImplTest {
                 .sender(NotificationSenderInt.builder().build())
                 .notificationFeePolicy(NotificationFeePolicy.DELIVERY_MODE)
                 .physicalCommunicationType(ServiceLevelTypeInt.REGISTERED_LETTER_890)
+                .additionalLanguages(Collections.emptyList())
                 .build();
     }
 }

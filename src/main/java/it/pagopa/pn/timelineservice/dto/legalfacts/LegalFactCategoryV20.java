@@ -3,13 +3,10 @@ package it.pagopa.pn.timelineservice.dto.legalfacts;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-import javax.annotation.Generated;
-
 /**
  * Tipi di atti opponibili a terzi che Piattaforma Notifiche mette a disposizione dei suoi utenti. <br/>   - SENDER_ACK  <br/>   - DIGITAL_DELIVERY  <br/>   - ANALOG_DELIVERY  <br/>   - RECIPIENT_ACCESS <br/>   - PEC_RECEIPT  <br/>   - ANALOG_FAILURE_DELIVERY  <br/>   - NOTIFICATION_CANCELLED  <br/>
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2025-04-23T15:16:43.168944600+02:00[Europe/Rome]")
 public enum LegalFactCategoryV20 {
   
   SENDER_ACK("SENDER_ACK"),

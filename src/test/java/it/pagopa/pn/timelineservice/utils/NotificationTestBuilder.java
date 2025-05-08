@@ -4,7 +4,7 @@ import it.pagopa.pn.commons.utils.DateFormatUtils;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.*;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.util.Base64Utils;
+import java.util.Base64;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -103,12 +103,12 @@ public class NotificationTestBuilder {
             notificationDocument = List.of(
                     NotificationDocumentInt.builder()
                             .ref(NotificationDocumentInt.Ref.builder()
-                                    .key(Base64Utils.encodeToString(fileDoc.getBytes()))
+                                    .key(Base64.getEncoder().encodeToString(fileDoc.getBytes()))
                                     .versionToken("v01_doc00")
                                     .build()
                             )
                             .digests(NotificationDocumentInt.Digests.builder()
-                                    .sha256(Base64Utils.encodeToString(fileDoc.getBytes()))
+                                    .sha256(Base64.getEncoder().encodeToString(fileDoc.getBytes()))
                                     .build()
                             )
                             .build()

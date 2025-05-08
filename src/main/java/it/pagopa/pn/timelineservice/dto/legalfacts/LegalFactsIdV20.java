@@ -1,12 +1,10 @@
 package it.pagopa.pn.timelineservice.dto.legalfacts;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.annotation.Generated;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 
 /**
@@ -16,7 +14,6 @@ import java.util.Objects;
 @lombok.NoArgsConstructor
 @lombok.AllArgsConstructor
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2025-04-23T15:16:43.168944600+02:00[Europe/Rome]")
 @lombok.ToString
 public class LegalFactsIdV20 {
 
