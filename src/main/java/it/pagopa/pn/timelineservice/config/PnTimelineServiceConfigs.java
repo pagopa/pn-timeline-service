@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Configuration
-@ConfigurationProperties( prefix = "pn.delivery-push")
+@ConfigurationProperties( prefix = "pn.timeline-service")
 @Data
 @Import({SharedAutoConfiguration.class})
 public class PnTimelineServiceConfigs {
@@ -40,7 +40,7 @@ public class PnTimelineServiceConfigs {
     private String safeStorageBaseUrl;
 
     private String safeStorageCxId;
-    
+
     private String safeStorageCxIdUpdatemetadata;
 
     private String userAttributesBaseUrl;
@@ -56,7 +56,7 @@ public class PnTimelineServiceConfigs {
     private Duration actionPoolBeforeDelay;
 
     private Webhook webhook;
-    
+
     private Webapp webapp;
 
     private TimelineDao timelineDao;
@@ -70,7 +70,7 @@ public class PnTimelineServiceConfigs {
     private WebhookDao webhookDao;
 
     private FutureActionDao futureActionDao;
-    
+
     private LastPollForFutureActionDao lastPollForFutureActionDao;
 
     private DocumentCreationRequestDao documentCreationRequestDao;
@@ -90,19 +90,19 @@ public class PnTimelineServiceConfigs {
     private String emdIntegrationBaseUrl;
 
     private String addressManagerApiKey;
-    
+
     private Duration[] validationRetryIntervals;
 
     private DataSize checkPdfSize;
 
     private boolean checkPdfValidEnabled;
-    
+
     private String actionTtlDays;
-    
+
     private boolean checkCfEnabled;
 
     private String f24CxId;
-    
+
     private int pagoPaNotificationBaseCost;
 
     private int pagoPaNotificationFee;
@@ -157,9 +157,9 @@ public class PnTimelineServiceConfigs {
         private String executedActions;
 
         private String toExternalChannelPec;
-        
+
         private String toExternalChannelEmail;
-        
+
         private String toExternalChannelPaper;
 
         private String fromExternalChannel;
@@ -171,7 +171,7 @@ public class PnTimelineServiceConfigs {
         private String addressManagerEvents;
 
         private String f24Events;
-        
+
         private String deliveryValidationEvents;
     }
 
