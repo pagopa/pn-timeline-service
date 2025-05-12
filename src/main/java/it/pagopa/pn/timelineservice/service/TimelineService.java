@@ -31,9 +31,6 @@ public interface TimelineService {
 
     Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, int recIndex);
 
-    void enrichTimelineElementWithConfidentialInformation(TimelineElementDetailsInt details,
-                                                          ConfidentialTimelineElementDtoInt confidentialDto);
-
     NotificationHistoryResponse getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
 
 }

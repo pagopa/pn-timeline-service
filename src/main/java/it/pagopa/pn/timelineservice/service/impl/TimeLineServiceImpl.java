@@ -393,24 +393,6 @@ public class TimeLineServiceImpl implements TimelineService {
 
     }
 
-//    @Override
-//    public Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, String recipientId) {
-//
-//        return notificationService.getNotificationByIunReactive(iun)
-//                .map(notificationRecipientInts -> getRecipientIndex(notificationRecipientInts, recipientId))
-//                .map(recIndex -> getTimelineElementDetailForSpecificRecipient(iun, recIndex, false, PROBABLE_SCHEDULING_ANALOG_DATE, ProbableDateAnalogWorkflowDetailsInt.class))
-//                .flatMap(optionalDetails -> optionalDetails.map(Mono::just).orElseGet(Mono::empty))
-//                .map(details -> new ProbableSchedulingAnalogDateDto()
-//                        .iun(iun)
-//                        .recIndex(details.getRecIndex())
-//                        .schedulingAnalogDate(details.getSchedulingAnalogDate()))
-//                .switchIfEmpty(Mono.error(() -> {
-//                    String message = String.format("ProbableSchedulingDateAnalog not found for iun: %s, recipientId: %s", iun, recipientId);
-//                    return new PnNotFoundException("Not found", message, ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND);
-//                }));
-//
-//    }
-
     @Override
     public Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, int recIndex) {
         return Mono.justOrEmpty(getTimelineElementDetailForSpecificRecipient(
@@ -430,18 +412,7 @@ public class TimeLineServiceImpl implements TimelineService {
             }));
     }
 
-    private int getRecipientIndex(NotificationInt notificationInt, String recipientId) {
-        for (int i = 0; i < notificationInt.getRecipients().size(); i++) {
-            if (notificationInt.getRecipients().get(i).getInternalId().equals(recipientId)) {
-                return i;
-            }
-        }
-
-        throw new PnValidationRecipientIdNotValidException(String.format("Recipient %s not found", recipientId));
-    }
-
-    @Override
-    public void enrichTimelineElementWithConfidentialInformation(TimelineElementDetailsInt details,
+    private void enrichTimelineElementWithConfidentialInformation(TimelineElementDetailsInt details,
                                                                  ConfidentialTimelineElementDtoInt confidentialDto) {
 
         if (details instanceof CourtesyAddressRelatedTimelineElement courtesyAddressRelatedTimelineElement && confidentialDto.getDigitalAddress() != null) {
