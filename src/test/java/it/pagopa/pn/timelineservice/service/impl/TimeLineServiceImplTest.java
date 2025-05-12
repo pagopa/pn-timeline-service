@@ -4,21 +4,23 @@ import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.*;
+import it.pagopa.pn.timelineservice.dto.address.CourtesyDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.*;
+import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
+import it.pagopa.pn.timelineservice.exceptions.PnValidationRecipientIdNotValidException;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
-import it.pagopa.pn.timelineservice.service.NotificationService;
 import it.pagopa.pn.timelineservice.service.StatusService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
@@ -39,6 +41,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Locale.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
@@ -51,7 +54,6 @@ class TimeLineServiceImplTest {
     private TimeLineServiceImpl timeLineService;
     private StatusService statusService;
     private ConfidentialInformationService confidentialInformationService;
-    private NotificationService notificationService;
     private SimpleLock simpleLock;
     private LockProvider lockProvider;
     private FeatureEnabledUtils featureEnabledUtils;
@@ -67,7 +69,6 @@ class TimeLineServiceImplTest {
         statusService = Mockito.mock( StatusService.class );
         featureEnabledUtils = Mockito.mock(FeatureEnabledUtils.class);
         confidentialInformationService = Mockito.mock( ConfidentialInformationService.class );
-        notificationService = Mockito.mock(NotificationService.class);
         pnTimelineServiceConfigs = Mockito.mock(PnTimelineServiceConfigs.class);
 
         Mockito.when(pnTimelineServiceConfigs.getStartWriteBusinessTimestamp()).thenReturn(Instant.now().plus(Duration.ofDays(1)));
@@ -79,7 +80,7 @@ class TimeLineServiceImplTest {
         lockProvider = Mockito.mock(LockProvider.class);
         Mockito.when(pnTimelineServiceConfigs.getTimelineLockDuration()).thenReturn(Duration.ofSeconds(5));
 
-        timeLineService = new TimeLineServiceImpl(timelineDao , timelineCounterDao , statusUtils, confidentialInformationService, statusService, notificationService, smartMapper, lockProvider, pnTimelineServiceConfigs);
+        timeLineService = new TimeLineServiceImpl(timelineDao , timelineCounterDao , statusUtils, confidentialInformationService, statusService, smartMapper, lockProvider, pnTimelineServiceConfigs);
         //timeLineService.setSchedulerService(schedulerService);
 
     }
@@ -171,6 +172,22 @@ class TimeLineServiceImplTest {
         Mockito.verify(timelineDao).addTimelineElementIfAbsent(dtoWithStatusInfo);
         Mockito.verify(statusService).getStatus(newElement, setTimelineElement, notification);
         Mockito.verify(confidentialInformationService).saveTimelineConfidentialInformation(newElement);
+    }
+
+    @Test
+    void addTimelineElementWithNullStatusInfo() {
+        // GIVEN
+        String iun = "iun_12345";
+        String elementId = "elementId_12345";
+        NotificationInt notification = getNotification(iun);
+        TimelineElementInternal newElement = getAarGenerationTimelineElement(iun, elementId);
+
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any()))
+               .thenThrow(new PnInternalException("Error", "test"));
+
+        // WHEN & THEN
+        assertThrows(PnInternalException.class, () -> timeLineService.addTimelineElement(newElement, notification));
+        Mockito.verify(statusService).getStatus(newElement, new HashSet<>(), notification);
     }
 
     @Test
@@ -394,7 +411,6 @@ class TimeLineServiceImplTest {
         Assertions.assertEquals(timestampLastElementInTimeline, actualStatusInfo.getStatusChangeTimestamp());
     }
 
-
     @Test
     void getSendPaperFeedbackTimelineElement(){
         //GIVEN
@@ -403,7 +419,7 @@ class TimeLineServiceImplTest {
 
         TimelineElementInternal daoElement = getSendDigitalTimelineElement(iun, timelineId);
 
-        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean()))
                 .thenReturn(Optional.of(daoElement));
 
         ConfidentialTimelineElementDtoInt confidentialTimelineElementDtoInt = ConfidentialTimelineElementDtoInt.builder()
@@ -414,7 +430,7 @@ class TimeLineServiceImplTest {
                 .thenReturn(Optional.of(confidentialTimelineElementDtoInt));
 
         //WHEN
-        Optional<TimelineElementInternal> retrievedElement = timeLineService.getTimelineElement(iun, timelineId);
+        Optional<TimelineElementInternal> retrievedElement = timeLineService.getTimelineElement(iun, timelineId, false);
 
         //THEN
         Assertions.assertTrue(retrievedElement.isPresent());
@@ -432,7 +448,7 @@ class TimeLineServiceImplTest {
         String timelineId = "idTimeline";
 
         TimelineElementInternal daoElement = getSendDigitalTimelineElement(iun, timelineId);
-        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean()))
                 .thenReturn(Optional.of(daoElement));
 
         ConfidentialTimelineElementDtoInt confidentialTimelineElementDtoInt = ConfidentialTimelineElementDtoInt.builder()
@@ -459,7 +475,7 @@ class TimeLineServiceImplTest {
         String iun = "iun";
         String timelineId = "idTimeline";
 
-        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean()))
                 .thenReturn(Optional.empty());
 
         //WHEN
@@ -476,14 +492,14 @@ class TimeLineServiceImplTest {
         String timelineId = "idTimeline";
 
         TimelineElementInternal daoElement = getScheduleAnalogWorkflowTimelineElement(iun, timelineId);
-        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean()))
                 .thenReturn(Optional.of(daoElement));
 
         Mockito.when(confidentialInformationService.getTimelineElementConfidentialInformation(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(Optional.empty());
 
         //WHEN
-        Optional<TimelineElementInternal> retrievedElement = timeLineService.getTimelineElement(iun, timelineId);
+        Optional<TimelineElementInternal> retrievedElement = timeLineService.getTimelineElement(iun, timelineId,false);
 
         //THEN
         Assertions.assertTrue(retrievedElement.isPresent());
@@ -536,7 +552,7 @@ class TimeLineServiceImplTest {
                 .thenReturn(Optional.of(mapConfInf));
 
         //WHEN
-        Set<TimelineElementInternal> retrievedElements = timeLineService.getTimeline(iun, true);
+        Set<TimelineElementInternal> retrievedElements = timeLineService.getTimeline(iun, null, true, false);
 
         //THEN
         Assertions.assertFalse(retrievedElements.isEmpty());
@@ -560,6 +576,50 @@ class TimeLineServiceImplTest {
         Assertions.assertEquals(details1, sendPaperFeedbackConfInf.getDetails());
         Assertions.assertEquals(details1.getPhysicalAddress() , confInfPhysical.getPhysicalAddress());
     }
+
+    @Test
+    void getTimelineFilteredByElementIdTest() {
+        // GIVEN
+        String iun = "iun_12345";
+        String timelineId = "timelineId_12345";
+        Set<TimelineElementInternal> expectedTimelineElements = Set.of(
+                TimelineElementInternal.builder().elementId(timelineId).iun(iun).build()
+        );
+
+        Mockito.when(timelineDao.getTimelineFilteredByElementId(iun, timelineId))
+                .thenReturn(expectedTimelineElements);
+
+        // WHEN
+        Set<TimelineElementInternal> result = timeLineService.getTimeline(iun, timelineId, false, false);
+
+        // THEN
+        Assertions.assertEquals(expectedTimelineElements, result);
+        Mockito.verify(timelineDao).getTimelineFilteredByElementId(iun, timelineId);
+        Mockito.verifyNoMoreInteractions(timelineDao);
+    }
+
+    @Test
+    void getTimelineStronglyTest() {
+        // GIVEN
+        String iun = "iun_12345";
+        Set<TimelineElementInternal> expectedTimelineElements = Set.of(
+                TimelineElementInternal.builder().elementId("timelineId_1").iun(iun).build(),
+                TimelineElementInternal.builder().elementId("timelineId_2").iun(iun).build()
+        );
+
+        Mockito.when(timelineDao.getTimelineStrongly(iun))
+                .thenReturn(expectedTimelineElements);
+
+        // WHEN
+        Set<TimelineElementInternal> result = timeLineService.getTimeline(iun, null, false, true);
+
+        // THEN
+        Assertions.assertEquals(expectedTimelineElements, result);
+        Mockito.verify(timelineDao).getTimelineStrongly(iun);
+        Mockito.verifyNoMoreInteractions(timelineDao);
+    }
+
+
 
     //TODO: rivedere i test quando definita openapi
     /*@Test
@@ -822,20 +882,13 @@ class TimeLineServiceImplTest {
                         .build())
                 .build();
 
-        Mockito.when(notificationService.getNotificationByIunReactive(iun))
-                .thenReturn(Mono.just(NotificationInt.builder()
-                        .recipients(List.of(NotificationRecipientInt.builder()
-                                .internalId(recipientId)
-                                .build()))
-                        .build()));
-
         Mockito.when(timelineDao.getTimeline(iun))
                 .thenReturn(Set.of(timelineElementExpected));
 
         Mockito.when(confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineElementIdExpected))
                 .thenReturn(Optional.empty());
 
-        ProbableSchedulingAnalogDateDto schedulingAnalogDateActual = timeLineService.getSchedulingAnalogDate(iun, recipientId).block();
+        ProbableSchedulingAnalogDateDto schedulingAnalogDateActual = timeLineService.getSchedulingAnalogDate(iun, 0).block();
 
         assertThat(schedulingAnalogDateActual.getSchedulingAnalogDate())
                 .isEqualTo(((ProbableDateAnalogWorkflowDetailsInt) timelineElementExpected.getDetails()).getSchedulingAnalogDate());
@@ -848,25 +901,17 @@ class TimeLineServiceImplTest {
 
     @Test
     void getSchedulingAnalogDateNotFoundTest() {
+        // GIVEN
         final String iun = "iun1";
-        final String recipientId = "cxId";
-
-        Mockito.when(notificationService.getNotificationByIunReactive(iun))
-                .thenReturn(Mono.just(NotificationInt.builder()
-                        .recipients(List.of(NotificationRecipientInt.builder()
-                                .internalId(recipientId)
-                                .build()))
-                        .build()));
+        final int recIndex = 0;
 
         Mockito.when(timelineDao.getTimeline(iun))
-                .thenReturn(Set.of());
+                .thenReturn(Collections.emptySet());
 
-
-        Executable executable = () -> timeLineService.getSchedulingAnalogDate(iun, recipientId).block();
+        // WHEN & THEN
+        Executable executable = () -> timeLineService.getSchedulingAnalogDate(iun, recIndex).block();
         Assertions.assertThrows(PnNotFoundException.class, executable);
-
     }
-
 
     @Test
     void retrieveAndIncrementCounterForTimelineEventTest() {
@@ -1065,4 +1110,141 @@ class TimeLineServiceImplTest {
                 ))
                 .build();
     }
+
+    @Test
+    void getTimelineElementForSpecificRecipientTest() {
+        // GIVEN
+        String iun = "iun_12345";
+        int recIndex = 0;
+        TimelineElementCategoryInt category = TimelineElementCategoryInt.SEND_ANALOG_DOMICILE;
+
+        TimelineElementInternal expectedElement = TimelineElementInternal.builder()
+                .elementId("elementId_12345")
+                .iun(iun)
+                .category(category)
+                .details(SendAnalogDetailsInt.builder()
+                        .recIndex(recIndex)
+                        .build())
+                .build();
+
+        Mockito.when(timelineDao.getTimeline(iun))
+                .thenReturn(Set.of(expectedElement));
+
+        // WHEN
+        Optional<TimelineElementInternal> result = timeLineService.getTimelineElementForSpecificRecipient(iun, recIndex, category);
+
+        // THEN
+        Assertions.assertTrue(result.isPresent());
+        Assertions.assertEquals(expectedElement, result.get());
+        Assertions.assertEquals(recIndex, ((RecipientRelatedTimelineElementDetails) result.get().getDetails()).getRecIndex());
+    }
+
+    @Test
+    void getTimelineElementDetailForSpecificRecipientWithConfidentialInfo() {
+        // GIVEN
+        String iun = "iun_12345";
+        int recIndex = 0;
+        TimelineElementCategoryInt category = TimelineElementCategoryInt.SEND_ANALOG_DOMICILE;
+
+        TimelineElementInternal timelineElement = TimelineElementInternal.builder()
+                .elementId("elementId_12345")
+                .iun(iun)
+                .category(category)
+                .details(SendAnalogDetailsInt.builder()
+                        .recIndex(recIndex)
+                        .build())
+                .build();
+
+        ConfidentialTimelineElementDtoInt confidentialDto = ConfidentialTimelineElementDtoInt.builder()
+                .timelineElementId("elementId_12345")
+                .physicalAddress(PhysicalAddressInt.builder()
+                        .municipality("Test Municipality")
+                        .province("Test Province")
+                        .build())
+                .build();
+
+        Mockito.when(timelineDao.getTimeline(iun))
+                .thenReturn(Set.of(timelineElement));
+
+        Mockito.when(confidentialInformationService.getTimelineElementConfidentialInformation(iun, "elementId_12345"))
+                .thenReturn(Optional.of(confidentialDto));
+
+        // WHEN
+        Optional<SendAnalogDetailsInt> result = timeLineService.getTimelineElementDetailForSpecificRecipient(
+                iun, recIndex, true, category, SendAnalogDetailsInt.class);
+
+        // THEN
+        Assertions.assertTrue(result.isPresent());
+        SendAnalogDetailsInt details = result.get();
+        Assertions.assertEquals(recIndex, details.getRecIndex());
+        Assertions.assertEquals("Test Municipality", details.getPhysicalAddress().getMunicipality());
+        Assertions.assertEquals("Test Province", details.getPhysicalAddress().getProvince());
+
+        Mockito.verify(confidentialInformationService).getTimelineElementConfidentialInformation(iun, "elementId_12345");
+        Mockito.verifyNoMoreInteractions(confidentialInformationService);
+    }
+
+    @Test
+    void isNotDiagnosticTimelineElementTest() {
+        // GIVEN
+        TimelineElementInternal elementWithNullCategory = TimelineElementInternal.builder()
+                .category(null)
+                .build();
+
+        TimelineElementInternal elementWithValidCategory = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        // WHEN
+        boolean resultForNullCategory = timeLineService.isNotDiagnosticTimelineElement(elementWithNullCategory);
+        boolean resultForValidCategory = timeLineService.isNotDiagnosticTimelineElement(elementWithValidCategory);
+
+        // THEN
+        Assertions.assertTrue(resultForNullCategory, "Element with null category should return true");
+        Assertions.assertTrue(resultForValidCategory, "Element with valid category should return true");
+    }
+
+    @Test
+    void enrichTimelineElementWithConfidentialInformation_CourtesyAddressRelatedTimelineElement() {
+        // GIVEN
+        CourtesyDigitalAddressInt originalAddress = CourtesyDigitalAddressInt.builder()
+                .address("original@example.com")
+                .build();
+
+        CourtesyAddressRelatedTimelineElement details = new SendCourtesyMessageDetailsInt();
+        details.setDigitalAddress(originalAddress);
+
+        ConfidentialTimelineElementDtoInt confidentialDto = ConfidentialTimelineElementDtoInt.builder()
+                .digitalAddress("confidential@example.com")
+                .build();
+
+        // WHEN
+        timeLineService.enrichTimelineElementWithConfidentialInformation((SendCourtesyMessageDetailsInt)details, confidentialDto);
+
+        // THEN
+        Assertions.assertNotNull(details.getDigitalAddress());
+        Assertions.assertEquals("confidential@example.com", details.getDigitalAddress().getAddress());
+    }
+
+    @Test
+    void enrichTimelineElementWithConfidentialInformation_NewAddressRelatedTimelineElement() {
+        // GIVEN
+        NewAddressRelatedTimelineElement details = new SendAnalogFeedbackDetailsInt();
+        PhysicalAddressInt originalAddress = PhysicalAddressInt.builder()
+                .address("Original Address")
+                .build();
+        details.setNewAddress(originalAddress);
+
+        ConfidentialTimelineElementDtoInt confidentialDto = ConfidentialTimelineElementDtoInt.builder()
+                .digitalAddress("confidential@example.com")
+                .build();
+
+        // WHEN
+        timeLineService.enrichTimelineElementWithConfidentialInformation((SendAnalogFeedbackDetailsInt)details, confidentialDto);
+
+        // THEN
+        Assertions.assertNotNull(details.getNewAddress());
+        Assertions.assertEquals(originalAddress.getAddress(), details.getNewAddress().getAddress());
+    }
+
 }
