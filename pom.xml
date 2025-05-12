@@ -96,7 +96,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-dynamodb2</artifactId>
-            <version>4.42.0</version>
+            <version>6.6.1</version>
         </dependency>
         <dependency>
             <groupId>org.modelmapper</groupId>
