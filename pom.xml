@@ -250,6 +250,9 @@
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>true</generateSupportingFiles>
                             <!--                            <templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>-->
+                            <typeMappings>
+                                <typeMapping>OffsetDateTime=java.time.Instant</typeMapping>
+                            </typeMappings>
                             <configOptions>
                                 <useJakartaEe>true</useJakartaEe>
                                 <openApiNullable>false</openApiNullable>
@@ -257,12 +260,11 @@
                                     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)
                                 </additionalModelTypeAnnotations>
                             </configOptions>
+                            <modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.datavault.model
+                            </modelPackage>
                             <apiPackage>
                                 ${project.groupId}.timelineservice.generated.openapi.msclient.datavault-reactive.api
                             </apiPackage>
-                            <modelPackage>
-                                ${project.groupId}.timelineservice.generated.openapi.msclient.datavault.model
-                            </modelPackage>
                         </configuration>
                     </execution>
                     <execution>
