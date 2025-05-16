@@ -12,6 +12,7 @@ import it.pagopa.pn.timelineservice.dto.address.CourtesyDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
+import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
@@ -57,8 +58,6 @@ public class TimeLineServiceImpl implements TimelineService {
     private final StatusUtils statusUtils;
     private final ConfidentialInformationService confidentialInformationService;
     private final StatusService statusService;
-
-    private final NotificationService notificationService;
     private final SmartMapper smartMapper;
     private final LockProvider lockProvider;
     private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
@@ -211,6 +210,8 @@ public class TimeLineServiceImpl implements TimelineService {
                             .thenReturn(timelineElementInt)
                     );
         }
+        return Optional.empty();
+    }
 
     public Long retrieveAndIncrementCounterForTimelineEvent(String timelineId) {
         return this.timelineCounterEntityDao.getCounter(timelineId).getCounter();
@@ -228,6 +229,20 @@ public class TimeLineServiceImpl implements TimelineService {
                         ))
                         .thenReturn(timelineDetailsClass.cast(timelineElement.getDetails()))
                 );
+        Optional<TimelineElementInternal> timelineElementOpt = this.timelineDao.getTimelineElement(iun, timelineId, false);
+        if (timelineElementOpt.isPresent()) {
+            TimelineElementInternal timelineElement = timelineElementOpt.get();
+
+            confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineId).ifPresent(
+                    confidentialDto -> enrichTimelineElementWithConfidentialInformation(
+                            timelineElement.getDetails(), confidentialDto
+                    )
+            );
+
+            return Optional.of(timelineDetailsClass.cast(timelineElement.getDetails()));
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -254,6 +269,7 @@ public class TimeLineServiceImpl implements TimelineService {
                 .stream()
                 .filter(x -> x.getCategory().equals(category))
                 .filter(x -> {
+
                     if (timelineDetailsClass.isInstance(x.getDetails()) && x.getDetails() instanceof RecipientRelatedTimelineElementDetails recRelatedTimelineElementDetails) {
                         return recRelatedTimelineElementDetails.getRecIndex() == recIndex;
                     }
@@ -272,15 +288,6 @@ public class TimeLineServiceImpl implements TimelineService {
                 }
             });
     }
-
-    @Override
-    public Set<TimelineElementInternal> getTimeline(String iun, boolean confidentialInfoRequired) {
-        log.debug("GetTimeline - iun={} ", iun);
-        Set<TimelineElementInternal> setTimelineElements = this.timelineDao.getTimeline(iun);
-        setConfidentialInfo(confidentialInfoRequired, iun, setTimelineElements);
-        return setTimelineElements;
-    }
-
     private void setConfidentialInfo(boolean confidentialInfoRequired, String iun, Set<TimelineElementInternal> setTimelineElements) {
                 if (confidentialInfoRequired) {
                     confidentialInformationService.getTimelineConfidentialInformation(iun)
@@ -296,19 +303,31 @@ public class TimeLineServiceImpl implements TimelineService {
                         .subscribe();
                 }
             }
-
-    @Override
-    public Set<TimelineElementInternal> getTimelineStrongly(String iun, boolean confidentialInfoRequired) {
-        log.debug("GetTimelineStrongly - iun={} ", iun);
-        Set<TimelineElementInternal> setTimelineElements = this.timelineDao.getTimelineStrongly(iun);
-        setConfidentialInfo(confidentialInfoRequired, iun, setTimelineElements);
-        return setTimelineElements;
+        }
     }
 
     @Override
-    public Set<TimelineElementInternal> getTimelineByIunTimelineId(String iun, String timelineId, boolean confidentialInfoRequired) {
-        log.debug("getTimelineByIunTimelineId - iun={} timelineId={}", iun, timelineId);
-        Set<TimelineElementInternal> setTimelineElements = this.timelineDao.getTimelineFilteredByElementId(iun, timelineId);
+    public Optional<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly) {
+        log.debug("GetTimelineElement - IUN={} and timelineId={}", iun, timelineId);
+
+        Optional<TimelineElementInternal> timelineElementInternalOpt = timelineDao.getTimelineElement(iun, timelineId, strongly);
+        return addConfidentialInformationIfTimelineElementIsPresent(iun, timelineId, timelineElementInternalOpt);
+    }
+
+    @Override
+    public Set<TimelineElementInternal> getTimeline(String iun, String timelineId, boolean confidentialInfoRequired, boolean strongly) {
+        log.debug("getTimeline - iun={} timelineId={} strongly={}", iun, timelineId, strongly);
+
+        Set<TimelineElementInternal> setTimelineElements;
+
+        if (timelineId != null) {
+            setTimelineElements = timelineDao.getTimelineFilteredByElementId(iun, timelineId);
+        } else if (strongly) {
+            setTimelineElements = timelineDao.getTimelineStrongly(iun);
+        } else {
+            setTimelineElements = timelineDao.getTimeline(iun);
+        }
+
         setConfidentialInfo(confidentialInfoRequired, iun, setTimelineElements);
         return setTimelineElements;
     }
@@ -362,7 +381,7 @@ public class TimeLineServiceImpl implements TimelineService {
         }
     }
 
-    /*private NotificationHistoryResponse createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,
+    private NotificationHistoryResponse createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,
                                                        NotificationStatusInt currentStatus) {
 
         var timelineList = timelineElements.stream()
@@ -381,7 +400,7 @@ public class TimeLineServiceImpl implements TimelineService {
                 )
                 .notificationStatus(currentStatus != null ? NotificationStatusV26.valueOf(currentStatus.getValue()) : null)
                 .build();
-    }*/
+    }
 
     public boolean isNotDiagnosticTimelineElement(TimelineElementInternal timelineElementInternal) {
         if (timelineElementInternal.getCategory() == null) {
@@ -394,108 +413,25 @@ public class TimeLineServiceImpl implements TimelineService {
     }
 
     @Override
-    public Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, String recipientId) {
-        return notificationService.getNotificationByIunReactive(iun)
-                .map(notificationRecipientInt -> getRecipientIndex(notificationRecipientInt, recipientId))
-                .flatMap(recIndex -> getTimelineElementDetailForSpecificRecipient(iun, recIndex, false, PROBABLE_SCHEDULING_ANALOG_DATE, ProbableDateAnalogWorkflowDetailsInt.class))
-                .flatMap(optionalDetails -> Mono.just(optionalDetails).switchIfEmpty(Mono.empty())
-                .map(details -> new ProbableSchedulingAnalogDateDto()
-                        .iun(iun)
-                        .recIndex(details.getRecIndex())
-                        .schedulingAnalogDate(details.getSchedulingAnalogDate()))
-                .switchIfEmpty(Mono.error(() -> {
-                    String message = String.format("ProbableSchedulingDateAnalog not found for iun: %s, recipientId: %s", iun, recipientId);
-                    return new PnNotFoundException("Not found", message, ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND);
-                })));
+    public Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, int recIndex) {
+        return Mono.justOrEmpty(getTimelineElementDetailForSpecificRecipient(
+                iun,
+                recIndex,
+                false,
+                PROBABLE_SCHEDULING_ANALOG_DATE,
+                ProbableDateAnalogWorkflowDetailsInt.class
+            ))
+            .map(details -> new ProbableSchedulingAnalogDateDto()
+                    .iun(iun)
+                    .recIndex(details.getRecIndex())
+                    .schedulingAnalogDate(details.getSchedulingAnalogDate()))
+            .switchIfEmpty(Mono.error(() -> {
+                String message = String.format("ProbableSchedulingDateAnalog not found for iun: %s, recIndex: %d", iun, recIndex);
+                return new PnNotFoundException("Not found", message, ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND);
+            }));
     }
 
-    private int getRecipientIndex(NotificationInt notificationInt, String recipientId) {
-        for (int i = 0; i < notificationInt.getRecipients().size(); i++) {
-            if (notificationInt.getRecipients().get(i).getInternalId().equals(recipientId)) {
-                return i;
-            }
-        }
 
-        throw new PnValidationRecipientIdNotValidException(String.format("Recipient %s not found", recipientId));
-    }
-
-    @Override
-    public void enrichTimelineElementWithConfidentialInformation(TimelineElementDetailsInt details,
-                                                                 ConfidentialTimelineElementDtoInt confidentialDto) {
-
-        if (details instanceof CourtesyAddressRelatedTimelineElement courtesyAddressRelatedTimelineElement && confidentialDto.getDigitalAddress() != null) {
-            CourtesyDigitalAddressInt address = courtesyAddressRelatedTimelineElement.getDigitalAddress();
-
-            address = getCourtesyDigitalAddress(confidentialDto, address);
-            courtesyAddressRelatedTimelineElement.setDigitalAddress(address);
-        }
-
-        if (details instanceof DigitalAddressRelatedTimelineElement digitalAddressRelatedTimelineElement && confidentialDto.getDigitalAddress() != null) {
-
-            LegalDigitalAddressInt address = digitalAddressRelatedTimelineElement.getDigitalAddress();
-
-            address = getDigitalAddress(confidentialDto, address);
-
-            digitalAddressRelatedTimelineElement.setDigitalAddress(address);
-        }
-
-        if (details instanceof PhysicalAddressRelatedTimelineElement physicalAddressRelatedTimelineElement && confidentialDto.getPhysicalAddress() != null) {
-            PhysicalAddressInt physicalAddress = physicalAddressRelatedTimelineElement.getPhysicalAddress();
-
-            physicalAddress = getPhysicalAddress(physicalAddress, confidentialDto.getPhysicalAddress());
-
-            physicalAddressRelatedTimelineElement.setPhysicalAddress(physicalAddress);
-        }
-
-        if (details instanceof NewAddressRelatedTimelineElement newAddressRelatedTimelineElement && confidentialDto.getNewPhysicalAddress() != null) {
-
-            PhysicalAddressInt newAddress = newAddressRelatedTimelineElement.getNewAddress();
-
-            newAddress = getPhysicalAddress(newAddress, confidentialDto.getNewPhysicalAddress());
-
-            newAddressRelatedTimelineElement.setNewAddress(newAddress);
-        }
-
-        if (details instanceof PersonalInformationRelatedTimelineElement personalInformationRelatedTimelineElement) {
-            personalInformationRelatedTimelineElement.setTaxId(confidentialDto.getTaxId());
-            personalInformationRelatedTimelineElement.setDenomination(confidentialDto.getDenomination());
-        }
-    }
-
-    private LegalDigitalAddressInt getDigitalAddress(ConfidentialTimelineElementDtoInt confidentialDto, LegalDigitalAddressInt address) {
-        if (address == null) {
-            address = LegalDigitalAddressInt.builder().build();
-        }
-
-        address = address.toBuilder().address(confidentialDto.getDigitalAddress()).build();
-        return address;
-    }
-
-    private CourtesyDigitalAddressInt getCourtesyDigitalAddress(ConfidentialTimelineElementDtoInt confidentialDto, CourtesyDigitalAddressInt address) {
-        if (address == null) {
-            address = CourtesyDigitalAddressInt.builder().build();
-        }
-
-        address = address.toBuilder().address(confidentialDto.getDigitalAddress()).build();
-        return address;
-    }
-
-    private PhysicalAddressInt getPhysicalAddress(PhysicalAddressInt physicalAddress, PhysicalAddressInt physicalAddress2) {
-        if (physicalAddress == null) {
-            physicalAddress = PhysicalAddressInt.builder().build();
-        }
-
-        return physicalAddress.toBuilder()
-                .at(physicalAddress2.getAt())
-                .address(physicalAddress2.getAddress())
-                .municipality(physicalAddress2.getMunicipality())
-                .province(physicalAddress2.getProvince())
-                .addressDetails(physicalAddress2.getAddressDetails())
-                .zip(physicalAddress2.getZip())
-                .municipalityDetails(physicalAddress2.getMunicipalityDetails())
-                .foreignState(physicalAddress2.getForeignState())
-                .build();
-    }
 
     private TimelineElementInternal enrichWithStatusInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline,
                                                          StatusService.NotificationStatusUpdate notificationStatuses, Instant notificationSentAt) {

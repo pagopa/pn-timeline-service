@@ -16,8 +16,6 @@ import java.time.Instant;
 @Import({SharedAutoConfiguration.class})
 public class PnTimelineServiceConfigs {
 
-    private String deliveryBaseUrl;
-
     private String dataVaultBaseUrl;
 
     private TimelineDao timelineDao;

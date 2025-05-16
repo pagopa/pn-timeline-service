@@ -11,9 +11,7 @@ public interface TimelineDao {
 
     void addTimelineElementIfAbsent(TimelineElementInternal dto);
     
-    Optional<TimelineElementInternal> getTimelineElement(String iun, String timelineId);
-
-    Optional<TimelineElementInternal> getTimelineElementStrongly(String iun, String timelineId);
+    Optional<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly);
 
     Set<TimelineElementInternal> getTimeline(String iun);
 
