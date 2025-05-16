@@ -3,20 +3,23 @@ package it.pagopa.pn.timelineservice.service.impl;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
-import it.pagopa.pn.timelineservice.dto.*;
+import it.pagopa.pn.timelineservice.dto.NotificationHistoryResponse;
+import it.pagopa.pn.timelineservice.dto.NotificationStatusHistoryElement;
+import it.pagopa.pn.timelineservice.dto.ProbableSchedulingAnalogDateDto;
 import it.pagopa.pn.timelineservice.dto.address.CourtesyDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.*;
+import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
+import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationRecipientInt;
+import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationSenderInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
-import it.pagopa.pn.timelineservice.exceptions.PnValidationRecipientIdNotValidException;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.delivery.model.NotificationStatusV26;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -35,17 +38,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Locale.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 class TimeLineServiceImplTest {
     private TimelineDao timelineDao;

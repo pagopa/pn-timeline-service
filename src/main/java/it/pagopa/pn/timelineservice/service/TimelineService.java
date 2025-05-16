@@ -2,11 +2,9 @@ package it.pagopa.pn.timelineservice.service;
 
 import it.pagopa.pn.timelineservice.dto.NotificationHistoryResponse;
 import it.pagopa.pn.timelineservice.dto.ProbableSchedulingAnalogDateDto;
+import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
-import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;

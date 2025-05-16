@@ -7,18 +7,20 @@ import it.pagopa.pn.commons.log.PnAuditLogEvent;
 import it.pagopa.pn.commons.log.PnAuditLogEventType;
 import it.pagopa.pn.commons.utils.MDCUtils;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
-import it.pagopa.pn.timelineservice.dto.*;
-import it.pagopa.pn.timelineservice.dto.address.CourtesyDigitalAddressInt;
-import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
-import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
+import it.pagopa.pn.timelineservice.dto.NotificationHistoryResponse;
+import it.pagopa.pn.timelineservice.dto.NotificationStatusHistoryElementMapper;
+import it.pagopa.pn.timelineservice.dto.ProbableSchedulingAnalogDateDto;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
+import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.ProbableDateAnalogWorkflowDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
-import it.pagopa.pn.timelineservice.exceptions.PnValidationRecipientIdNotValidException;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.delivery.model.NotificationStatusV26;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -26,9 +28,8 @@ import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.StatusService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
-import it.pagopa.pn.timelineservice.utils.StatusUtils;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
 import it.pagopa.pn.timelineservice.utils.MdcKey;
+import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockConfiguration;
@@ -45,6 +46,7 @@ import java.util.*;
 import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE;
 import static it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED;
 import static it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND;
+import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
 import static it.pagopa.pn.timelineservice.utils.StatusUtils.COMPLETED_DELIVERY_WORKFLOW_CATEGORY;
 
 
@@ -412,82 +414,7 @@ public class TimeLineServiceImpl implements TimelineService {
             }));
     }
 
-    private void enrichTimelineElementWithConfidentialInformation(TimelineElementDetailsInt details,
-                                                                 ConfidentialTimelineElementDtoInt confidentialDto) {
 
-        if (details instanceof CourtesyAddressRelatedTimelineElement courtesyAddressRelatedTimelineElement && confidentialDto.getDigitalAddress() != null) {
-            CourtesyDigitalAddressInt address = courtesyAddressRelatedTimelineElement.getDigitalAddress();
-
-            address = getCourtesyDigitalAddress(confidentialDto, address);
-            courtesyAddressRelatedTimelineElement.setDigitalAddress(address);
-        }
-
-        if (details instanceof DigitalAddressRelatedTimelineElement digitalAddressRelatedTimelineElement && confidentialDto.getDigitalAddress() != null) {
-
-            LegalDigitalAddressInt address = digitalAddressRelatedTimelineElement.getDigitalAddress();
-
-            address = getDigitalAddress(confidentialDto, address);
-
-            digitalAddressRelatedTimelineElement.setDigitalAddress(address);
-        }
-
-        if (details instanceof PhysicalAddressRelatedTimelineElement physicalAddressRelatedTimelineElement && confidentialDto.getPhysicalAddress() != null) {
-            PhysicalAddressInt physicalAddress = physicalAddressRelatedTimelineElement.getPhysicalAddress();
-
-            physicalAddress = getPhysicalAddress(physicalAddress, confidentialDto.getPhysicalAddress());
-
-            physicalAddressRelatedTimelineElement.setPhysicalAddress(physicalAddress);
-        }
-
-        if (details instanceof NewAddressRelatedTimelineElement newAddressRelatedTimelineElement && confidentialDto.getNewPhysicalAddress() != null) {
-
-            PhysicalAddressInt newAddress = newAddressRelatedTimelineElement.getNewAddress();
-
-            newAddress = getPhysicalAddress(newAddress, confidentialDto.getNewPhysicalAddress());
-
-            newAddressRelatedTimelineElement.setNewAddress(newAddress);
-        }
-
-        if (details instanceof PersonalInformationRelatedTimelineElement personalInformationRelatedTimelineElement) {
-            personalInformationRelatedTimelineElement.setTaxId(confidentialDto.getTaxId());
-            personalInformationRelatedTimelineElement.setDenomination(confidentialDto.getDenomination());
-        }
-    }
-
-    private LegalDigitalAddressInt getDigitalAddress(ConfidentialTimelineElementDtoInt confidentialDto, LegalDigitalAddressInt address) {
-        if (address == null) {
-            address = LegalDigitalAddressInt.builder().build();
-        }
-
-        address = address.toBuilder().address(confidentialDto.getDigitalAddress()).build();
-        return address;
-    }
-
-    private CourtesyDigitalAddressInt getCourtesyDigitalAddress(ConfidentialTimelineElementDtoInt confidentialDto, CourtesyDigitalAddressInt address) {
-        if (address == null) {
-            address = CourtesyDigitalAddressInt.builder().build();
-        }
-
-        address = address.toBuilder().address(confidentialDto.getDigitalAddress()).build();
-        return address;
-    }
-
-    private PhysicalAddressInt getPhysicalAddress(PhysicalAddressInt physicalAddress, PhysicalAddressInt physicalAddress2) {
-        if (physicalAddress == null) {
-            physicalAddress = PhysicalAddressInt.builder().build();
-        }
-
-        return physicalAddress.toBuilder()
-                .at(physicalAddress2.getAt())
-                .address(physicalAddress2.getAddress())
-                .municipality(physicalAddress2.getMunicipality())
-                .province(physicalAddress2.getProvince())
-                .addressDetails(physicalAddress2.getAddressDetails())
-                .zip(physicalAddress2.getZip())
-                .municipalityDetails(physicalAddress2.getMunicipalityDetails())
-                .foreignState(physicalAddress2.getForeignState())
-                .build();
-    }
 
     private TimelineElementInternal enrichWithStatusInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline,
                                                          StatusService.NotificationStatusUpdate notificationStatuses, Instant notificationSentAt) {
