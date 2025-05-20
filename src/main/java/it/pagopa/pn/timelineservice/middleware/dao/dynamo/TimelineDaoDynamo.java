@@ -15,11 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Component
 @ConditionalOnProperty(name = TimelineDao.IMPLEMENTATION_TYPE_PROPERTY_NAME, havingValue = MiddlewareTypes.DYNAMO)
@@ -37,10 +34,26 @@ public class TimelineDaoDynamo implements TimelineDao {
     }
 
     @Override
-    public void addTimelineElementIfAbsent(TimelineElementInternal dto) throws PnIdConflictException {
-        TimelineElementEntity entity = getTimelineElementEntity(dto);
+    public Mono<TimelineElementInternal> getTimelineElement(String iun, String elementId, boolean strong) {
+        if (strong) {
+            return entityDao.getTimelineElementStrongly(iun, elementId)
+                    .map(entity2dto::entityToDto);
+        } else {
+            return entityDao.getTimelineElement(iun, elementId)
+                    .map(entity2dto::entityToDto);
+        }
+    }
 
-        entityDao.putIfAbsent(entity);
+    @Override
+    public Flux<TimelineElementInternal> getTimeline(String iun) {
+        return entityDao.findByIun(iun)
+                .map(entity2dto::entityToDto);
+    }
+
+    @Override
+    public Mono<Void> addTimelineElementIfAbsent(TimelineElementInternal dto) throws PnIdConflictException {
+        TimelineElementEntity entity = getTimelineElementEntity(dto);
+        return entityDao.putIfAbsent(entity);
     }
     
     @NotNull
@@ -101,50 +114,22 @@ public class TimelineDaoDynamo implements TimelineDao {
         return newDetails;
     }
 
-    @Override
-    public Optional<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly) {
-        if (strongly) {
-            return entityDao.getTimelineElementStrongly(iun, timelineId)
-                    .map(entity2dto::entityToDto);
-        } else {
-            Key keyToSearch = Key.builder()
-                    .partitionValue(iun)
-                    .sortValue(timelineId)
-                    .build();
-            return entityDao.get(keyToSearch)
-                    .map(entity2dto::entityToDto);
-        }
-    }
 
     @Override
-    public Set<TimelineElementInternal> getTimeline(String iun) {
-        return entityDao.findByIun(iun)
-                .stream()
-                .map(entity2dto::entityToDto)
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<TimelineElementInternal> getTimelineStrongly(String iun) {
+    public Flux<TimelineElementInternal> getTimelineStrongly(String iun) {
         return entityDao.findByIunStrongly(iun)
-                .stream()
-                .map(entity2dto::entityToDto)
-                .collect(Collectors.toSet());
+                .map(entity2dto::entityToDto);
     }
 
     @Override
-    public Set<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String elementId) {
+    public Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String elementId) {
         return entityDao.searchByIunAndElementId(iun, elementId)
-                .stream()
-                .map(entity2dto::entityToDto)
-                .collect(Collectors.toSet());
+                .map(entity2dto::entityToDto);
     }
 
-
-
     @Override
-    public void deleteTimeline(String iun) {
-        entityDao.deleteByIun(iun);
+    public Mono<Void> deleteTimeline(String iun) {
+        return entityDao.deleteByIun(iun);
     }
 
 }

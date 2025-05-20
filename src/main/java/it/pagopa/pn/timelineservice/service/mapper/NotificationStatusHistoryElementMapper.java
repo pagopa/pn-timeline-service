@@ -1,7 +1,8 @@
-package it.pagopa.pn.timelineservice.dto;
+package it.pagopa.pn.timelineservice.service.mapper;
 
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.generated.openapi.msclient.delivery.model.NotificationStatusV26;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationStatus;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationStatusHistoryElement;
 
 public class NotificationStatusHistoryElementMapper {
     private NotificationStatusHistoryElementMapper(){}
@@ -10,7 +11,7 @@ public class NotificationStatusHistoryElementMapper {
         return NotificationStatusHistoryElement.builder()
                 .activeFrom(dtoInt.getActiveFrom())
                 .relatedTimelineElements(dtoInt.getRelatedTimelineElements())
-                .status(dtoInt.getStatus() != null ? NotificationStatusV26.valueOf(dtoInt.getStatus().getValue()) : null )
+                .status(dtoInt.getStatus() != null ? NotificationStatus.valueOf(dtoInt.getStatus().getValue()) : null )
                 .build();
     }
 }

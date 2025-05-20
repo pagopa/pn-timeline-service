@@ -15,6 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 
 import java.time.Instant;
@@ -33,65 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class TimelineEntityDaoDynamoTestIT {
     @Autowired
     private TimelineEntityDao timelineEntityDao;
-    
-    @Test
-    void put() {
-        //GIVEN
-        TimelineElementEntity elementToInsert = TimelineElementEntity.builder()
-                .iun("pa1-1")
-                .timelineElementId("elementId1")
-                .paId("paid001")
-                .timestamp(Instant.now())
-                .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
-                .details(
-                        TimelineElementDetailsEntity.builder()
-                                .recIndex(0)
-                                .numberOfPages(1)
-                                .physicalAddress(
-                                        PhysicalAddressEntity.builder()
-                                                .foreignState("IT")
-                                                .address("Indirizzo")
-                                                .at("At")
-                                                .addressDetails("Dettaglio")
-                                                .build()
-                                )
-                                .build()
-                )
-                .legalFactIds(
-                        Collections.singletonList(
-                                LegalFactsIdEntity.builder()
-                                        .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
-                                        .build()
-                        )
-                )
-                .build();
-        
-        try{
-            //WHEN
-            timelineEntityDao.put(elementToInsert);
-
-            //THEN
-            Key key = Key.builder()
-                    .partitionValue(elementToInsert.getIun())
-                    .sortValue(elementToInsert.getTimelineElementId())
-                    .build();
-
-            Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(key);
-
-            Assertions.assertTrue(elementFromDbOpt.isPresent());
-            TimelineElementEntity elementFromDb = elementFromDbOpt.get();
-            Assertions.assertEquals(elementToInsert, elementFromDb);
-            
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 
     @Test
     void putIfAbsentKo() {
-        
+
         //GIVEN
         TimelineElementEntity elementToInsert = TimelineElementEntity.builder()
                 .iun("pa1-1")
@@ -135,18 +82,16 @@ class TimelineEntityDaoDynamoTestIT {
         removeElementFromDb(elementToInsert);
         removeElementFromDb(elementNotToBeInserted);
 
-        
-        assertDoesNotThrow(() -> timelineEntityDao.putIfAbsent(elementToInsert));
+
+        assertDoesNotThrow(() -> timelineEntityDao.putIfAbsent(elementToInsert).block());
 
         //WHEN
-        
-        assertThrows(PnIdConflictException.class, () -> timelineEntityDao.putIfAbsent(elementNotToBeInserted));
-        
-        //THEN
-        Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(elementsKey);
 
-        Assertions.assertTrue(elementFromDbOpt.isPresent());
-        TimelineElementEntity elementFromDb = elementFromDbOpt.get();
+        assertThrows(PnIdConflictException.class, () -> timelineEntityDao.putIfAbsent(elementNotToBeInserted));
+
+        //THEN
+        TimelineElementEntity elementFromDb =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getTimelineElementId()).block();
+
         Assertions.assertEquals(elementToInsert, elementFromDb);
         Assertions.assertNotEquals(elementNotToBeInserted, elementFromDb);
     }
@@ -172,11 +117,6 @@ class TimelineEntityDaoDynamoTestIT {
                 )
                 .build();
 
-        Key firstElementsKey = Key.builder()
-                .partitionValue(firstElementToInsert.getIun())
-                .sortValue(firstElementToInsert.getTimelineElementId())
-                .build();
-
         TimelineElementEntity secondElementToInsert = TimelineElementEntity.builder()
                 .iun("pa1-1")
                 .timelineElementId("elementId2")
@@ -194,30 +134,23 @@ class TimelineEntityDaoDynamoTestIT {
                 )
                 .build();
 
-        Key secondElementsKey = Key.builder()
-                .partitionValue(secondElementToInsert.getIun())
-                .sortValue(secondElementToInsert.getTimelineElementId())
-                .build();
-        
         removeElementFromDb(firstElementToInsert);
         removeElementFromDb(secondElementToInsert);
 
         //WHEN
-        assertDoesNotThrow(() -> timelineEntityDao.putIfAbsent(firstElementToInsert));
-        assertDoesNotThrow(() -> timelineEntityDao.putIfAbsent(secondElementToInsert));
+        assertDoesNotThrow(() -> timelineEntityDao.putIfAbsent(firstElementToInsert).block());
+        assertDoesNotThrow(() -> timelineEntityDao.putIfAbsent(secondElementToInsert).block());
 
         //THEN
-        Optional<TimelineElementEntity> firstElementFromDbOpt =  timelineEntityDao.get(firstElementsKey);
-        Assertions.assertTrue(firstElementFromDbOpt.isPresent());
-        TimelineElementEntity firstElementFromDb = firstElementFromDbOpt.get();
+        TimelineElementEntity firstElementFromDb =  timelineEntityDao.getTimelineElement(firstElementToInsert.getIun(), firstElementToInsert.getTimelineElementId()).block();
+        Assertions.assertNotNull(firstElementFromDb);
         Assertions.assertEquals(firstElementToInsert, firstElementFromDb);
 
-        Optional<TimelineElementEntity> secondElementFromDbOpt =  timelineEntityDao.get(secondElementsKey);
-        Assertions.assertTrue(secondElementFromDbOpt.isPresent());
-        TimelineElementEntity secondElementFromDb = secondElementFromDbOpt.get();
+        TimelineElementEntity secondElementFromDb =  timelineEntityDao.getTimelineElement(secondElementToInsert.getIun(), secondElementToInsert.getTimelineElementId()).block();
+        Assertions.assertNotNull(secondElementFromDb);
         Assertions.assertEquals(secondElementToInsert, secondElementFromDb);
     }
-    
+
     @Test
     void get() {
 
@@ -238,10 +171,6 @@ class TimelineEntityDaoDynamoTestIT {
                         )
                 )
                 .build();
-        Key firstElementToInsertKey = Key.builder()
-                .partitionValue(firstElementToInsert.getIun())
-                .sortValue(firstElementToInsert.getTimelineElementId())
-                .build();
 
         TimelineElementEntity secondElementToInsert = TimelineElementEntity.builder()
                 .iun("pa1-2")
@@ -259,33 +188,27 @@ class TimelineEntityDaoDynamoTestIT {
                         )
                 )
                 .build();
-        Key secondElementToInsertKey = Key.builder()
-                .partitionValue(secondElementToInsert.getIun())
-                .sortValue(secondElementToInsert.getTimelineElementId())
-                .build();
-        
+
         removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
+        timelineEntityDao.putIfAbsent(firstElementToInsert);
 
         removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
-        
+        timelineEntityDao.putIfAbsent(secondElementToInsert);
+
         //Check first element
         //WHEN
-        Optional<TimelineElementEntity> firstElementFromDbOpt =  timelineEntityDao.get(firstElementToInsertKey);
-        
+        TimelineElementEntity firstElementFromDb =  timelineEntityDao.getTimelineElement(firstElementToInsert.getIun(),firstElementToInsert.getTimelineElementId()).block();
+
         //THEN
-        Assertions.assertTrue(firstElementFromDbOpt.isPresent());
-        TimelineElementEntity firstElementFromDb = firstElementFromDbOpt.get();
+        Assertions.assertNotNull(firstElementFromDb);
         Assertions.assertEquals(firstElementToInsert, firstElementFromDb);
 
         //Check second element
         //WHEN
-        Optional<TimelineElementEntity> secondElementFromDbOpt =  timelineEntityDao.get(secondElementToInsertKey);
+        TimelineElementEntity secondElementFromDb =  timelineEntityDao.getTimelineElement(secondElementToInsert.getIun(), secondElementToInsert.getTimelineElementId()).block();
 
         //THEN
-        Assertions.assertTrue(secondElementFromDbOpt.isPresent());
-        TimelineElementEntity secondElementFromDb = secondElementFromDbOpt.get();
+        Assertions.assertNotNull(secondElementFromDb);
         Assertions.assertEquals(secondElementToInsert, secondElementFromDb);
     }
 
@@ -309,22 +232,22 @@ class TimelineEntityDaoDynamoTestIT {
                         )
                 )
                 .build();
-        
+
         Key elementToInsertKey = Key.builder()
                 .partitionValue(element.getIun())
                 .sortValue(element.getTimelineElementId())
                 .build();
-        
+
         removeElementFromDb(element);
 
         //Check first element
         //WHEN
-        Optional<TimelineElementEntity> firstElementFromDbOpt =  timelineEntityDao.get(elementToInsertKey);
+        TimelineElementEntity firstElementFromDb =  timelineEntityDao.getTimelineElement(element.getIun(),element.getTimelineElementId()).block();
 
         //THEN
-        Assertions.assertTrue(firstElementFromDbOpt.isEmpty());
+        Assertions.assertNull(firstElementFromDb);
     }
-    
+
     @Test
     void delete() {
         //GIVEN
@@ -346,27 +269,21 @@ class TimelineEntityDaoDynamoTestIT {
                 .build();
 
         removeElementFromDb(elementToInsert);
-        timelineEntityDao.put(elementToInsert);
-        
-        //WHEN
-        Key key = Key.builder()
-                .partitionValue(elementToInsert.getIun())
-                .sortValue(elementToInsert.getTimelineElementId())
-                .build();
+        timelineEntityDao.putIfAbsent(elementToInsert);
 
-        timelineEntityDao.delete(key);
-        
+        timelineEntityDao.deleteByIun(elementToInsert.getIun());
+
         //THEN
-        Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(key);
+        TimelineElementEntity elementFromDb =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getTimelineElementId()).block();
 
-        Assertions.assertTrue(elementFromDbOpt.isEmpty());
+        Assertions.assertNull(elementFromDb);
     }
-    
+
     @Test
     void findByIun() {
         String iun = "pa1-1";
-        
-        //GIVEN
+
+        // GIVEN
         TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
                 .iun(iun)
                 .timelineElementId("elementId1")
@@ -402,24 +319,22 @@ class TimelineEntityDaoDynamoTestIT {
                 .build();
 
         removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
+        timelineEntityDao.putIfAbsent(firstElementToInsert);
         removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
+        timelineEntityDao.putIfAbsent(secondElementToInsert);
 
-        //WHEN
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.findByIun(iun);
-
-        //THEN
-        Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.contains(firstElementToInsert));
-        Assertions.assertTrue(elementSet.contains(secondElementToInsert));
+        // WHEN & THEN
+        StepVerifier.create(timelineEntityDao.findByIun(iun))
+                .expectNextMatches(element -> element.equals(firstElementToInsert))
+                .expectNextMatches(element -> element.equals(secondElementToInsert))
+                .verifyComplete();
     }
 
     @Test
     void findByIunStrongly() {
         String iun = "pa1-1";
 
-        //GIVEN
+        // GIVEN
         TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
                 .iun(iun)
                 .timelineElementId("elementId1")
@@ -455,17 +370,15 @@ class TimelineEntityDaoDynamoTestIT {
                 .build();
 
         removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
+        timelineEntityDao.putIfAbsent(firstElementToInsert);
         removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
+        timelineEntityDao.putIfAbsent(secondElementToInsert);
 
-        //WHEN
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.findByIunStrongly(iun);
-
-        //THEN
-        Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.contains(firstElementToInsert));
-        Assertions.assertTrue(elementSet.contains(secondElementToInsert));
+        // WHEN & THEN
+        StepVerifier.create(timelineEntityDao.findByIunStrongly(iun))
+                .expectNextMatches(element -> element.equals(firstElementToInsert))
+                .expectNextMatches(element -> element.equals(secondElementToInsert))
+                .verifyComplete();
     }
 
     @Test
@@ -508,16 +421,16 @@ class TimelineEntityDaoDynamoTestIT {
                 .build();
 
         removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
+        timelineEntityDao.putIfAbsent(firstElementToInsert);
         removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
+        timelineEntityDao.putIfAbsent(secondElementToInsert);
 
         //WHEN
-        Optional<TimelineElementEntity> timelineElmentStrongly = timelineEntityDao.getTimelineElementStrongly(iun, timelineElementIdToSearch);
+        Mono<TimelineElementEntity> timelineElmentStrongly = timelineEntityDao.getTimelineElementStrongly(iun, timelineElementIdToSearch);
 
-        //THEN
-        Assertions.assertFalse(timelineElmentStrongly.isEmpty());
-        Assertions.assertEquals(timelineElmentStrongly.get(),secondElementToInsert);
+        StepVerifier.create(timelineElmentStrongly)
+                        .expectNextMatches(element -> element.equals(secondElementToInsert))
+                        .verifyComplete();
     }
 
     @Test
@@ -525,22 +438,19 @@ class TimelineEntityDaoDynamoTestIT {
         String iun = "pa1-1";
         timelineEntityDao.deleteByIun(iun);
 
-        //WHEN
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.findByIun(iun);
-
-        //THEN
-        Assertions.assertTrue(elementSet.isEmpty());
+        // WHEN & THEN
+        StepVerifier.create(timelineEntityDao.findByIun(iun))
+                .expectComplete()
+                .verify();
     }
 
 
     @Test
     void searchByIunAndElementId() {
-
-
         String iun = "pa1-1";
         String elementId = "elementId";
 
-        //GIVEN
+        // GIVEN
         TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
                 .iun(iun)
                 .timelineElementId(elementId + "1")
@@ -593,27 +503,24 @@ class TimelineEntityDaoDynamoTestIT {
                 .build();
 
         removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
+        timelineEntityDao.putIfAbsent(firstElementToInsert);
         removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
+        timelineEntityDao.putIfAbsent(secondElementToInsert);
         removeElementFromDb(nomatchElementToInsert);
-        timelineEntityDao.put(nomatchElementToInsert);
+        timelineEntityDao.putIfAbsent(nomatchElementToInsert);
 
-        //WHEN
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.searchByIunAndElementId(iun, elementId);
-
-        //THEN
-        Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.contains(firstElementToInsert));
-        Assertions.assertTrue(elementSet.contains(secondElementToInsert));
-        Assertions.assertEquals(2, elementSet.size());
+        // WHEN & THEN
+        StepVerifier.create(timelineEntityDao.searchByIunAndElementId(iun, elementId))
+                .expectNextMatches(element -> element.equals(firstElementToInsert))
+                .expectNextMatches(element -> element.equals(secondElementToInsert))
+                .verifyComplete();
     }
 
     @Test
     void deleteByIun() {
         String iun = "pa1-1";
 
-        //GIVEN
+        // GIVEN
         TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
                 .iun(iun)
                 .timelineElementId("elementId1")
@@ -649,24 +556,28 @@ class TimelineEntityDaoDynamoTestIT {
                 .build();
 
         removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
+        timelineEntityDao.putIfAbsent(firstElementToInsert);
         removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
+        timelineEntityDao.putIfAbsent(secondElementToInsert);
 
-        //Check elements is present
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.findByIun(iun);
-        Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.contains(firstElementToInsert));
-        Assertions.assertTrue(elementSet.contains(secondElementToInsert));
-        
-        //WHEN
-        timelineEntityDao.deleteByIun(iun);
+        // Check elements are present
+        StepVerifier.create(timelineEntityDao.findByIun(iun).collectList())
+                .assertNext(elementSet -> {
+                    Assertions.assertFalse(elementSet.isEmpty());
+                    Assertions.assertTrue(elementSet.contains(firstElementToInsert));
+                    Assertions.assertTrue(elementSet.contains(secondElementToInsert));
+                })
+                .verifyComplete();
 
-        //THEN
-        //Check elements is not present
-        Set<TimelineElementEntity> elementSetAfterDelete =  timelineEntityDao.findByIun(iun);
-        Assertions.assertTrue(elementSetAfterDelete.isEmpty());
+        // WHEN
+        StepVerifier.create(timelineEntityDao.deleteByIun(iun))
+                .verifyComplete();
 
+        // THEN
+        // Check elements are not present
+        StepVerifier.create(timelineEntityDao.findByIun(iun).collectList())
+                .assertNext(elementSetAfterDelete -> Assertions.assertTrue(elementSetAfterDelete.isEmpty()))
+                .verifyComplete();
     }
 
     @Test
@@ -718,25 +629,18 @@ class TimelineEntityDaoDynamoTestIT {
 
         try{
             //WHEN
-            timelineEntityDao.put(elementToInsert);
+            timelineEntityDao.putIfAbsent(elementToInsert);
 
-            //THEN
-            Key key = Key.builder()
-                    .partitionValue(elementToInsert.getIun())
-                    .sortValue(elementToInsert.getTimelineElementId())
-                    .build();
+            TimelineElementEntity elementFromDb =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(),elementToInsert.getTimelineElementId()).block();
 
-            Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(key);
-
-            Assertions.assertTrue(elementFromDbOpt.isPresent());
-            TimelineElementEntity elementFromDb = elementFromDbOpt.get();
+            Assertions.assertNotNull(elementFromDb);
             Assertions.assertEquals(elementToInsert, elementFromDb);
 
         } finally {
             removeElementFromDb(elementToInsert);
         }
     }
-    
+
     @Test
     void checkNotificationView() {
         //GIVEN
@@ -788,18 +692,11 @@ class TimelineEntityDaoDynamoTestIT {
     private void checkElement(TimelineElementEntity elementToInsert) {
         try{
             //WHEN
-            timelineEntityDao.put(elementToInsert);
+            timelineEntityDao.putIfAbsent(elementToInsert);
 
-            //THEN
-            Key key = Key.builder()
-                    .partitionValue(elementToInsert.getIun())
-                    .sortValue(elementToInsert.getTimelineElementId())
-                    .build();
+            TimelineElementEntity elementFromDb =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(),elementToInsert.getTimelineElementId()).block();
 
-            Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(key);
-
-            Assertions.assertTrue(elementFromDbOpt.isPresent());
-            TimelineElementEntity elementFromDb = elementFromDbOpt.get();
+            Assertions.assertNotNull(elementFromDb);
             Assertions.assertEquals(elementToInsert, elementFromDb);
 
         }finally {
@@ -808,12 +705,7 @@ class TimelineEntityDaoDynamoTestIT {
     }
 
     private void removeElementFromDb(TimelineElementEntity element) {
-        Key key = Key.builder()
-                .partitionValue(element.getIun())
-                .sortValue(element.getTimelineElementId())
-                .build();
-
-        timelineEntityDao.delete(key);
+        timelineEntityDao.deleteByIun(element.getIun());
     }
 
 }

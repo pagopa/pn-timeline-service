@@ -1,19 +1,20 @@
 package it.pagopa.pn.timelineservice.middleware.dao;
 
-import it.pagopa.pn.commons.abstractions.KeyValueStore;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.Optional;
-import java.util.Set;
+public interface TimelineEntityDao {
 
-public interface TimelineEntityDao extends KeyValueStore<Key, TimelineElementEntity> {
+    Flux<TimelineElementEntity> findByIun(String iun );
 
-    Set<TimelineElementEntity> findByIun(String iun );
+    Flux<TimelineElementEntity> findByIunStrongly(String iun );
 
-    Set<TimelineElementEntity> findByIunStrongly(String iun );
+    Mono<TimelineElementEntity> getTimelineElementStrongly(String iun, String timelineId);
 
-    Optional<TimelineElementEntity> getTimelineElementStrongly(String iun, String timelineId);
+    Mono<TimelineElementEntity> getTimelineElement(String iun, String timelineId);
+
+    Mono<Void> putIfAbsent(TimelineElementEntity entity);
 
     /**
      * Ricerca le timeline per IUN e per elementId con ricerca "INIZIA PER"
@@ -21,7 +22,7 @@ public interface TimelineEntityDao extends KeyValueStore<Key, TimelineElementEnt
      * @param elementId elementId (anche parziale) da ricercare tramite "inizia per"
      * @return insieme di timeline
      */
-    Set<TimelineElementEntity> searchByIunAndElementId(String iun, String elementId );
+    Flux<TimelineElementEntity> searchByIunAndElementId(String iun, String elementId );
 
-    void deleteByIun(String iun);
+    Mono<Void> deleteByIun(String iun);
 }
