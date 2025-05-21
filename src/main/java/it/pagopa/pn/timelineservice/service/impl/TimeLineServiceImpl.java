@@ -9,6 +9,7 @@ import it.pagopa.pn.commons.utils.MDCUtils;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.NotificationHistoryResponse;
 import it.pagopa.pn.timelineservice.dto.NotificationStatusHistoryElementMapper;
+import it.pagopa.pn.timelineservice.dto.NotificationStatusV26;
 import it.pagopa.pn.timelineservice.dto.ProbableSchedulingAnalogDateDto;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
 import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
@@ -21,7 +22,6 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelin
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
-import it.pagopa.pn.timelineservice.generated.openapi.msclient.delivery.model.NotificationStatusV26;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;

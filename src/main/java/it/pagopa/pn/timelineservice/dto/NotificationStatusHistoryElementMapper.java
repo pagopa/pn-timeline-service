@@ -1,7 +1,6 @@
 package it.pagopa.pn.timelineservice.dto;
 
 import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.generated.openapi.msclient.delivery.model.NotificationStatusV26;
 
 public class NotificationStatusHistoryElementMapper {
     private NotificationStatusHistoryElementMapper(){}

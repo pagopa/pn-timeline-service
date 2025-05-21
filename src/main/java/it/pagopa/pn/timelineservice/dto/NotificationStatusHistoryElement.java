@@ -1,6 +1,5 @@
 package it.pagopa.pn.timelineservice.dto;
 
-import it.pagopa.pn.timelineservice.generated.openapi.msclient.delivery.model.NotificationStatusV26;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
