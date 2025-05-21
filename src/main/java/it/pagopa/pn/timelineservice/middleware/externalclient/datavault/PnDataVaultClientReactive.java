@@ -12,12 +12,10 @@ import java.util.List;
 
 public interface PnDataVaultClientReactive {
     String CLIENT_NAME = PnLogger.EXTERNAL_SERVICES.PN_DATA_VAULT;
-    String GET_RECIPIENT_DENOMINATION = "GET RECIPIENT DENOMINATION";
-    String UPDATE_NOTIFICATION_ADDRESS = "UPDATE CONFIDENTIAL INFO, NOTIFICATION ADDRESS";
-    String NOTIFICATION_TIMELINES_ADDRESS = "RETRIEVE CONFIDENTIAL INFO, NOTIFICATION TIMELINES";
 
-    Flux<BaseRecipientDto> getRecipientsDenominationByInternalId(List<String> listInternalId);
+    Mono<Void> updateNotificationTimelineByIunAndTimelineElementId(String iun, ConfidentialTimelineElementDto dto);
 
-    Flux<ConfidentialTimelineElementDto> getNotificationTimelines(List<ConfidentialTimelineElementId> confidentialTimelineElementId);
-    Mono<Void> updateNotificationAddressesByIun(String iun, Boolean normalized, List<NotificationRecipientAddressesDto> list);
+    Mono<ConfidentialTimelineElementDto> getNotificationTimelineByIunAndTimelineElementId(String iun, String timelineElementId);
+
+    Flux<ConfidentialTimelineElementDto> getNotificationTimelineByIun(String iun);
 }

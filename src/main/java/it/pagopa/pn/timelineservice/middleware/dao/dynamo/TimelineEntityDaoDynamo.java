@@ -1,34 +1,33 @@
 package it.pagopa.pn.timelineservice.middleware.dao.dynamo;
 
-import it.pagopa.pn.commons.abstractions.impl.AbstractDynamoKeyValueStore;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import software.amazon.awssdk.enhanced.dynamodb.*;
 import software.amazon.awssdk.enhanced.dynamodb.model.*;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 
+import static it.pagopa.pn.commons.abstractions.impl.AbstractDynamoKeyValueStore.ATTRIBUTE_NOT_EXISTS;
 import static it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_DUPLICATED_ITEMD;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBeginsWith;
 
 @Component
 @Slf4j
-public class TimelineEntityDaoDynamo extends AbstractDynamoKeyValueStore<TimelineElementEntity> implements TimelineEntityDao {
+public class TimelineEntityDaoDynamo implements TimelineEntityDao {
 
-    public TimelineEntityDaoDynamo(DynamoDbEnhancedClient dynamoDbEnhancedClient, PnTimelineServiceConfigs cfg) {
-        super(dynamoDbEnhancedClient.table( tableName(cfg), TableSchema.fromClass(TimelineElementEntity.class)));
+    private final DynamoDbAsyncTable<TimelineElementEntity> table;
+
+    public TimelineEntityDaoDynamo(DynamoDbEnhancedAsyncClient dynamoDbEnhancedClient, PnTimelineServiceConfigs cfg) {
+        this.table = dynamoDbEnhancedClient.table(tableName(cfg), TableSchema.fromBean(TimelineElementEntity.class));
     }
 
     private static String tableName( PnTimelineServiceConfigs cfg ) {
@@ -36,25 +35,27 @@ public class TimelineEntityDaoDynamo extends AbstractDynamoKeyValueStore<Timelin
     }
 
     @Override
-    public Set<TimelineElementEntity> findByIun(String iun) {
+    public Flux<TimelineElementEntity> findByIun(String iun) {
         Key hashKey = Key.builder().partitionValue(iun).build();
-        QueryConditional queryByHashKey = keyEqualTo( hashKey );
-        return pageIterableToSet(table.query( queryByHashKey ));
+        QueryConditional queryByHashKey = keyEqualTo(hashKey);
+        return Flux.from(table.query(queryByHashKey))
+                .flatMap(page -> Flux.fromIterable(page.items()));
     }
 
     @Override
-    public Set<TimelineElementEntity> findByIunStrongly(String iun) {
+    public Flux<TimelineElementEntity> findByIunStrongly(String iun) {
         Key hashKey = Key.builder().partitionValue(iun).build();
-        QueryConditional queryByHashKey = keyEqualTo( hashKey );
+        QueryConditional queryByHashKey = keyEqualTo(hashKey);
         QueryEnhancedRequest enhancedRequest = QueryEnhancedRequest.builder()
                 .queryConditional(queryByHashKey)
-                .consistentRead(true) // Imposta la consistenza forte
+                .consistentRead(true)
                 .build();
-        return pageIterableToSet(table.query( enhancedRequest ));
+        return Flux.from(table.query(enhancedRequest))
+                .flatMap(page -> Flux.fromIterable(page.items()));
     }
 
     @Override
-    public Optional<TimelineElementEntity> getTimelineElementStrongly(String iun, String timelineId) {
+    public Mono<TimelineElementEntity> getTimelineElementStrongly(String iun, String timelineId) {
         GetItemEnhancedRequest request = GetItemEnhancedRequest.builder()
                 .key(key -> key
                     .partitionValue(iun)
@@ -62,37 +63,43 @@ public class TimelineEntityDaoDynamo extends AbstractDynamoKeyValueStore<Timelin
                 .consistentRead(true)
                 .build();
 
-        return Optional.ofNullable(table.getItem(request));
+        return Mono.fromFuture(table.getItem(request));
     }
 
     @Override
-    public Set<TimelineElementEntity> searchByIunAndElementId(String iun, String elementId) {
+    public Mono<TimelineElementEntity> getTimelineElement(String iun, String timelineId) {
+        GetItemEnhancedRequest request = GetItemEnhancedRequest.builder()
+                .key(key -> key
+                        .partitionValue(iun)
+                        .sortValue(timelineId))
+                .build();
+
+        return Mono.fromFuture(table.getItem(request));
+    }
+
+    @Override
+    public Flux<TimelineElementEntity> searchByIunAndElementId(String iun, String elementId) {
         Key hashKey = Key.builder().partitionValue(iun).sortValue(elementId).build();
-        QueryConditional queryByHashKey = sortBeginsWith( hashKey );
-        return pageIterableToSet(table.query( queryByHashKey ));
-    }
-
-    private  Set<TimelineElementEntity> pageIterableToSet(PageIterable<TimelineElementEntity> timelineElementPages)
-    {
-        Set<TimelineElementEntity> set = new HashSet<>();
-        timelineElementPages.stream().forEach(pages -> set.addAll(pages.items()));
-
-        return set;
+        QueryConditional queryByHashKey = sortBeginsWith(hashKey);
+        return Flux.from(table.query(queryByHashKey))
+                .flatMap(page -> Flux.fromIterable(page.items()));
     }
 
     @Override
-    public void deleteByIun(String iun) {
-        findByIun(iun).forEach(entity ->{
-            Key keyToDelete = Key.builder()
-                    .partitionValue(entity.getIun())
-                    .sortValue(entity.getTimelineElementId())
-                    .build();
-            delete(keyToDelete);
-        });
+    public Mono<Void> deleteByIun(String iun) {
+        return findByIunStrongly(iun)
+                .flatMap(entity -> deleteTimelineElement(iun, entity.getTimelineElementId())).then();
+    }
+
+    private @NotNull Mono<TimelineElementEntity> deleteTimelineElement(String iun, String elementId) {
+        return Mono.fromFuture(table.deleteItem(Key.builder()
+                .partitionValue(iun)
+                .sortValue(elementId)
+                .build()));
     }
 
     @Override
-    public void putIfAbsent(TimelineElementEntity value) throws PnIdConflictException {
+    public Mono<Void> putIfAbsent(TimelineElementEntity value) throws PnIdConflictException {
         String expression = String.format(
                 "%s(%s) AND %s(%s)",
                 ATTRIBUTE_NOT_EXISTS,
@@ -100,25 +107,25 @@ public class TimelineEntityDaoDynamo extends AbstractDynamoKeyValueStore<Timelin
                 ATTRIBUTE_NOT_EXISTS,
                 TimelineElementEntity.FIELD_TIMELINE_ELEMENT_ID
         );
-        
+
         Expression conditionExpressionPut = Expression.builder()
                 .expression(expression)
                 .build();
-        
-        PutItemEnhancedRequest<TimelineElementEntity> request = PutItemEnhancedRequest.builder( TimelineElementEntity.class )
-                .item(value )
-                .conditionExpression( conditionExpressionPut )
+
+        PutItemEnhancedRequest<TimelineElementEntity> request = PutItemEnhancedRequest.builder(TimelineElementEntity.class)
+                .item(value)
+                .conditionExpression(conditionExpressionPut)
                 .build();
-        
-        try {
-            table.putItem(request);
-        } catch (ConditionalCheckFailedException ex){
-            log.warn("Conditional check exception on TimelineEntityDaoDynamo putIfAbsent timelineId=" + value.getTimelineElementId() + " exmessage=" + ex.getMessage());
-            throw new PnIdConflictException(
-                    ERROR_CODE_DELIVERYPUSH_DUPLICATED_ITEMD,
-                    Collections.singletonMap("timelineElementId", value.getTimelineElementId()),
-                    ex
-            );
-        }
+
+        return Mono.fromFuture(table.putItem(request))
+                .onErrorMap(ConditionalCheckFailedException.class, ex -> {
+                    log.warn("Conditional check exception on TimelineEntityDaoDynamo putIfAbsent timelineId={} exmessage={}", value.getTimelineElementId(), ex.getMessage());
+                    return new PnIdConflictException(
+                        ERROR_CODE_DELIVERYPUSH_DUPLICATED_ITEMD,
+                        Collections.singletonMap("timelineElementId", value.getTimelineElementId()),
+                        ex
+                    );
+                });
     }
 }
+
