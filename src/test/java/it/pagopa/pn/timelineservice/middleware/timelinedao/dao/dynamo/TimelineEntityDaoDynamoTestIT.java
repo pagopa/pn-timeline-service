@@ -17,7 +17,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 
 import java.time.Instant;
 import java.util.*;
@@ -72,11 +71,6 @@ class TimelineEntityDaoDynamoTestIT {
                                         .build()
                         )
                 )
-                .build();
-
-        Key elementsKey = Key.builder()
-                .partitionValue(elementToInsert.getIun())
-                .sortValue(elementToInsert.getTimelineElementId())
                 .build();
 
         removeElementFromDb(elementToInsert);
@@ -231,11 +225,6 @@ class TimelineEntityDaoDynamoTestIT {
                                         .build()
                         )
                 )
-                .build();
-
-        Key elementToInsertKey = Key.builder()
-                .partitionValue(element.getIun())
-                .sortValue(element.getTimelineElementId())
                 .build();
 
         removeElementFromDb(element);

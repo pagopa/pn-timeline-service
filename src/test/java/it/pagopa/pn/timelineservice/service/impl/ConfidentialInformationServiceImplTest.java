@@ -3,9 +3,7 @@ package it.pagopa.pn.timelineservice.service.impl;
 import it.pagopa.pn.commons.exceptions.PnHttpResponseException;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
-import it.pagopa.pn.timelineservice.dto.mandate.DelegateInfoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationViewedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogDetailsInt;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.AddressDto;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.AnalogDomicile;
@@ -79,9 +77,7 @@ class ConfidentialInformationServiceImplTest {
         
 
         //WHEN
-        assertThrows(PnHttpResponseException.class, () -> {
-            confidentialInformationService.saveTimelineConfidentialInformation(element);
-        });
+        assertThrows(PnHttpResponseException.class, () -> confidentialInformationService.saveTimelineConfidentialInformation(element));
     }
 
 
@@ -124,9 +120,7 @@ class ConfidentialInformationServiceImplTest {
                 .thenThrow(PnHttpResponseException.class);
         
         //WHEN
-        assertThrows(PnHttpResponseException.class, () -> {
-            confidentialInformationService.getTimelineElementConfidentialInformation(iun, elementId);
-        });
+        assertThrows(PnHttpResponseException.class, () -> confidentialInformationService.getTimelineElementConfidentialInformation(iun, elementId));
     }
     
     @Test
@@ -158,10 +152,6 @@ class ConfidentialInformationServiceImplTest {
         List<ConfidentialTimelineElementDto> list = new ArrayList<>();
         list.add(elementDto1);
         list.add(elementDto2);
-        Map<String, ConfidentialTimelineElementDtoInt> mockMap=Map.of("elementId1", ConfidentialTimelineElementDtoInt.builder()
-                .timelineElementId("elementId1")
-                .digitalAddress("indirizzo@test.com")
-                .build());
 
         // WHEN
         Mockito.when(pnDataVaultClient.getNotificationTimelineByIun(iun))
@@ -225,25 +215,6 @@ class ConfidentialInformationServiceImplTest {
                 .sentAttemptMade(0)
                 .build();
          
-        return TimelineElementInternal.builder()
-                .elementId(elementId)
-                .iun(iun)
-                .details( details )
-                .build();
-    }
-
-    private TimelineElementInternal notificationViewedDetails(String iun, String elementId) {
-        NotificationViewedDetailsInt details =  NotificationViewedDetailsInt.builder()
-                .notificationCost(100)
-                .recIndex(0)
-                .raddTransactionId("154")
-                .delegateInfo(DelegateInfoInt.builder()
-                        .internalId("idInterno")
-                        .denomination("test")
-                        .taxId("prova")
-                        .build())
-                .build();
-
         return TimelineElementInternal.builder()
                 .elementId(elementId)
                 .iun(iun)
