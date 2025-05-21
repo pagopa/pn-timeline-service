@@ -1,12 +1,10 @@
 package it.pagopa.pn.timelineservice.service.impl;
 
-import it.pagopa.pn.commons.exceptions.PnHttpResponseException;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
 import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClientReactive;
-import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClientReactiveImpl;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.mapper.ConfidentialTimelineElementDtoMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -100,10 +98,9 @@ public class ConfidentialInformationServiceImpl implements ConfidentialInformati
                                 .collect(Collectors.toMap(ConfidentialTimelineElementDtoInt::getTimelineElementId, Function.identity()));
                         log.debug("getTimelineConfidentialInformation OK for - iun {} ", iun);
                         return Mono.just(result);
-                    } else {
-                        log.debug("getTimelineConfidentialInformation haven't confidential information for - iun {} ", iun);
-                        return Mono.error(new PnHttpResponseException("No confidential information found", 404));
                     }
+
+                    return Mono.empty();
                 });
     }
 }

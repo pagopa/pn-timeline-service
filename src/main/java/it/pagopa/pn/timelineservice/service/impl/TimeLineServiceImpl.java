@@ -20,6 +20,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
+import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.StatusService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
@@ -80,11 +81,9 @@ public class TimeLineServiceImpl implements TimelineService {
             return addTimelineElement(dto, notification, logEvent)
                     .doFinally(signal -> MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC));
         } else {
-            return Mono.error(() -> {
-                MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-                logEvent.generateFailure("Try to update Timeline and Status for non existing iun={}", dto.getIun());
-                return new PnInternalException("Try to update Timeline and Status for non existing iun " + dto.getIun(), ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED);
-            });
+            MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
+            logEvent.generateFailure("Try to update Timeline and Status for non existing iun={}", dto.getIun());
+            return Mono.error(new PnInternalException("Try to update Timeline and Status for non existing iun " + dto.getIun(), ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED));
         }
     }
 
@@ -102,8 +101,8 @@ public class TimeLineServiceImpl implements TimelineService {
                     return processTimelinePersistence(dto, notification, logEvent)
                             .onErrorMap(ex -> {
                                 MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-                                logEvent.generateFailure("Exception in addTimelineElement", ex).log();
-                                return new PnInternalException("Exception in addTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED, ex);
+                                logEvent.generateFailure("Exception in addCriticalTimelineElement", ex).log();
+                                return new PnInternalException("Exception in addCriticalTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED, ex);
                             })
                             .doFinally(signalType -> simpleLock.unlock());
                 });
@@ -119,48 +118,53 @@ public class TimeLineServiceImpl implements TimelineService {
     }
 
     private Mono<Boolean> processTimelinePersistence(TimelineElementInternal dto, NotificationInt notification, PnAuditLogEvent logEvent) {
-        return getTimeline(dto.getIun(), null, false, false)
+        return getTimeline(dto.getIun(), null, true, false)
                 .collectList()
                 .flatMap(list -> {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
-                        StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
-                            return confidentialInformationService.saveTimelineConfidentialInformation(dto)
-                                    .then(Mono.defer(() -> {
-                                        TimelineElementInternal dtoWithStatusInfo = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
+                    StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
+                    return confidentialInformationService.saveTimelineConfidentialInformation(dto)
+                            .then(Mono.defer(() -> {
+                                TimelineElementInternal dtoWithStatusInfo = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
 
-                                        Instant now = Instant.now();
-                                        if (now.isAfter(pnTimelineServiceConfigs.getStartWriteBusinessTimestamp()) && now.isBefore(pnTimelineServiceConfigs.getStopWriteBusinessTimestamp())) {
-                                            Instant cachedTimestamp = dtoWithStatusInfo.getTimestamp();
-                                            dtoWithStatusInfo = smartMapper.mapTimelineInternal(dtoWithStatusInfo, currentTimeline);
-                                            dtoWithStatusInfo.setTimestamp(cachedTimestamp);
-                                        }
+                                if(shouldWriteBusinessTimestamp()) {
+                                    writeBusinessTimestamp(dtoWithStatusInfo, currentTimeline);
+                                }
 
-                                        return persistTimelineElement(dtoWithStatusInfo)
-                                                .map(timelineInsertSkipped -> {
-                                                    String alreadyInsertMsg = "Timeline event was already inserted before - timelineId=" + dto.getElementId();
-                                                    String successMsg = String.format("Timeline event inserted with: CATEGORY=%s IUN=%s {DETAILS: %s} TIMELINEID=%s paId=%s TIMESTAMP=%s",
-                                                            dto.getCategory(),
-                                                            dto.getIun(),
-                                                            dto.getDetails() != null ? dto.getDetails().toLog() : null,
-                                                            dto.getElementId(),
-                                                            dto.getPaId(),
-                                                            dto.getTimestamp());
-                                                    logEvent.generateSuccess(timelineInsertSkipped ? alreadyInsertMsg : successMsg).log();
+                                return persistTimelineElement(dtoWithStatusInfo)
+                                        .map(timelineInsertSkipped -> {
+                                            String alreadyInsertMsg = "Timeline event was already inserted before - timelineId=" + dto.getElementId();
+                                            String successMsg = String.format("Timeline event inserted with: CATEGORY=%s IUN=%s {DETAILS: %s} TIMELINEID=%s paId=%s TIMESTAMP=%s",
+                                                    dto.getCategory(),
+                                                    dto.getIun(),
+                                                    dto.getDetails() != null ? dto.getDetails().toLog() : null,
+                                                    dto.getElementId(),
+                                                    dto.getPaId(),
+                                                    dto.getTimestamp());
+                                            logEvent.generateSuccess(timelineInsertSkipped ? alreadyInsertMsg : successMsg).log();
 
-                                                    MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
+                                            MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
 
-                                                    return timelineInsertSkipped;
-                                                });
-                                    }));
+                                            return timelineInsertSkipped;
+                                        });
+                            }));
                 });
+    }
+
+    private boolean shouldWriteBusinessTimestamp() {
+        Instant now = Instant.now();
+        return now.isAfter(pnTimelineServiceConfigs.getStartWriteBusinessTimestamp()) && now.isBefore(pnTimelineServiceConfigs.getStopWriteBusinessTimestamp());
+    }
+
+    private void writeBusinessTimestamp(TimelineElementInternal dtoWithStatusInfo, Set<TimelineElementInternal> currentTimeline) {
+        Instant cachedTimestamp = dtoWithStatusInfo.getTimestamp();
+        dtoWithStatusInfo = smartMapper.mapTimelineInternal(dtoWithStatusInfo, currentTimeline);
+        dtoWithStatusInfo.setTimestamp(cachedTimestamp);
     }
 
     private Mono<Boolean> persistTimelineElement(TimelineElementInternal dtoWithStatusInfo) {
          return timelineDao.addTimelineElementIfAbsent(dtoWithStatusInfo)
                 .thenReturn(false)
-                 .doOnError(throwable -> {
-                     log.error("Error in TimelineDao addTimelineElementIfAbsent", throwable);
-                 })
                 .onErrorResume(PnIdConflictException.class, ex -> {
                     log.warn("Exception idconflict is expected for retry, letting flow continue");
                     return Mono.just(true);
@@ -197,8 +201,9 @@ public class TimeLineServiceImpl implements TimelineService {
                 .thenReturn(timelineElement);
     }
 
-    public Long retrieveAndIncrementCounterForTimelineEvent(String timelineId) {
-        return this.timelineCounterEntityDao.getCounter(timelineId).getCounter();
+    public Mono<Long> retrieveAndIncrementCounterForTimelineEvent(String timelineId) {
+        return this.timelineCounterEntityDao.getCounter(timelineId)
+                .map(TimelineCounterEntity::getCounter);
     }
 
     @Override
@@ -289,27 +294,26 @@ public class TimeLineServiceImpl implements TimelineService {
     }
 
     @Override
-    public NotificationHistoryResponse getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
+    public Mono<NotificationHistoryResponse> getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
         log.debug("getTimelineAndStatusHistory Start - iun={} ", iun);
 
-        Set<TimelineElementInternal> timelineElements = getTimeline(iun, null, true, false)
+        return getTimeline(iun, null, true, false)
                 .collect(Collectors.toSet())
-                .block();
+                .map(timelineElements -> {
+                    List<NotificationStatusHistoryElementInt> statusHistory = statusUtils
+                            .getStatusHistory(timelineElements, numberOfRecipients, createdAt);
 
-        assert timelineElements != null;
-        List<NotificationStatusHistoryElementInt> statusHistory = statusUtils
-                .getStatusHistory(timelineElements, numberOfRecipients, createdAt);
+                    removeNotToBeReturnedElements(statusHistory);
 
-        removeNotToBeReturnedElements(statusHistory);
+                    NotificationStatusInt currentStatus = statusUtils.getCurrentStatus(statusHistory);
 
-        NotificationStatusInt currentStatus = statusUtils.getCurrentStatus(statusHistory);
+                    log.debug("getTimelineAndStatusHistory Ok - iun={} ", iun);
 
-        log.debug("getTimelineAndStatusHistory Ok - iun={} ", iun);
-
-        return createResponse(timelineElements, statusHistory, currentStatus);
+                    return createResponse(timelineElements, statusHistory, currentStatus);
+                });
     }
 
-    private Mono<Void> removeNotToBeReturnedElements(List<NotificationStatusHistoryElementInt> statusHistory) {
+    private void removeNotToBeReturnedElements(List<NotificationStatusHistoryElementInt> statusHistory) {
         // Viene eliminato l'elemento InValidation dalla response
         Optional<NotificationStatusHistoryElementInt> inValidationElementOpt = statusHistory.stream()
                 .filter(element -> NotificationStatusInt.IN_VALIDATION.equals(element.getStatus()))
@@ -326,8 +330,6 @@ public class TimeLineServiceImpl implements TimelineService {
                     .findFirst()
                     .ifPresent(el -> el.setActiveFrom(inValidationStatusActiveFrom));
         }
-
-        return Mono.empty();
     }
 
     private NotificationHistoryResponse createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,

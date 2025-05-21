@@ -1,6 +1,5 @@
 package it.pagopa.pn.timelineservice.middleware.dao.dynamo;
 
-import it.pagopa.pn.commons.abstractions.impl.AbstractDynamoKeyValueStore;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineEntityDao;
@@ -120,7 +119,7 @@ public class TimelineEntityDaoDynamo implements TimelineEntityDao {
 
         return Mono.fromFuture(table.putItem(request))
                 .onErrorMap(ConditionalCheckFailedException.class, ex -> {
-                    log.warn("Conditional check exception on TimelineEntityDaoDynamo putIfAbsent timelineId=" + value.getTimelineElementId() + " exmessage=" + ex.getMessage());
+                    log.warn("Conditional check exception on TimelineEntityDaoDynamo putIfAbsent timelineId={} exmessage={}", value.getTimelineElementId(), ex.getMessage());
                     return new PnIdConflictException(
                         ERROR_CODE_DELIVERYPUSH_DUPLICATED_ITEMD,
                         Collections.singletonMap("timelineElementId", value.getTimelineElementId()),

@@ -455,7 +455,7 @@ class TimeLineServiceImplTest {
         ).thenReturn(currentStatus);
 
         // WHEN & THEN
-        StepVerifier.create(Mono.just(timeLineService.getTimelineAndStatusHistory(iun, numberOfRecipients1, notificationCreatedAt)))
+        StepVerifier.create(timeLineService.getTimelineAndStatusHistory(iun, numberOfRecipients1, notificationCreatedAt))
                 .assertNext(notificationHistoryResponse -> {
                     // Verifica che il numero di elementi restituiti sia 2
                     Assertions.assertEquals(2, notificationHistoryResponse.getNotificationStatusHistory().size());
@@ -1012,10 +1012,10 @@ class TimeLineServiceImplTest {
         timelineCounterEntity.setCounter(5L);
 
         Mockito.when(timelineCounterDao.getCounter(timelineid))
-                .thenReturn(timelineCounterEntity);
+                .thenReturn(Mono.just(timelineCounterEntity));
 
 
-        Long r = timeLineService.retrieveAndIncrementCounterForTimelineEvent(timelineid);
+        Long r = timeLineService.retrieveAndIncrementCounterForTimelineEvent(timelineid).block();
         Assertions.assertNotNull(r);
         Assertions.assertEquals(5L, r);
     }

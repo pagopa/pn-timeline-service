@@ -10,10 +10,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogDetailsInt;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.AddressDto;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.AnalogDomicile;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
-import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault_reactive.api.NotificationsApi;
-import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClient;
 import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClientReactive;
-import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClientReactiveImpl;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +24,6 @@ import reactor.test.StepVerifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -38,12 +34,8 @@ class ConfidentialInformationServiceImplTest {
     @BeforeEach
     void setup() {
         pnDataVaultClient = Mockito.mock( PnDataVaultClientReactive.class );
-        NotificationsApi pnDataVaultNotificationApi = Mockito.mock( NotificationsApi.class );
-
         confidentialInformationService = new ConfidentialInformationServiceImpl(pnDataVaultClient);
     }
-
-
 
     @Test
     void saveTimelineConfidentialInformation() {
@@ -175,9 +167,6 @@ class ConfidentialInformationServiceImplTest {
         Mockito.when(pnDataVaultClient.getNotificationTimelineByIun(iun))
                 .thenReturn(Flux.fromIterable(list));
 
-//        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(Mockito.anyString())).thenReturn(Mono.just(mockMap));
-
-
         Mono<Map<String, ConfidentialTimelineElementDtoInt>> mapOtpMono = confidentialInformationService.getTimelineConfidentialInformation(iun);
 
         // THEN
@@ -203,6 +192,21 @@ class ConfidentialInformationServiceImplTest {
         // WHEN & THEN
         StepVerifier.create(confidentialInformationService.getTimelineConfidentialInformation(iun))
                 .expectError(PnHttpResponseException.class)
+                .verify();
+    }
+
+    @Test
+    void getTimelineConfidentialInformationEmpty() {
+        // GIVEN
+        String iun = "testIun";
+
+        Mockito.when(pnDataVaultClient.getNotificationTimelineByIun(Mockito.anyString()))
+                .thenReturn(Flux.empty());
+
+        // WHEN & THEN
+        StepVerifier.create(confidentialInformationService.getTimelineConfidentialInformation(iun))
+                .expectNextCount(0)
+                .expectComplete()
                 .verify();
     }
     

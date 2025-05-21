@@ -13,7 +13,7 @@ public interface TimelineService {
 
     Mono<Boolean> addTimelineElement(TimelineElementInternal element, NotificationInt notification);
 
-    Long retrieveAndIncrementCounterForTimelineEvent(String timelineId);
+    Mono<Long> retrieveAndIncrementCounterForTimelineEvent(String timelineId);
 
     Mono<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly);
 
@@ -27,6 +27,6 @@ public interface TimelineService {
 
     Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, int recIndex);
 
-    NotificationHistoryResponse getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
+    Mono<NotificationHistoryResponse> getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
 
 }
