@@ -1,10 +1,7 @@
 package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.dynamo;
 
-import it.pagopa.pn.commons.abstractions.impl.MiddlewareTypes;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.LocalStackTestConfig;
-import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
-import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.*;
 import org.junit.jupiter.api.Assertions;
@@ -13,22 +10,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(SpringExtension.class)
-@TestPropertySource(properties = {
-        TimelineDao.IMPLEMENTATION_TYPE_PROPERTY_NAME + "=" + MiddlewareTypes.DYNAMO,
-        TimelineCounterEntityDao.IMPLEMENTATION_TYPE_PROPERTY_NAME + "=" + MiddlewareTypes.DYNAMO,
-})
 @SpringBootTest
 @Import(LocalStackTestConfig.class)
 class TimelineEntityDaoDynamoTestIT {

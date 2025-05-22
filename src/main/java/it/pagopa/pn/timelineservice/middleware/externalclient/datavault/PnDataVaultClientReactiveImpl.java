@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import static it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClient.*;
 
 @Component
 @RequiredArgsConstructor

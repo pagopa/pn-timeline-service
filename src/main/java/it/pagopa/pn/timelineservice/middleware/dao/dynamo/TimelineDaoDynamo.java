@@ -1,6 +1,5 @@
 package it.pagopa.pn.timelineservice.middleware.dao.dynamo;
 
-import it.pagopa.pn.commons.abstractions.impl.MiddlewareTypes;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -13,13 +12,11 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTime
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.EntityToDtoTimelineMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-@ConditionalOnProperty(name = TimelineDao.IMPLEMENTATION_TYPE_PROPERTY_NAME, havingValue = MiddlewareTypes.DYNAMO)
 @Slf4j
 public class TimelineDaoDynamo implements TimelineDao {
     private final TimelineEntityDao entityDao;

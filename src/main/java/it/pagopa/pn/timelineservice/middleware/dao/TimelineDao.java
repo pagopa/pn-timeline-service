@@ -7,8 +7,6 @@ import reactor.core.publisher.Mono;
 
 public interface TimelineDao {
 
-    String IMPLEMENTATION_TYPE_PROPERTY_NAME = "pn.middleware.impl.timeline-dao";
-
     Mono<Void> addTimelineElementIfAbsent(TimelineElementInternal dto);
     
     Mono<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly);
