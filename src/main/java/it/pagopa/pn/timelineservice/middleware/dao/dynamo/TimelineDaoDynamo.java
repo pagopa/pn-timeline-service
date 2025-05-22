@@ -102,19 +102,18 @@ public class TimelineDaoDynamo implements TimelineDao {
     }
 
     @Override
-    public Optional<TimelineElementInternal> getTimelineElement(String iun, String timelineId) {
-        Key keyToSearch = Key.builder()
-                .partitionValue(iun)
-                .sortValue(timelineId)
-                .build();
-        return entityDao.get(keyToSearch)
-                .map(entity2dto::entityToDto);
-    }
-
-    @Override
-    public Optional<TimelineElementInternal> getTimelineElementStrongly(String iun, String timelineId) {
-        return entityDao.getTimelineElementStrongly(iun, timelineId)
-                .map(entity2dto::entityToDto);
+    public Optional<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly) {
+        if (strongly) {
+            return entityDao.getTimelineElementStrongly(iun, timelineId)
+                    .map(entity2dto::entityToDto);
+        } else {
+            Key keyToSearch = Key.builder()
+                    .partitionValue(iun)
+                    .sortValue(timelineId)
+                    .build();
+            return entityDao.get(keyToSearch)
+                    .map(entity2dto::entityToDto);
+        }
     }
 
     @Override

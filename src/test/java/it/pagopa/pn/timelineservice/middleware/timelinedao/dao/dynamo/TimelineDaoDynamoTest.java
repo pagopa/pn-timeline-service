@@ -72,12 +72,12 @@ class TimelineDaoDynamoTest {
 
         // THEN
         // check first row
-        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1);
+        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1, false);
         Assertions.assertTrue(retrievedRow1.isPresent());
         Assertions.assertEquals(row1, retrievedRow1.get());
 
         // check second row
-        Optional<TimelineElementInternal> retrievedRow2 = dao.getTimelineElement(iun, id2);
+        Optional<TimelineElementInternal> retrievedRow2 = dao.getTimelineElement(iun, id2, false);
         Assertions.assertTrue(retrievedRow2.isPresent());
         Assertions.assertEquals(row2, retrievedRow2.get());
 
@@ -108,7 +108,7 @@ class TimelineDaoDynamoTest {
 
         // THEN
         // check first row
-        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1);
+        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1, false);
         Assertions.assertTrue(retrievedRow1.isPresent());
         Assertions.assertEquals(row1, retrievedRow1.get());
     }
@@ -144,12 +144,12 @@ class TimelineDaoDynamoTest {
 
         // THEN
         // check first row
-        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1);
+        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1, false);
         Assertions.assertTrue(retrievedRow1.isPresent());
         Assertions.assertEquals(row1, retrievedRow1.get());
 
         // check second row
-        Optional<TimelineElementInternal> retrievedRow2 = dao.getTimelineElement(iun, id2);
+        Optional<TimelineElementInternal> retrievedRow2 = dao.getTimelineElement(iun, id2, false);
         Assertions.assertTrue(retrievedRow2.isPresent());
         Assertions.assertEquals(row2, retrievedRow2.get());
 
@@ -209,7 +209,7 @@ class TimelineDaoDynamoTest {
 
         // THEN
         // check first row
-        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1);
+        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1, false);
         Assertions.assertTrue(retrievedRow1.isPresent());
         Assertions.assertEquals(((SimpleRegisteredLetterDetailsInt)row1.getDetails()).getPhysicalAddress().getForeignState(), ((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getForeignState());
         Assertions.assertEquals(((SimpleRegisteredLetterDetailsInt)row1.getDetails()).getPhysicalAddress().getZip(), ((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getZip());
@@ -220,7 +220,7 @@ class TimelineDaoDynamoTest {
         Assertions.assertNull(((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getAt());
 
         // check second row
-        Optional<TimelineElementInternal> retrievedRow2 = dao.getTimelineElement(iun, id2);
+        Optional<TimelineElementInternal> retrievedRow2 = dao.getTimelineElement(iun, id2, false);
         Assertions.assertTrue(retrievedRow2.isPresent());
         Assertions.assertEquals(((SendAnalogDetailsInt)row2.getDetails()).getPhysicalAddress().getForeignState(), ((SendAnalogDetailsInt)retrievedRow2.get().getDetails()).getPhysicalAddress().getForeignState());
         Assertions.assertEquals(((SendAnalogDetailsInt)row2.getDetails()).getPhysicalAddress().getZip(), ((SendAnalogDetailsInt)retrievedRow2.get().getDetails()).getPhysicalAddress().getZip());

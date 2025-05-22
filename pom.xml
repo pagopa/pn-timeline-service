@@ -18,22 +18,6 @@
         <url>${git.url}</url>
         <tag>HEAD</tag>
     </scm>
-    <properties>
-        <java.version>21</java.version>
-        <awspring.version>3.3.0</awspring.version>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.awspring.cloud</groupId>
-                <artifactId>spring-cloud-aws-dependencies</artifactId>
-                <version>${awspring.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -169,38 +153,6 @@
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>7.12.0</version>
                 <executions>
-                    <execution>
-                        <phase>generate-resources</phase>
-                        <id>generate-client-pn-delivery-reactive</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>
-                                https://raw.githubusercontent.com/pagopa/pn-delivery/1e1201d3ad84013cd77f17c79cd560f897b6ca09/docs/openapi/api-private.yaml
-                            </inputSpec>
-                            <generatorName>java</generatorName>
-                            <library>webclient</library>
-                            <generateApiDocumentation>false</generateApiDocumentation>
-                            <generateApiTests>false</generateApiTests>
-                            <generateModelTests>false</generateModelTests>
-                            <generateSupportingFiles>true</generateSupportingFiles>
-                            <!--                            <templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>-->
-                            <typeMappings>
-                                <typeMapping>OffsetDateTime=java.time.Instant</typeMapping>
-                            </typeMappings>
-                            <configOptions>
-                                <useJakartaEe>true</useJakartaEe>
-                                <swaggerAnnotations>false</swaggerAnnotations>
-                                <openApiNullable>false</openApiNullable>
-                            </configOptions>
-                            <modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.delivery.model
-                            </modelPackage>
-                            <apiPackage>
-                                ${project.groupId}.timelineservice.generated.openapi.msclient.delivery-reactive.api
-                            </apiPackage>
-                        </configuration>
-                    </execution>
                     <execution>
                         <phase>generate-resources</phase>
                         <id>generate-client-pn-paper-channel</id>
