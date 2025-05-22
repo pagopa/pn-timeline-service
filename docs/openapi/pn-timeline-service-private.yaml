@@ -219,7 +219,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
         - name: confidentialInfoRequired
           in: query
           required: true
@@ -229,56 +229,7 @@ paths:
           in: query
           required: true
           schema:
-            type: string
-            enum:
-              - SENDER_ACK_CREATION_REQUEST
-              - VALIDATE_F24_REQUEST
-              - VALIDATE_NORMALIZE_ADDRESSES_REQUEST
-              - VALIDATED_F24
-              - NORMALIZED_ADDRESS
-              - REQUEST_ACCEPTED
-              - GENERATE_F24_REQUEST
-              - GENERATED_F24
-              - SEND_COURTESY_MESSAGE
-              - GET_ADDRESS
-              - PUBLIC_REGISTRY_CALL
-              - PUBLIC_REGISTRY_RESPONSE
-              - SCHEDULE_ANALOG_WORKFLOW
-              - SCHEDULE_DIGITAL_WORKFLOW
-              - PREPARE_DIGITAL_DOMICILE
-              - SEND_DIGITAL_DOMICILE
-              - SEND_DIGITAL_FEEDBACK
-              - SEND_DIGITAL_PROGRESS
-              - REFINEMENT
-              - SCHEDULE_REFINEMENT
-              - DIGITAL_DELIVERY_CREATION_REQUEST
-              - DIGITAL_SUCCESS_WORKFLOW
-              - DIGITAL_FAILURE_WORKFLOW
-              - ANALOG_SUCCESS_WORKFLOW
-              - ANALOG_FAILURE_WORKFLOW
-              - COMPLETELY_UNREACHABLE_CREATION_REQUEST
-              - PREPARE_SIMPLE_REGISTERED_LETTER
-              - SEND_SIMPLE_REGISTERED_LETTER
-              - NOTIFICATION_VIEWED_CREATION_REQUEST
-              - NOTIFICATION_VIEWED
-              - PREPARE_ANALOG_DOMICILE
-              - PREPARE_ANALOG_DOMICILE_FAILURE
-              - SEND_ANALOG_DOMICILE
-              - SEND_ANALOG_PROGRESS
-              - SEND_ANALOG_FEEDBACK
-              - PAYMENT
-              - COMPLETELY_UNREACHABLE
-              - REQUEST_REFUSED
-              - AAR_CREATION_REQUEST
-              - AAR_GENERATION
-              - NOT_HANDLED
-              - SEND_SIMPLE_REGISTERED_LETTER_PROGRESS
-              - PROBABLE_SCHEDULING_ANALOG_DATE
-              - NOTIFICATION_CANCELLATION_REQUEST
-              - NOTIFICATION_CANCELLED
-              - NOTIFICATION_RADD_RETRIEVED
-              - NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST
-              - ANALOG_WORKFLOW_RECIPIENT_DECEASED
+            $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineCategory'
       responses:
         '200':
           description: OK
@@ -313,61 +264,12 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
         - name: category
           in: query
           required: true
           schema:
-            type: string
-            enum:
-              - SENDER_ACK_CREATION_REQUEST
-              - VALIDATE_F24_REQUEST
-              - VALIDATE_NORMALIZE_ADDRESSES_REQUEST
-              - VALIDATED_F24
-              - NORMALIZED_ADDRESS
-              - REQUEST_ACCEPTED
-              - GENERATE_F24_REQUEST
-              - GENERATED_F24
-              - SEND_COURTESY_MESSAGE
-              - GET_ADDRESS
-              - PUBLIC_REGISTRY_CALL
-              - PUBLIC_REGISTRY_RESPONSE
-              - SCHEDULE_ANALOG_WORKFLOW
-              - SCHEDULE_DIGITAL_WORKFLOW
-              - PREPARE_DIGITAL_DOMICILE
-              - SEND_DIGITAL_DOMICILE
-              - SEND_DIGITAL_FEEDBACK
-              - SEND_DIGITAL_PROGRESS
-              - REFINEMENT
-              - SCHEDULE_REFINEMENT
-              - DIGITAL_DELIVERY_CREATION_REQUEST
-              - DIGITAL_SUCCESS_WORKFLOW
-              - DIGITAL_FAILURE_WORKFLOW
-              - ANALOG_SUCCESS_WORKFLOW
-              - ANALOG_FAILURE_WORKFLOW
-              - COMPLETELY_UNREACHABLE_CREATION_REQUEST
-              - PREPARE_SIMPLE_REGISTERED_LETTER
-              - SEND_SIMPLE_REGISTERED_LETTER
-              - NOTIFICATION_VIEWED_CREATION_REQUEST
-              - NOTIFICATION_VIEWED
-              - PREPARE_ANALOG_DOMICILE
-              - PREPARE_ANALOG_DOMICILE_FAILURE
-              - SEND_ANALOG_DOMICILE
-              - SEND_ANALOG_PROGRESS
-              - SEND_ANALOG_FEEDBACK
-              - PAYMENT
-              - COMPLETELY_UNREACHABLE
-              - REQUEST_REFUSED
-              - AAR_CREATION_REQUEST
-              - AAR_GENERATION
-              - NOT_HANDLED
-              - SEND_SIMPLE_REGISTERED_LETTER_PROGRESS
-              - PROBABLE_SCHEDULING_ANALOG_DATE
-              - NOTIFICATION_CANCELLATION_REQUEST
-              - NOTIFICATION_CANCELLED
-              - NOTIFICATION_RADD_RETRIEVED
-              - NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST
-              - ANALOG_WORKFLOW_RECIPIENT_DECEASED
+            $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineCategory'
       responses:
         '200':
           description: OK
@@ -402,14 +304,14 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: OK
           content:
             '*/*':
               schema:
-                $ref: '#/components/schemas/ProbableSchedulingAnalogDateDto'
+                $ref: '#/components/schemas/ProbableSchedulingAnalogDate'
         '400':
           description: Invalid input
           content:
@@ -479,7 +381,7 @@ components:
           format: date-time
         numberOfRecipients:
           type: integer
-    ProbableSchedulingAnalogDateDto:
+    ProbableSchedulingAnalogDate:
       type: object
       properties:
         iun:

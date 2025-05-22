@@ -1,17 +1,15 @@
 package it.pagopa.pn.timelineservice.service.mapper;
 
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.dto.notification.NotificationStatus;
-import it.pagopa.pn.timelineservice.dto.notification.NotificationStatusHistoryElement;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 
 public class NotificationStatusHistoryElementMapper {
     private NotificationStatusHistoryElementMapper(){}
     
-    public static NotificationStatusHistoryElement internalToExternal(NotificationStatusHistoryElementInt dtoInt){
-        return NotificationStatusHistoryElement.builder()
-                .activeFrom(dtoInt.getActiveFrom())
-                .relatedTimelineElements(dtoInt.getRelatedTimelineElements())
-                .status(dtoInt.getStatus() != null ? NotificationStatus.valueOf(dtoInt.getStatus().getValue()) : null )
-                .build();
+    public static NotificationStatusHistoryElementInt internalToExternal(NotificationStatusHistoryElementInt dtoInt){
+        NotificationStatusHistoryElementInt notificationStatusHistoryElement = new NotificationStatusHistoryElementInt();
+        notificationStatusHistoryElement.setStatus(dtoInt.getStatus());
+        notificationStatusHistoryElement.setActiveFrom(dtoInt.getActiveFrom());
+        notificationStatusHistoryElement.setRelatedTimelineElements(dtoInt.getRelatedTimelineElements());
+        return notificationStatusHistoryElement;
     }
 }

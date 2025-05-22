@@ -18,6 +18,57 @@ components:
             - PEC_RECEIPT
             - ANALOG_DELIVERY
             - NOTIFICATION_CANCELLED
+    TimelineCategory:
+      type: string
+      enum:
+        - SENDER_ACK_CREATION_REQUEST
+        - VALIDATE_F24_REQUEST
+        - VALIDATE_NORMALIZE_ADDRESSES_REQUEST
+        - VALIDATED_F24
+        - NORMALIZED_ADDRESS
+        - REQUEST_ACCEPTED
+        - GENERATE_F24_REQUEST
+        - GENERATED_F24
+        - SEND_COURTESY_MESSAGE
+        - GET_ADDRESS
+        - PUBLIC_REGISTRY_CALL
+        - PUBLIC_REGISTRY_RESPONSE
+        - SCHEDULE_ANALOG_WORKFLOW
+        - SCHEDULE_DIGITAL_WORKFLOW
+        - PREPARE_DIGITAL_DOMICILE
+        - SEND_DIGITAL_DOMICILE
+        - SEND_DIGITAL_FEEDBACK
+        - SEND_DIGITAL_PROGRESS
+        - REFINEMENT
+        - SCHEDULE_REFINEMENT
+        - DIGITAL_DELIVERY_CREATION_REQUEST
+        - DIGITAL_SUCCESS_WORKFLOW
+        - DIGITAL_FAILURE_WORKFLOW
+        - ANALOG_SUCCESS_WORKFLOW
+        - ANALOG_FAILURE_WORKFLOW
+        - COMPLETELY_UNREACHABLE_CREATION_REQUEST
+        - PREPARE_SIMPLE_REGISTERED_LETTER
+        - SEND_SIMPLE_REGISTERED_LETTER
+        - NOTIFICATION_VIEWED_CREATION_REQUEST
+        - NOTIFICATION_VIEWED
+        - PREPARE_ANALOG_DOMICILE
+        - PREPARE_ANALOG_DOMICILE_FAILURE
+        - SEND_ANALOG_DOMICILE
+        - SEND_ANALOG_PROGRESS
+        - SEND_ANALOG_FEEDBACK
+        - PAYMENT
+        - COMPLETELY_UNREACHABLE
+        - REQUEST_REFUSED
+        - AAR_CREATION_REQUEST
+        - AAR_GENERATION
+        - NOT_HANDLED
+        - SEND_SIMPLE_REGISTERED_LETTER_PROGRESS
+        - PROBABLE_SCHEDULING_ANALOG_DATE
+        - NOTIFICATION_CANCELLATION_REQUEST
+        - NOTIFICATION_CANCELLED
+        - NOTIFICATION_RADD_RETRIEVED
+        - NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST
+        - ANALOG_WORKFLOW_RECIPIENT_DECEASED
     StatusInfo:
       type: object
       properties:
@@ -45,56 +96,7 @@ components:
           items:
             $ref: '#/components/schemas/LegalFactsId'
         category:
-          type: string
-          enum:
-            - SENDER_ACK_CREATION_REQUEST
-            - VALIDATE_F24_REQUEST
-            - VALIDATE_NORMALIZE_ADDRESSES_REQUEST
-            - VALIDATED_F24
-            - NORMALIZED_ADDRESS
-            - REQUEST_ACCEPTED
-            - GENERATE_F24_REQUEST
-            - GENERATED_F24
-            - SEND_COURTESY_MESSAGE
-            - GET_ADDRESS
-            - PUBLIC_REGISTRY_CALL
-            - PUBLIC_REGISTRY_RESPONSE
-            - SCHEDULE_ANALOG_WORKFLOW
-            - SCHEDULE_DIGITAL_WORKFLOW
-            - PREPARE_DIGITAL_DOMICILE
-            - SEND_DIGITAL_DOMICILE
-            - SEND_DIGITAL_FEEDBACK
-            - SEND_DIGITAL_PROGRESS
-            - REFINEMENT
-            - SCHEDULE_REFINEMENT
-            - DIGITAL_DELIVERY_CREATION_REQUEST
-            - DIGITAL_SUCCESS_WORKFLOW
-            - DIGITAL_FAILURE_WORKFLOW
-            - ANALOG_SUCCESS_WORKFLOW
-            - ANALOG_FAILURE_WORKFLOW
-            - COMPLETELY_UNREACHABLE_CREATION_REQUEST
-            - PREPARE_SIMPLE_REGISTERED_LETTER
-            - SEND_SIMPLE_REGISTERED_LETTER
-            - NOTIFICATION_VIEWED_CREATION_REQUEST
-            - NOTIFICATION_VIEWED
-            - PREPARE_ANALOG_DOMICILE
-            - PREPARE_ANALOG_DOMICILE_FAILURE
-            - SEND_ANALOG_DOMICILE
-            - SEND_ANALOG_PROGRESS
-            - SEND_ANALOG_FEEDBACK
-            - PAYMENT
-            - COMPLETELY_UNREACHABLE
-            - REQUEST_REFUSED
-            - AAR_CREATION_REQUEST
-            - AAR_GENERATION
-            - NOT_HANDLED
-            - SEND_SIMPLE_REGISTERED_LETTER_PROGRESS
-            - PROBABLE_SCHEDULING_ANALOG_DATE
-            - NOTIFICATION_CANCELLATION_REQUEST
-            - NOTIFICATION_CANCELLED
-            - NOTIFICATION_RADD_RETRIEVED
-            - NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST
-            - ANALOG_WORKFLOW_RECIPIENT_DECEASED
+          $ref: '#/components/schemas/TimelineCategory'
         details:
           $ref: '#/components/schemas/TimelineElementDetails'
         statusInfo:
@@ -109,7 +111,6 @@ components:
           type: string
           format: date-time
     TimelineElementDetails:
-      x-field-extra-annotation: '@com.fasterxml.jackson.annotation.JsonTypeInfo(use = com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME, include = com.fasterxml.jackson.annotation.JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "category", visible = true)'
       description: The raw event payload that will be different based on the event.
       oneOf:
         - "$ref": "#/components/schemas/SenderAckCreationRequestDetails"
@@ -160,19 +161,46 @@ components:
         - "$ref": "#/components/schemas/GeneratedF24Details"
         - "$ref": "#/components/schemas/NotificationCancelledDocumentCreationRequestDetails"
         - "$ref": "#/components/schemas/AnalogWorkflowRecipientDeceasedDetails"
+        - "$ref": "#/components/schemas/GenerateF24"
+        - "$ref": "#/components/schemas/ValidateNormalizeAddressDetails"
       discriminator:
-        propertyName: "category"
+        propertyName: "categoryType"
+
+    ValidateNormalizeAddressDetails:
+        x-discriminator-value: "VALIDATE_NORMALIZE_ADDRESSES_REQUEST"
+        type: object
+        required:
+            - categoryType
+        properties:
+          categoryType:
+            type: string
+    GenerateF24:
+      x-discriminator-value: "GENERATE_F24_REQUEST"
+      type: object
+      required:
+          - categoryType
+      properties:
+        categoryType:
+          type: string
 
     NotificationCancelledDocumentCreationRequestDetails:
       x-discriminator-value: "NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST"
       type: object
+      required:
+        - categoryType
       properties:
+        categoryType:
+          type: string
         legalFactId:
           type: string
     GeneratedF24Details:
       x-discriminator-value: "GENERATED_F24"
       type: object
+      required:
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
         f24Attachments:
@@ -182,13 +210,21 @@ components:
     ValidatedF24Details:
       x-discriminator-value: "VALIDATED_F24"
       type: object
+      required:
+        - categoryType
       properties:
+        categoryType:
+          type: string
         status:
           type: string
     NotificationRequestAcceptedDetails:
       x-discriminator-value: "REQUEST_ACCEPTED"
       type: object
+      required:
+        - categoryType
       properties:
+        categoryType:
+          type: string
         notificationRequestId:
           type: string
           description: >-
@@ -215,7 +251,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -230,7 +269,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -252,7 +294,10 @@ components:
       required:
         - recIndex
         - physicalAddress
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -265,7 +310,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -277,7 +325,10 @@ components:
       required:
         - recIndex
         - digitalAddress
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -301,7 +352,10 @@ components:
       required:
         - recIndex
         - digitalAddress
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -314,7 +368,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -332,7 +389,10 @@ components:
         - digitalAddressSource
         - isAvailable
         - attemptDate
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -352,7 +412,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -380,11 +443,14 @@ components:
       x-discriminator-value: "NOTIFICATION_RADD_RETRIEVED"
       type: object
       required:
+        - categoryType
         - recIndex
         - raddType
         - raddTransactionId
         - eventTimestamp
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -402,8 +468,11 @@ components:
       x-discriminator-value: "NOTIFICATION_VIEWED"
       type: object
       required:
+        - categoryType
         - recIndex
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -428,12 +497,15 @@ components:
       x-discriminator-value: "PUBLIC_REGISTRY_CALL"
       type: object
       required:
+        - categoryType
         - recIndex
         - deliveryMode
         - contactPhase
         - sentAttemptMade
         - sendDate
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -457,8 +529,11 @@ components:
       x-discriminator-value: "PUBLIC_REGISTRY_RESPONSE"
       type: object
       required:
+        - categoryType
         - recIndex
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -474,8 +549,11 @@ components:
       x-discriminator-value: "REFINEMENT"
       type: object
       required:
+        - categoryType
         - recIndex
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -493,7 +571,11 @@ components:
     RequestRefusedDetails:
       x-discriminator-value: "REQUEST_REFUSED"
       type: object
+      required:
+        - categoryType
       properties:
+        categoryType:
+          type: string
         refusalReasons:
           type: array
           description: Motivazioni che hanno portato al rifiuto della notifica
@@ -528,7 +610,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -546,7 +631,10 @@ components:
         - digitalAddressSource
         - sentAttemptMade
         - lastAttemptDate
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -571,7 +659,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -587,7 +678,10 @@ components:
         - recIndex
         - digitalAddress
         - sendDate
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -608,7 +702,10 @@ components:
         - recIndex
         - digitalAddressSource
         - retryNumber
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -647,7 +744,10 @@ components:
         - digitalAddress
         - digitalAddressSource
         - retryNumber
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -676,7 +776,11 @@ components:
     SendDigitalProgressDetails:
       x-discriminator-value: "SEND_DIGITAL_PROGRESS"
       type: object
+      required:
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -723,7 +827,10 @@ components:
         - digitalAddress
         - responseStatus
         - notificationDate
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -773,7 +880,10 @@ components:
         - physicalAddress
         - serviceLevel
         - sentAttemptMade
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -799,7 +909,10 @@ components:
         - physicalAddress
         - serviceLevel
         - sentAttemptMade
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -857,7 +970,10 @@ components:
         - serviceLevel
         - sentAttemptMade
         - responseStatus
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -954,7 +1070,10 @@ components:
       required:
         - recIndex
         - physicalAddress
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -969,7 +1088,10 @@ components:
       required:
         - recIndex
         - physicalAddress
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -1043,7 +1165,10 @@ components:
         - recIndex
         - aarKey
         - numberOfPages
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -1069,7 +1194,10 @@ components:
         - recIndex
         - generatedAarUrl
         - numberOfPages
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -1090,7 +1218,10 @@ components:
         - recIndex
         - reasonCode
         - reason
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -1111,7 +1242,10 @@ components:
         - recIndex
         - recipientType
         - paymentSourceChannel
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario che ha effettuato il pagamento della notifica
@@ -1144,7 +1278,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario che ha effettuato il pagamento della notifica
@@ -1181,7 +1318,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario che ha effettuato il pagamento della notifica
@@ -1216,7 +1356,10 @@ components:
       required:
         - recIndex
         - schedulingAnalogDate
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario che ha effettuato il pagamento della notifica
@@ -1229,7 +1372,11 @@ components:
     SenderAckCreationRequestDetails:
       x-discriminator-value: "SENDER_ACK_CREATION_REQUEST"
       type: object
+      required:
+        - categoryType
       properties:
+        categoryType:
+          type: string
         legalFactId:
           type: string
           maxLength: 128
@@ -1243,7 +1390,10 @@ components:
         - recIndex
         - oldAddress
         - normalizedAddress
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -1258,7 +1408,10 @@ components:
       type: object
       required:
         - cancellationRequestId
+        - categoryType
       properties:
+        categoryType:
+          type: string
         cancellationRequestId:
           type: string
           description: Id della richiesta
@@ -1270,7 +1423,10 @@ components:
       required:
         - notificationCost
         - notRefinedRecipientIndexes
+        - categoryType
       properties:
+        categoryType:
+          type: string
         notificationCost:
           description: costo notifica in euro cents, vale 100 * numero di recipient not refined
           example: 1220
@@ -1288,7 +1444,10 @@ components:
       type: object
       required:
         - recIndex
+        - categoryType
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -1466,6 +1625,8 @@ components:
         - recIndex
         - physicalAddress
       properties:
+        categoryType:
+          type: string
         recIndex:
           type: integer
           description: Index destinatario notifica digitale
@@ -1489,6 +1650,8 @@ components:
         - deliveryMode
         - sendDate
       properties:
+        categoryType:
+          type: string
         recIndexes:
           description: Lista destinatari notifica
           type: array
@@ -1508,6 +1671,8 @@ components:
         - $ref: '#/components/schemas/PublicRegistryResponseDetails'
         - type: object
           properties:
+            categoryType:
+              type: string
             registry:
               type: string
               items: enum

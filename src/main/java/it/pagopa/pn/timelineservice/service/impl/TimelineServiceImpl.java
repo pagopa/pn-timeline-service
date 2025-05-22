@@ -7,16 +7,18 @@ import it.pagopa.pn.commons.log.PnAuditLogEvent;
 import it.pagopa.pn.commons.log.PnAuditLogEventType;
 import it.pagopa.pn.commons.utils.MDCUtils;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
-import it.pagopa.pn.timelineservice.dto.*;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
-import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryResponse;
-import it.pagopa.pn.timelineservice.dto.notification.NotificationStatus;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
+import it.pagopa.pn.timelineservice.dto.notification.ProbableSchedulingAnalogDateInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -24,7 +26,6 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounter
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.StatusService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
-import it.pagopa.pn.timelineservice.service.mapper.NotificationStatusHistoryElementMapper;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ import static it.pagopa.pn.timelineservice.utils.StatusUtils.COMPLETED_DELIVERY_
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TimeLineServiceImpl implements TimelineService {
+public class TimelineServiceImpl implements TimelineService {
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
     private final StatusUtils statusUtils;
@@ -63,7 +64,7 @@ public class TimeLineServiceImpl implements TimelineService {
     private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
 
     @Override
-    public Mono<Boolean> addTimelineElement(TimelineElementInternal dto, NotificationInt notification) {
+    public Mono<Boolean> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
         log.debug("addTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
         PnAuditLogBuilder auditLogBuilder = new PnAuditLogBuilder();
 
@@ -87,11 +88,11 @@ public class TimeLineServiceImpl implements TimelineService {
         }
     }
 
-    private Mono<Boolean> addCriticalTimelineElement(TimelineElementInternal dto, NotificationInt notification, PnAuditLogEvent logEvent) {
-            log.debug("addCriticalTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
+    private Mono<Boolean> addCriticalTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
+        log.debug("addCriticalTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
 
-            return Mono.fromCallable(() -> lockProvider.lock(
-                    new LockConfiguration(Instant.now(), notification.getIun(), pnTimelineServiceConfigs.getTimelineLockDuration(), Duration.ZERO)))
+        return Mono.fromCallable(() -> lockProvider.lock(
+                        new LockConfiguration(Instant.now(), notification.getIun(), pnTimelineServiceConfigs.getTimelineLockDuration(), Duration.ZERO)))
                 .flatMap(optSimpleLock -> {
                     if (optSimpleLock.isEmpty()) {
                         logEvent.generateFailure("Lock not acquired for iun={} and timelineId={}", notification.getIun(), dto.getElementId()).log();
@@ -108,7 +109,7 @@ public class TimeLineServiceImpl implements TimelineService {
                 });
     }
 
-    private Mono<Boolean> addTimelineElement(TimelineElementInternal dto, NotificationInt notification, PnAuditLogEvent logEvent) {
+    private Mono<Boolean> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return processTimelinePersistence(dto, notification, logEvent)
                 .onErrorMap(ex -> {
                     MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
@@ -117,7 +118,7 @@ public class TimeLineServiceImpl implements TimelineService {
                 });
     }
 
-    private Mono<Boolean> processTimelinePersistence(TimelineElementInternal dto, NotificationInt notification, PnAuditLogEvent logEvent) {
+    private Mono<Boolean> processTimelinePersistence(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return getTimeline(dto.getIun(), null, true, false)
                 .collectList()
                 .flatMap(list -> {
@@ -127,7 +128,7 @@ public class TimeLineServiceImpl implements TimelineService {
                             .then(Mono.defer(() -> {
                                 TimelineElementInternal dtoWithStatusInfo = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
 
-                                if(shouldWriteBusinessTimestamp()) {
+                                if (shouldWriteBusinessTimestamp()) {
                                     writeBusinessTimestamp(dtoWithStatusInfo, currentTimeline);
                                 }
 
@@ -163,7 +164,7 @@ public class TimeLineServiceImpl implements TimelineService {
     }
 
     private Mono<Boolean> persistTimelineElement(TimelineElementInternal dtoWithStatusInfo) {
-         return timelineDao.addTimelineElementIfAbsent(dtoWithStatusInfo)
+        return timelineDao.addTimelineElementIfAbsent(dtoWithStatusInfo)
                 .thenReturn(false)
                 .onErrorResume(PnIdConflictException.class, ex -> {
                     log.warn("Exception idconflict is expected for retry, letting flow continue");
@@ -207,7 +208,7 @@ public class TimeLineServiceImpl implements TimelineService {
     }
 
     @Override
-    public <T> Mono<T> getTimelineElementDetails(String iun, String timelineId, Class<T> timelineDetailsClass) {
+    public Mono<TimelineElementDetailsInt> getTimelineElementDetails(String iun, String timelineId) {
         log.debug("GetTimelineElement - IUN={} and timelineId={}", iun, timelineId);
 
         return this.timelineDao.getTimelineElement(iun, timelineId, false)
@@ -216,8 +217,7 @@ public class TimeLineServiceImpl implements TimelineService {
                         .doOnNext(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                                 timelineElement.getDetails(), confidentialDto
                         ))
-                        .thenReturn(timelineDetailsClass.cast(timelineElement.getDetails()))
-                );
+                        .thenReturn(timelineElement.getDetails()));
     }
 
     @Override
@@ -236,13 +236,13 @@ public class TimeLineServiceImpl implements TimelineService {
     }
 
     @Override
-    public <T> Mono<T> getTimelineElementDetailForSpecificRecipient(String iun, int recIndex, boolean confidentialInfoRequired, TimelineElementCategoryInt category, Class<T> timelineDetailsClass) {
+    public Mono<TimelineElementDetailsInt> getTimelineElementDetailForSpecificRecipient(String iun, int recIndex, boolean confidentialInfoRequired, TimelineElementCategoryInt category) {
         log.debug("getTimelineElementDetailForSpecificIndex - IUN={} and recIndex={}", iun, recIndex);
 
         return this.timelineDao.getTimeline(iun)
                 .filter(x -> x.getCategory().equals(category))
                 .filter(x -> {
-                    if (timelineDetailsClass.isInstance(x.getDetails()) && x.getDetails() instanceof RecipientRelatedTimelineElementDetails recRelatedTimelineElementDetails) {
+                    if (category.getDetailsJavaClass().isInstance(x.getDetails()) && x.getDetails() instanceof RecipientRelatedTimelineElementDetails recRelatedTimelineElementDetails) {
                         return recRelatedTimelineElementDetails.getRecIndex() == recIndex;
                     }
                     return false;
@@ -254,14 +254,14 @@ public class TimeLineServiceImpl implements TimelineService {
                                 .doOnNext(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                                         timelineElement.getDetails(), confidentialDto
                                 ))
-                                .thenReturn(timelineDetailsClass.cast(timelineElement.getDetails()));
+                                .thenReturn(timelineElement.getDetails());
                     } else {
-                        return Mono.just(timelineDetailsClass.cast(timelineElement.getDetails()));
+                        return Mono.just(timelineElement.getDetails());
                     }
                 });
     }
 
-    @Override
+
     public Flux<TimelineElementInternal> getTimeline(String iun, String timelineId, boolean confidentialInfoRequired, boolean strongly) {
         log.debug("getTimeline - iun={} timelineId={} strongly={}", iun, timelineId, strongly);
 
@@ -277,24 +277,24 @@ public class TimeLineServiceImpl implements TimelineService {
 
         if (confidentialInfoRequired) {
             return setTimelineElements
-                .collect(Collectors.toSet())
-                .flatMapMany(set -> confidentialInformationService.getTimelineConfidentialInformation(iun)
-                    .flatMapMany(mapConf -> Flux.fromIterable(set)
-                        .doOnNext(timelineElementInt -> {
-                            ConfidentialTimelineElementDtoInt dtoInt = mapConf.get(timelineElementInt.getElementId());
-                            if (dtoInt != null) {
-                                enrichTimelineElementWithConfidentialInformation(timelineElementInt.getDetails(), dtoInt);
-                            }
-                        })
-                    )
-                );
+                    .collect(Collectors.toSet())
+                    .flatMapMany(set -> confidentialInformationService.getTimelineConfidentialInformation(iun)
+                            .flatMapMany(mapConf -> Flux.fromIterable(set)
+                                    .doOnNext(timelineElementInt -> {
+                                        ConfidentialTimelineElementDtoInt dtoInt = mapConf.get(timelineElementInt.getElementId());
+                                        if (dtoInt != null) {
+                                            enrichTimelineElementWithConfidentialInformation(timelineElementInt.getDetails(), dtoInt);
+                                        }
+                                    })
+                            )
+                    );
         } else {
             return setTimelineElements;
         }
     }
 
     @Override
-    public Mono<NotificationHistoryResponse> getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
+    public Mono<NotificationHistoryInt> getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
         log.debug("getTimelineAndStatusHistory Start - iun={} ", iun);
 
         return getTimeline(iun, null, true, false)
@@ -332,24 +332,22 @@ public class TimeLineServiceImpl implements TimelineService {
         }
     }
 
-    private NotificationHistoryResponse createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,
-                                                       NotificationStatusInt currentStatus) {
+    private NotificationHistoryInt createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,
+                                                  NotificationStatusInt currentStatus) {
 
         var timelineList = timelineElements.stream()
-                .map(t -> smartMapper.mapTimelineInternal(t, timelineElements)) // rimappo su se stessa, per sistemare eventuali campi interni
+                .map(t -> smartMapper.mapTimelineInternal(t, timelineElements))
                 .sorted(Comparator.naturalOrder())
                 .filter(this::isNotDiagnosticTimelineElement)
                 .toList();
 
-        return NotificationHistoryResponse.builder()
-                .timeline(timelineList)
-                .notificationStatusHistory(
-                        statusHistory.stream().map(
-                                NotificationStatusHistoryElementMapper::internalToExternal
-                        ).toList()
-                )
-                .notificationStatus(currentStatus != null ? NotificationStatus.valueOf(currentStatus.getValue()) : null)
-                .build();
+        NotificationHistoryInt notificationHistoryInt = new NotificationHistoryInt();
+        notificationHistoryInt.setTimeline(timelineList);
+        notificationHistoryInt.setNotificationStatus(currentStatus);
+        notificationHistoryInt.setNotificationStatusHistory(statusHistory);
+
+        return notificationHistoryInt;
+
     }
 
     public boolean isNotDiagnosticTimelineElement(TimelineElementInternal timelineElementInternal) {
@@ -363,24 +361,24 @@ public class TimeLineServiceImpl implements TimelineService {
     }
 
     @Override
-    public Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, int recIndex) {
+    public Mono<ProbableSchedulingAnalogDateInt> getSchedulingAnalogDate(String iun, int recIndex) {
         return getTimelineElementDetailForSpecificRecipient(
-                        iun,
-                        recIndex,
-                        false,
-                        PROBABLE_SCHEDULING_ANALOG_DATE,
-                        ProbableDateAnalogWorkflowDetailsInt.class
-                ).map(details -> new ProbableSchedulingAnalogDateDto()
+                iun,
+                recIndex,
+                false,
+                PROBABLE_SCHEDULING_ANALOG_DATE
+        )
+                .map(timelineElementDetailsInt -> (ProbableSchedulingAnalogDateInt) timelineElementDetailsInt)
+                .map(details -> ProbableSchedulingAnalogDateInt.builder()
                         .iun(iun)
                         .recIndex(details.getRecIndex())
-                                .schedulingAnalogDate(details.getSchedulingAnalogDate()))
-                        .switchIfEmpty(Mono.error(() -> {
-                            String message = String.format("ProbableSchedulingDateAnalog not found for iun: %s, recIndex: %d", iun, recIndex);
-                            return new PnNotFoundException("Not found", message, ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND);
-                        }));
+                        .schedulingAnalogDate(details.getSchedulingAnalogDate())
+                        .build())
+                .switchIfEmpty(Mono.error(() -> {
+                    String message = String.format("ProbableSchedulingDateAnalog not found for iun: %s, recIndex: %s", iun, recIndex);
+                    return new PnNotFoundException("Not found", message, ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND);
+                }));
     }
-
-
 
     private TimelineElementInternal enrichWithStatusInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline,
                                                          StatusService.NotificationStatusUpdate notificationStatuses, Instant notificationSentAt) {

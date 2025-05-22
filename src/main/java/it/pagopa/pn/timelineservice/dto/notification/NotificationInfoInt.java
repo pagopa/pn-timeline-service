@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.dto.ext.notification;
+package it.pagopa.pn.timelineservice.dto.notification;
 
 import lombok.*;
 
@@ -10,7 +10,7 @@ import java.time.Instant;
 @Builder(toBuilder = true)
 @EqualsAndHashCode
 @ToString
-public class NotificationInt {
+public class NotificationInfoInt {
     private String iun;
     private int recipientsCount;
     private Instant sentAt;

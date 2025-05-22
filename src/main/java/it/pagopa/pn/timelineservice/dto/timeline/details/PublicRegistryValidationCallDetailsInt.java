@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,18 +13,19 @@ import java.time.Instant;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public class PublicRegistryCallDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
-    private int recIndex;
+public class PublicRegistryValidationCallDetailsInt  extends CategoryTypeTimelineElementDetailsInt implements TimelineElementDetailsInt{
+
+    private List<Integer> recIndexes;
     private DeliveryModeInt deliveryMode;
-    private ContactPhaseInt contactPhase;
-    private int sentAttemptMade;
     private Instant sendDate;
-    private String relatedFeedbackTimelineId;
-    
+
+    @Override
     public String toLog() {
         return String.format(
-                "recIndex=%d",
-                recIndex
+                "recIndexes=%s deliveryMode=%s sendDate=%s",
+                recIndexes.toString(),
+                deliveryMode,
+                sendDate
         );
     }
 }
