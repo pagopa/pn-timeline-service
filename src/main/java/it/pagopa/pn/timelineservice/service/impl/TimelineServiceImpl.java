@@ -15,8 +15,8 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHi
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.ProbableDateAnalogWorkflowDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockConfiguration;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -44,8 +45,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE;
-import static it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED;
-import static it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_STATUSNOTFOUND;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
 import static it.pagopa.pn.timelineservice.utils.StatusUtils.COMPLETED_DELIVERY_WORKFLOW_CATEGORY;
 
@@ -84,7 +85,7 @@ public class TimelineServiceImpl implements TimelineService {
         } else {
             MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
             logEvent.generateFailure("Try to update Timeline and Status for non existing iun={}", dto.getIun());
-            return Mono.error(new PnInternalException("Try to update Timeline and Status for non existing iun " + dto.getIun(), ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED));
+            return Mono.error(new PnInternalException("Try to update Timeline and Status for non existing iun " + dto.getIun(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED));
         }
     }
 
@@ -96,14 +97,14 @@ public class TimelineServiceImpl implements TimelineService {
                 .flatMap(optSimpleLock -> {
                     if (optSimpleLock.isEmpty()) {
                         logEvent.generateFailure("Lock not acquired for iun={} and timelineId={}", notification.getIun(), dto.getElementId()).log();
-                        return Mono.error(new PnInternalException("Lock not acquired for iun " + notification.getIun(), ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED));
+                        return Mono.error(new PnInternalException("Lock not acquired for iun " + notification.getIun(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED));
                     }
                     SimpleLock simpleLock = optSimpleLock.get();
                     return processTimelinePersistence(dto, notification, logEvent)
                             .onErrorMap(ex -> {
                                 MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
                                 logEvent.generateFailure("Exception in addCriticalTimelineElement", ex).log();
-                                return new PnInternalException("Exception in addCriticalTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED, ex);
+                                return new PnInternalException("Exception in addCriticalTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                             })
                             .doFinally(signalType -> simpleLock.unlock());
                 });
@@ -114,7 +115,7 @@ public class TimelineServiceImpl implements TimelineService {
                 .onErrorMap(ex -> {
                     MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
                     logEvent.generateFailure("Exception in addTimelineElement", ex).log();
-                    return new PnInternalException("Exception in addTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_DELIVERYPUSH_ADDTIMELINEFAILED, ex);
+                    return new PnInternalException("Exception in addTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                 });
     }
 
@@ -125,31 +126,35 @@ public class TimelineServiceImpl implements TimelineService {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
                     StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
                     return confidentialInformationService.saveTimelineConfidentialInformation(dto)
-                            .then(Mono.defer(() -> {
-                                TimelineElementInternal dtoWithStatusInfo = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
-
-                                if (shouldWriteBusinessTimestamp()) {
-                                    writeBusinessTimestamp(dtoWithStatusInfo, currentTimeline);
-                                }
-
-                                return persistTimelineElement(dtoWithStatusInfo)
-                                        .map(timelineInsertSkipped -> {
-                                            String alreadyInsertMsg = "Timeline event was already inserted before - timelineId=" + dto.getElementId();
-                                            String successMsg = String.format("Timeline event inserted with: CATEGORY=%s IUN=%s {DETAILS: %s} TIMELINEID=%s paId=%s TIMESTAMP=%s",
-                                                    dto.getCategory(),
-                                                    dto.getIun(),
-                                                    dto.getDetails() != null ? dto.getDetails().toLog() : null,
-                                                    dto.getElementId(),
-                                                    dto.getPaId(),
-                                                    dto.getTimestamp());
-                                            logEvent.generateSuccess(timelineInsertSkipped ? alreadyInsertMsg : successMsg).log();
-
-                                            MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-
-                                            return timelineInsertSkipped;
-                                        });
-                            }));
+                            .thenReturn(enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt()))
+                            .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
+                            .flatMap(this::persistTimelineElement)
+                            .map(timelineInsertSkipped -> logAndCleanMdc(dto, logEvent, timelineInsertSkipped));
                 });
+    }
+
+    private static Boolean logAndCleanMdc(TimelineElementInternal dto, PnAuditLogEvent logEvent, Boolean timelineInsertSkipped) {
+        String alreadyInsertMsg = "Timeline event was already inserted before - timelineId=" + dto.getElementId();
+        String successMsg = String.format("Timeline event inserted with: CATEGORY=%s IUN=%s {DETAILS: %s} TIMELINEID=%s paId=%s TIMESTAMP=%s",
+                dto.getCategory(),
+                dto.getIun(),
+                dto.getDetails() != null ? dto.getDetails().toLog() : null,
+                dto.getElementId(),
+                dto.getPaId(),
+                dto.getTimestamp());
+        logEvent.generateSuccess(timelineInsertSkipped ? alreadyInsertMsg : successMsg).log();
+        MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
+        return timelineInsertSkipped;
+    }
+
+    private Mono<TimelineElementInternal> checkAndAddBusinessTimestamp(TimelineElementInternal dtoWithStatusInfo, Set<TimelineElementInternal> currentTimeline) {
+        if (shouldWriteBusinessTimestamp()) {
+            Instant cachedTimestamp = dtoWithStatusInfo.getTimestamp();
+            // calcolo e aggiungo il businessTimestamp
+            dtoWithStatusInfo = smartMapper.mapTimelineInternal(dtoWithStatusInfo, currentTimeline);
+            dtoWithStatusInfo.setTimestamp(cachedTimestamp);
+        }
+        return Mono.just(dtoWithStatusInfo);
     }
 
     private boolean shouldWriteBusinessTimestamp() {
@@ -157,11 +162,6 @@ public class TimelineServiceImpl implements TimelineService {
         return now.isAfter(pnTimelineServiceConfigs.getStartWriteBusinessTimestamp()) && now.isBefore(pnTimelineServiceConfigs.getStopWriteBusinessTimestamp());
     }
 
-    private void writeBusinessTimestamp(TimelineElementInternal dtoWithStatusInfo, Set<TimelineElementInternal> currentTimeline) {
-        Instant cachedTimestamp = dtoWithStatusInfo.getTimestamp();
-        dtoWithStatusInfo = smartMapper.mapTimelineInternal(dtoWithStatusInfo, currentTimeline);
-        dtoWithStatusInfo.setTimestamp(cachedTimestamp);
-    }
 
     private Mono<Boolean> persistTimelineElement(TimelineElementInternal dtoWithStatusInfo) {
         return timelineDao.addTimelineElementIfAbsent(dtoWithStatusInfo)
@@ -355,8 +355,9 @@ public class TimelineServiceImpl implements TimelineService {
             return true;
         }
         String internalCategory = timelineElementInternal.getCategory().name();
-        return Arrays.stream(TimelineElementCategory.values())
-                .anyMatch(TimelineElementCategory -> TimelineElementCategory.getValue().equalsIgnoreCase(internalCategory));
+        return Arrays.stream(TimelineElementCategoryInt.values())
+                .map(Enum::name)
+                .anyMatch(category -> category.equalsIgnoreCase(internalCategory));
 
     }
 
@@ -368,7 +369,7 @@ public class TimelineServiceImpl implements TimelineService {
                 false,
                 PROBABLE_SCHEDULING_ANALOG_DATE
         )
-                .map(timelineElementDetailsInt -> (ProbableSchedulingAnalogDateInt) timelineElementDetailsInt)
+                .map(timelineElementDetailsInt -> (ProbableDateAnalogWorkflowDetailsInt) timelineElementDetailsInt)
                 .map(details -> ProbableSchedulingAnalogDateInt.builder()
                         .iun(iun)
                         .recIndex(details.getRecIndex())
@@ -376,7 +377,7 @@ public class TimelineServiceImpl implements TimelineService {
                         .build())
                 .switchIfEmpty(Mono.error(() -> {
                     String message = String.format("ProbableSchedulingDateAnalog not found for iun: %s, recIndex: %s", iun, recIndex);
-                    return new PnNotFoundException("Not found", message, ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND);
+                    return new PnNotFoundException("Not found", message, ERROR_CODE_TIMELINESERVICE_STATUSNOTFOUND);
                 }));
     }
 

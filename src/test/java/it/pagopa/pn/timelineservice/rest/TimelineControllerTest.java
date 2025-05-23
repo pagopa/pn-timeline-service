@@ -3,44 +3,37 @@ package it.pagopa.pn.timelineservice.rest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.ProbableSchedulingAnalogDateInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.AarCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogProgressDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
 import it.pagopa.pn.timelineservice.service.TimelineService;
-import it.pagopa.pn.timelineservice.service.impl.TimelineServiceImpl;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineElementMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAmount;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -252,10 +245,10 @@ public class TimelineControllerTest {
                                             body.getElementId().equalsIgnoreCase("testElementId2") &&
                                             body.getCategory().equals(TimelineCategory.SEND_ANALOG_PROGRESS) &&
                                             body.getDetails().getCategoryType().equalsIgnoreCase("SEND_ANALOG_PROGRESS") &&
-                                            body.getTimestamp().equals(timelineElementInternal.getTimestamp()) &&
-                                            body.getIngestionTimestamp().equals(timelineElementInternal.getIngestionTimestamp()) &&
-                                            body.getEventTimestamp().equals(timelineElementInternal.getEventTimestamp()) &&
-                                            body.getNotificationSentAt().equals(timelineElementInternal.getNotificationSentAt()) &&
+                                            body.getTimestamp().equals(timelineElementInternal2.getTimestamp()) &&
+                                            body.getIngestionTimestamp().equals(timelineElementInternal2.getIngestionTimestamp()) &&
+                                            body.getEventTimestamp().equals(timelineElementInternal2.getEventTimestamp()) &&
+                                            body.getNotificationSentAt().equals(timelineElementInternal2.getNotificationSentAt()) &&
                                             CollectionUtils.isEmpty(body.getLegalFactsIds()))
                             .verifyComplete();
                 })
@@ -278,12 +271,108 @@ public class TimelineControllerTest {
 
     @Test
     void getTimelineAndStatusHistory(){
+        Integer numberOfRecipients = 1;
+        String iun = "testIun";
+        Instant now = Instant.now();
 
+        AarCreationRequestDetailsInt aarCreationRequestDetailsInt = new AarCreationRequestDetailsInt();
+        aarCreationRequestDetailsInt.setAarKey("safestorage://PN_AAR-e12466f63b8e49a49150383ad3d2a009.pdf");
+        aarCreationRequestDetailsInt.setAarTemplateType(AarTemplateType.AAR_NOTIFICATION);
+        aarCreationRequestDetailsInt.setCategoryType("AAR_CREATION_REQUEST");
+        aarCreationRequestDetailsInt.setNumberOfPages(2);
+        aarCreationRequestDetailsInt.setRecIndex(0);
+
+        TimelineElementInternal timelineElementInternal = new TimelineElementInternal();
+        timelineElementInternal.setIun("testIun");
+        timelineElementInternal.setElementId("testElementId");
+        timelineElementInternal.setCategory(TimelineElementCategoryInt.AAR_CREATION_REQUEST);
+        timelineElementInternal.setDetails(aarCreationRequestDetailsInt);
+        timelineElementInternal.setTimestamp(Instant.now());
+        timelineElementInternal.setIngestionTimestamp(Instant.now().plus(1, ChronoUnit.DAYS));
+        timelineElementInternal.setEventTimestamp(Instant.now());
+        timelineElementInternal.setNotificationSentAt(Instant.now().minus(1, ChronoUnit.DAYS));
+
+        NotificationHistoryInt notificationHistoryInt = new NotificationHistoryInt();
+        notificationHistoryInt.setTimeline(List.of(timelineElementInternal));
+        notificationHistoryInt.setNotificationStatus(NotificationStatusInt.CANCELLED);
+        notificationHistoryInt.setNotificationStatusHistory(List.of(NotificationStatusHistoryElementInt.builder()
+                .status(NotificationStatusInt.CANCELLED)
+                .activeFrom(now)
+                .relatedTimelineElements(List.of("element1"))
+                .build()));
+
+        when(timelineService.getTimelineAndStatusHistory(iun, numberOfRecipients,now))
+                .thenReturn(Mono.just(notificationHistoryInt));
+
+        var response = timelineController.getTimelineAndStatusHistory(iun, numberOfRecipients, now, null);
+
+        StepVerifier.create(response)
+                .assertNext(entity -> {
+                    var body = entity.getBody();
+                    assertNotNull(body);
+                    var status = body.getNotificationStatus();
+                    var statusHistory = body.getNotificationStatusHistory();
+                    var timeline = body.getTimeline();
+                    Assertions.assertEquals(NotificationStatus.CANCELLED, status);
+                    Assertions.assertEquals(NotificationStatus.CANCELLED, statusHistory.getFirst().getStatus());
+                    Assertions.assertEquals(statusHistory.getFirst().getActiveFrom(), now);
+                    Assertions.assertEquals(1, statusHistory.getFirst().getRelatedTimelineElements().size());
+                    Assertions.assertEquals("element1", statusHistory.getFirst().getRelatedTimelineElements().getFirst());
+                    Assertions.assertEquals("testIun", timeline.getFirst().getIun());
+                    Assertions.assertEquals("testElementId", timeline.getFirst().getElementId());
+                    Assertions.assertEquals(TimelineCategory.AAR_CREATION_REQUEST, timeline.getFirst().getCategory());
+                    Assertions.assertEquals("AAR_CREATION_REQUEST", Objects.requireNonNull(timeline.getFirst().getDetails()).getCategoryType());
+                    Assertions.assertEquals(timeline.getFirst().getTimestamp(), timelineElementInternal.getTimestamp());
+                    Assertions.assertEquals(timeline.getFirst().getIngestionTimestamp(), timelineElementInternal.getIngestionTimestamp());
+                    Assertions.assertEquals(timeline.getFirst().getEventTimestamp(), timelineElementInternal.getEventTimestamp());
+                    Assertions.assertEquals(timeline.getFirst().getNotificationSentAt(), timelineElementInternal.getNotificationSentAt());
+                    Assertions.assertTrue(CollectionUtils.isEmpty(timeline.getFirst().getLegalFactsIds()));
+                })
+                .verifyComplete();
     }
 
     @Test
     void getTimelineElement(){
+        String timelineElementId = "timelineElementId";
+        String iun = "testIun";
 
+        AarCreationRequestDetailsInt aarCreationRequestDetailsInt = new AarCreationRequestDetailsInt();
+        aarCreationRequestDetailsInt.setAarKey("safestorage://PN_AAR-e12466f63b8e49a49150383ad3d2a009.pdf");
+        aarCreationRequestDetailsInt.setAarTemplateType(AarTemplateType.AAR_NOTIFICATION);
+        aarCreationRequestDetailsInt.setCategoryType("AAR_CREATION_REQUEST");
+        aarCreationRequestDetailsInt.setNumberOfPages(2);
+        aarCreationRequestDetailsInt.setRecIndex(0);
+
+        TimelineElementInternal timelineElementInternal = new TimelineElementInternal();
+        timelineElementInternal.setIun("testIun");
+        timelineElementInternal.setElementId("testElementId");
+        timelineElementInternal.setCategory(TimelineElementCategoryInt.AAR_CREATION_REQUEST);
+        timelineElementInternal.setDetails(aarCreationRequestDetailsInt);
+        timelineElementInternal.setTimestamp(Instant.now());
+        timelineElementInternal.setIngestionTimestamp(Instant.now().plus(1, ChronoUnit.DAYS));
+        timelineElementInternal.setEventTimestamp(Instant.now());
+        timelineElementInternal.setNotificationSentAt(Instant.now().minus(1, ChronoUnit.DAYS));
+
+        when(timelineService.getTimelineElement(iun, timelineElementId, false))
+                .thenReturn(Mono.just(timelineElementInternal));
+
+        var response = timelineController.getTimelineElement(iun, timelineElementId, false, null);
+
+        StepVerifier.create(response)
+                .assertNext(entity -> {
+                    var body = entity.getBody();
+                    assertNotNull(entity.getBody());
+                    Assertions.assertEquals(body.getIun(), "testIun");
+                    Assertions.assertEquals(body.getElementId(), "testElementId");
+                    Assertions.assertEquals(body.getCategory(), TimelineCategory.AAR_CREATION_REQUEST);
+                    Assertions.assertEquals( body.getDetails().getCategoryType(), "AAR_CREATION_REQUEST");
+                    Assertions.assertEquals(body.getTimestamp(), timelineElementInternal.getTimestamp());
+                    Assertions.assertEquals(body.getIngestionTimestamp(), timelineElementInternal.getIngestionTimestamp());
+                    Assertions.assertEquals(body.getEventTimestamp(), timelineElementInternal.getEventTimestamp());
+                    Assertions.assertEquals( body.getNotificationSentAt(), timelineElementInternal.getNotificationSentAt());
+                    Assertions.assertTrue(CollectionUtils.isEmpty(body.getLegalFactsIds()));
+                })
+                .verifyComplete();
     }
 
     @Test

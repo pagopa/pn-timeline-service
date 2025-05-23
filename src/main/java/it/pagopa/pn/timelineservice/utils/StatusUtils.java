@@ -16,7 +16,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_NOTIFICATIONSTATUSFAILED;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_NOTIFICATIONSTATUSFAILED;
 
 @Component
 public class StatusUtils {
@@ -147,7 +147,7 @@ public class StatusUtils {
             }
         }
 
-        throw new PnInternalException("No end workflow category found", ERROR_CODE_DELIVERYPUSH_NOTIFICATIONSTATUSFAILED);
+        throw new PnInternalException("No end workflow category found", ERROR_CODE_TIMELINESERVICE_NOTIFICATIONSTATUSFAILED);
     }
 
     private NotificationStatusInt computeStateAfterEvent(

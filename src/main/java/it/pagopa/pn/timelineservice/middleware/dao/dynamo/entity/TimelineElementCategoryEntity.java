@@ -1,5 +1,8 @@
 package it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity;
 
+import it.pagopa.pn.timelineservice.dto.timeline.details.PublicRegistryValidationCallDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.PublicRegistryValidationResponseDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -98,7 +101,11 @@ public enum TimelineElementCategoryEntity {
 
     NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST("NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST"),
 
-    ANALOG_WORKFLOW_RECIPIENT_DECEASED("ANALOG_WORKFLOW_RECIPIENT_DECEASED");
+    ANALOG_WORKFLOW_RECIPIENT_DECEASED("ANALOG_WORKFLOW_RECIPIENT_DECEASED"),
+
+    PUBLIC_REGISTRY_VALIDATION_CALL("PUBLIC_REGISTRY_VALIDATION_CALL"),
+
+    PUBLIC_REGISTRY_VALIDATION_RESPONSE("PUBLIC_REGISTRY_VALIDATION_RESPONSE");
 
     private final String value;
 

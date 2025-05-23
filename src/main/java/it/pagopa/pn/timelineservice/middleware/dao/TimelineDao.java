@@ -17,6 +17,4 @@ public interface TimelineDao {
 
     Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String timelineId);
 
-    Mono<Void> deleteTimeline(String iun);
-
 }

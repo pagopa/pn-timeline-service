@@ -4,7 +4,7 @@ echo " - Create pn-timeline-service TABLES"
 
 aws --profile default --region us-east-1 --endpoint-url=http://localstack:4566 \
     dynamodb create-table \
-    --table-name Timelines \
+    --table-name pn-Timelines \
     --attribute-definitions \
         AttributeName=iun,AttributeType=S \
         AttributeName=timelineElementId,AttributeType=S \
@@ -26,7 +26,7 @@ aws --profile default --region us-east-1 --endpoint-url=http://localstack:4566 \
 
 aws --profile default --region us-east-1 --endpoint-url=http://localstack:4566 \
     dynamodb create-table \
-    --table-name TimelinesCounters \
+    --table-name pn-TimelinesCounters \
     --attribute-definitions \
         AttributeName=timelineElementId,AttributeType=S \
     --key-schema \

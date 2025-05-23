@@ -1,12 +1,15 @@
 package it.pagopa.pn.timelineservice.service.mapper;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.ElementTimestampTimelineElementDetails;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.TimelineElement;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
@@ -14,8 +17,10 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 
 @Slf4j
@@ -27,6 +32,7 @@ public class SmartMapper {
     private static ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
     private final FeatureEnabledUtils featureEnabledUtils;
+    private static BiFunction postMappingTransformer;
 
     public static <S,T> T mapToClass(S source, Class<T> destinationClass ){
         T result;
@@ -38,14 +44,30 @@ public class SmartMapper {
         return result;
     }
 
+    static Converter<TimelineElementInternal, TimelineElementInternal> timelineElementInternalTimestampConverter =
+            ctx -> {
+                // se il detail estende l'interfaccia e l'elementTimestamp non è nullo, lo sovrascrivo nel source originale
+                if (ctx.getSource().getDetails() instanceof ElementTimestampTimelineElementDetails elementTimestampTimelineElementDetails
+                        && elementTimestampTimelineElementDetails.getElementTimestamp() != null)
+                {
+                    return ctx.getSource().toBuilder()
+                            .timestamp(elementTimestampTimelineElementDetails.getElementTimestamp())
+                            .build();
+                }
+
+                return ctx.getSource();
+            };
+
     static{
         modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+        modelMapper.createTypeMap(TimelineElementInternal.class, TimelineElementInternal.class).setPostConverter(timelineElementInternalTimestampConverter);
     }
 
 
     public  <S,T> T mapToClassWithObjectMapper(S source, Class<T> destinationClass ){
         try {
+            objectMapper.addMixIn(Object.class, IgnoreFieldsMixin.class);
             var obj = objectMapper.readValue(objectMapper.writeValueAsBytes(source), destinationClass);
             if(TimelineElement.class.isAssignableFrom(destinationClass)){
                 TimelineElement timelineElement = (TimelineElement) obj;

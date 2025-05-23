@@ -51,8 +51,9 @@ public enum TimelineElementCategoryInt {
     NOTIFICATION_CANCELLED(NotificationCancelledDetailsInt.class, TimelineElementCategoryInt.VERSION_20),
     NOTIFICATION_RADD_RETRIEVED(NotificationRADDRetrievedDetailsInt.class, TimelineElementCategoryInt.VERSION_23),
     NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST(NotificationCancelledDocumentCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_25),
-    ANALOG_WORKFLOW_RECIPIENT_DECEASED(AnalogWorfklowRecipientDeceasedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_WORKFLOW_RECIPIENT_DECEASED, TimelineElementCategoryInt.VERSION_26);
-
+    ANALOG_WORKFLOW_RECIPIENT_DECEASED(AnalogWorfklowRecipientDeceasedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_WORKFLOW_RECIPIENT_DECEASED, TimelineElementCategoryInt.VERSION_26),
+    PUBLIC_REGISTRY_VALIDATION_CALL(PublicRegistryValidationCallDetailsInt.class, TimelineElementCategoryInt.VERSION_27),
+    PUBLIC_REGISTRY_VALIDATION_RESPONSE(PublicRegistryValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_27);
 
     private final Class<? extends TimelineElementDetailsInt> detailsJavaClass;
     private final int priority;
@@ -74,6 +75,7 @@ public enum TimelineElementCategoryInt {
     public static final int VERSION_23 = 23;
     public static final int VERSION_25 = 25;
     public static final int VERSION_26 = 26;
+    public static final int VERSION_27 = 27;
 
     TimelineElementCategoryInt(Class<? extends TimelineElementDetailsInt> detailsJavaClass, int version) {
         this(detailsJavaClass, PRIORITY_BEFORE, version);
@@ -84,10 +86,6 @@ public enum TimelineElementCategoryInt {
         this.detailsJavaClass = detailsJavaClass;
         this.priority = priority;
         this.version = version;
-    }
-    
-    public Class<? extends TimelineElementDetailsInt> getDetailsJavaClass() {
-        return this.detailsJavaClass;
     }
 
     public enum DiagnosticTimelineElementCategory {

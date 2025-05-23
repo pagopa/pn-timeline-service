@@ -1,9 +1,9 @@
 package it.pagopa.pn.timelineservice.service.impl;
 
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationRequestAcceptedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogDetailsInt;
@@ -52,7 +52,7 @@ class StatusServiceImplTest {
                 .thenReturn(firstListReturn)
                 .thenReturn(secondListReturn);
 
-        NotificationInt notification = getNotification(iun);
+        NotificationInfoInt notification = getNotification(iun);
 
         String id1 = "sender_ack";
         TimelineElementInternal dto = TimelineElementInternal.builder()
@@ -91,7 +91,7 @@ class StatusServiceImplTest {
                 .thenReturn(firstListReturn)
                 .thenReturn(secondListReturn);
 
-        NotificationInt notification = getNotification(iun);
+        NotificationInfoInt notification = getNotification(iun);
 
         String id1 = "sender_ack";
         TimelineElementInternal dto = TimelineElementInternal.builder()
@@ -133,27 +133,8 @@ class StatusServiceImplTest {
         return timelineElementList;
     }
 
-    private TimelineElementInternal getTimelineElement(String iun) {
-         SendAnalogFeedbackDetailsInt details =  SendAnalogFeedbackDetailsInt.builder()
-                .newAddress(
-                        PhysicalAddressInt.builder()
-                                .province("province")
-                                .municipality("munic")
-                                .at("at")
-                                .build()
-                )
-                .recIndex(0)
-                .sentAttemptMade(0)
-                .build();
-        return TimelineElementInternal.builder()
-                .iun(iun)
-                .details( details )
-                .build();
-    }
-
-
-    private NotificationInt getNotification(String iun) {
-        return NotificationInt.builder()
+    private NotificationInfoInt getNotification(String iun) {
+        return NotificationInfoInt.builder()
                 .iun(iun)
                 .paProtocolNumber("protocol_01")
                 .recipientsCount(1)
