@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.dto.ext.notification.status;
+package it.pagopa.pn.timelineservice.dto.notification.status;
 
 import lombok.Getter;
 
