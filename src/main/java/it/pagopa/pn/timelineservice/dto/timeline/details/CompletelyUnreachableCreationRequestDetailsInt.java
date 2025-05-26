@@ -1,6 +1,7 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
@@ -8,10 +9,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder(toBuilder = true)
-@EqualsAndHashCode
+@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
 @ToString
-public class CompletelyUnreachableCreationRequestDetails implements RecipientRelatedTimelineElementDetails {
+public class CompletelyUnreachableCreationRequestDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
     private int recIndex;
     private String legalFactId;
     private Instant completionWorkflowDate;
