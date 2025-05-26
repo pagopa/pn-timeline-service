@@ -1,10 +1,11 @@
 package it.pagopa.pn.timelineservice.service;
 
-import it.pagopa.pn.timelineservice.dto.NotificationHistoryResponse;
-import it.pagopa.pn.timelineservice.dto.ProbableSchedulingAnalogDateDto;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
+import it.pagopa.pn.timelineservice.dto.notification.ProbableSchedulingAnalogDateInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationHistoryResponse;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
@@ -13,7 +14,7 @@ import java.util.Set;
 
 public interface TimelineService {
 
-    boolean addTimelineElement(TimelineElementInternal element, NotificationInt notification);
+    boolean addTimelineElement(TimelineElementInternal element, NotificationInfoInt notification);
 
     Long retrieveAndIncrementCounterForTimelineEvent(String timelineId);
 
@@ -27,8 +28,8 @@ public interface TimelineService {
 
     Optional<TimelineElementInternal> getTimelineElementForSpecificRecipient(String iun, int recIndex, TimelineElementCategoryInt category);
 
-    Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, int recIndex);
+    Mono<ProbableSchedulingAnalogDateInt> getSchedulingAnalogDate(String iun, int recIndex);
 
-    NotificationHistoryResponse getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
+    NotificationHistoryInt getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
 
 }

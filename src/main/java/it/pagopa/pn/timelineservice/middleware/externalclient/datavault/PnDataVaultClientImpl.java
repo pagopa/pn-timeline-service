@@ -1,7 +1,7 @@
 package it.pagopa.pn.timelineservice.middleware.externalclient.datavault;
 
-import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.api.NotificationsApi;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
+import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault_reactive.api.NotificationsApi;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ public class PnDataVaultClientImpl implements PnDataVaultClient{
     public ConfidentialTimelineElementDto getNotificationTimelineByIunAndTimelineElementId(String iun, String timelineElementId){
         log.logInvokingExternalService(CLIENT_NAME, GET_TIMELINE_ELEMENT_CONF_INFORMATION);
 
-        ResponseEntity<ConfidentialTimelineElementDto> resp = pnDataVaultNotificationApi.getNotificationTimelineByIunAndTimelineElementIdWithHttpInfo(iun, timelineElementId);
+        ResponseEntity<ConfidentialTimelineElementDto> resp = pnDataVaultNotificationApi.getNotificationTimelineByIunAndTimelineElementIdWithHttpInfo(iun, timelineElementId).block();
         
         return resp.getBody();
     }
@@ -33,7 +33,7 @@ public class PnDataVaultClientImpl implements PnDataVaultClient{
     public List<ConfidentialTimelineElementDto> getNotificationTimelineByIunWithHttpInfo(String iun) {
         log.logInvokingExternalService(CLIENT_NAME, GET_TIMELINE_CONF_INFORMATION);
 
-        ResponseEntity<List<ConfidentialTimelineElementDto>> resp = pnDataVaultNotificationApi.getNotificationTimelineByIunWithHttpInfo(iun);
+        ResponseEntity<List<ConfidentialTimelineElementDto>> resp = pnDataVaultNotificationApi.getNotificationTimelineByIunWithHttpInfo(iun).block();
         
         return resp.getBody();
     }
