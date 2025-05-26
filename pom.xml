@@ -18,22 +18,6 @@
         <url>${git.url}</url>
         <tag>HEAD</tag>
     </scm>
-    <properties>
-        <java.version>21</java.version>
-        <awspring.version>3.3.0</awspring.version>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.awspring.cloud</groupId>
-                <artifactId>spring-cloud-aws-dependencies</artifactId>
-                <version>${awspring.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -167,60 +151,17 @@
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>7.13.0</version>
+                <version>7.12.0</version>
                 <executions>
                     <execution>
-                        <id>generate-timeline-service-server</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
                         <phase>generate-resources</phase>
-                        <configuration>
-                            <typeMappings>
-                                <typeMapping>Date=Instant</typeMapping>
-                            </typeMappings>
-                            <importMappings>
-                                <importMapping>java.util.Date=java.time.Instant</importMapping>
-                                <importMapping>Date=java.time.Instant</importMapping>
-                            </importMappings>
-                            <inputSpec>${project.basedir}/docs/openapi/pn-timeline-service-private.yaml</inputSpec>
-                            <generatorName>spring</generatorName>
-                            <library>spring-boot</library>
-                            <generateApiDocumentation>false</generateApiDocumentation>
-                            <generateApiTests>false</generateApiTests>
-                            <generateModelTests>false</generateModelTests>
-                            <templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/7.13.0-oneof-interface/server</templateDirectory>
-                            <configOptions>
-                                <generateAliasAsModel>false</generateAliasAsModel>
-                                <useSpringBoot3>true</useSpringBoot3>
-                                <dateLibrary>java11</dateLibrary>
-                                <delegatePattern>true</delegatePattern>
-                                <interfaceOnly>true</interfaceOnly>
-                                <annotationLibrary>none</annotationLibrary>
-                                <documentationProvider>source</documentationProvider>
-                                <openApiNullable>false</openApiNullable>
-                                <reactive>true</reactive>
-                                <skipDefaultInterface>false</skipDefaultInterface>
-                                <useTags>true</useTags>
-                                <useJakartaEe>true</useJakartaEe>
-                                <swaggerAnnotations>false</swaggerAnnotations>
-                                <useOneOfInterfaces>true</useOneOfInterfaces>
-                                <basePackage>${project.groupId}.timelineservice.generated.openapi.server.v1</basePackage>
-                                <modelPackage>${project.groupId}.timelineservice.generated.openapi.server.v1.dto</modelPackage>
-                                <apiPackage>${project.groupId}.timelineservice.generated.openapi.server.v1.api</apiPackage>
-                                <configPackage>${project.groupId}.timelineservice.generated.openapi.server.v1.config</configPackage>
-                            </configOptions>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <phase>generate-resources</phase>
-                        <id>generate-client-pn-delivery-reactive</id>
+                        <id>generate-client-pn-paper-channel</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
                             <inputSpec>
-                                https://raw.githubusercontent.com/pagopa/pn-delivery/1e1201d3ad84013cd77f17c79cd560f897b6ca09/docs/openapi/api-private.yaml
+                                https://raw.githubusercontent.com/pagopa/pn-paper-channel/3c6df304e1bd5b8359f4e186a7e5c388f4b3061e/docs/openapi/api-internal-v1.yaml
                             </inputSpec>
                             <generatorName>java</generatorName>
                             <library>webclient</library>
@@ -228,19 +169,20 @@
                             <generateApiTests>false</generateApiTests>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>true</generateSupportingFiles>
-                            <typeMappings>
-                                <typeMapping>OffsetDateTime=java.time.Instant</typeMapping>
-                            </typeMappings>
+                            <!--                            <templateDirectory>${project.build.directory}/dependency-resources/scripts/openapi/templates/5.4.0/client</templateDirectory>-->
                             <configOptions>
                                 <useJakartaEe>true</useJakartaEe>
                                 <swaggerAnnotations>false</swaggerAnnotations>
                                 <openApiNullable>false</openApiNullable>
+                                <additionalModelTypeAnnotations>
+                                    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)
+                                </additionalModelTypeAnnotations>
                             </configOptions>
-                            <modelPackage>${project.groupId}.timelineservice.generated.openapi.msclient.delivery.model
-                            </modelPackage>
-                            <apiPackage>
-                                ${project.groupId}.timelineservice.generated.openapi.msclient.delivery-reactive.api
+                            <apiPackage>${project.groupId}.deliverypush.generated.openapi.msclient.paperchannel.api
                             </apiPackage>
+                            <modelPackage>
+                                ${project.groupId}.deliverypush.generated.openapi.msclient.paperchannel.model
+                            </modelPackage>
                         </configuration>
                     </execution>
                     <execution>
