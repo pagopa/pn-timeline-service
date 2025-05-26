@@ -27,13 +27,5 @@ public interface StatusService {
      */
     NotificationStatusUpdate getStatus(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline, NotificationInfoInt notification);
 
-    /**
-     * calcola lo stato in base al dto e al set di timeline correnti
-     *
-     * @param dto nuova timeline
-     * @param currentTimeline storico timeline attuale
-     * @param notification notifica
-     * @return cambio di stato elaborato
-     */
-     NotificationStatusUpdate computeStatusChange(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline, NotificationInfoInt notification);
+    NotificationStatusUpdate computeStatusChange(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline, NotificationInfoInt notification);
 }

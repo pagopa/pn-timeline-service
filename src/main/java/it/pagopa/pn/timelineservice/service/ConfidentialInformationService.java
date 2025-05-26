@@ -2,15 +2,15 @@ package it.pagopa.pn.timelineservice.service;
 
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
-import java.util.Optional;
 
 public interface ConfidentialInformationService {
     
-    void saveTimelineConfidentialInformation(TimelineElementInternal timelineElementInternal);
+    Mono<Void> saveTimelineConfidentialInformation(TimelineElementInternal timelineElementInternal);
 
-    Optional<ConfidentialTimelineElementDtoInt> getTimelineElementConfidentialInformation(String iun, String timelineElementId);
+    Mono<ConfidentialTimelineElementDtoInt> getTimelineElementConfidentialInformation(String iun, String timelineElementId);
 
-    Optional<Map<String, ConfidentialTimelineElementDtoInt>> getTimelineConfidentialInformation(String iun);
+    Mono<Map<String, ConfidentialTimelineElementDtoInt>> getTimelineConfidentialInformation(String iun);
 }

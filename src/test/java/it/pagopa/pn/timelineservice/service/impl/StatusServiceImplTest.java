@@ -17,10 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 class StatusServiceImplTest {
     private StatusUtils statusUtils;
@@ -38,7 +35,7 @@ class StatusServiceImplTest {
     void updateStatus() {
         // GIVEN
         String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
-        
+
         List<NotificationStatusHistoryElementInt> firstListReturn = new ArrayList<>();
         NotificationStatusHistoryElementInt element = NotificationStatusHistoryElementInt.builder()
                 .status(NotificationStatusInt.DELIVERING)
@@ -51,17 +48,12 @@ class StatusServiceImplTest {
         List<NotificationStatusHistoryElementInt> secondListReturn = new ArrayList<>(firstListReturn);
         secondListReturn.add(element2);
 
-        Mockito.when(statusUtils.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any() ))
-                .thenReturn(firstListReturn)
-                .thenReturn(secondListReturn)
+        Mockito.when(statusUtils.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any()))
                 .thenReturn(firstListReturn)
                 .thenReturn(secondListReturn);
 
-        //Mockito.when(pnDeliveryClient.updateStatus(Mockito.any(RequestUpdateStatusDto.class))).thenReturn(ResponseEntity.ok().body(null));
-                
         NotificationInfoInt notification = getNotification(iun);
-        
-        
+
         String id1 = "sender_ack";
         TimelineElementInternal dto = TimelineElementInternal.builder()
                 .iun(iun)
@@ -71,14 +63,11 @@ class StatusServiceImplTest {
                 .timestamp(Instant.now())
                 .build();
 
-        List<TimelineElementInternal> timelineElementList  =  getListTimelineElementInternal(iun);
-        HashSet<TimelineElementInternal> hashSet = new HashSet<>(timelineElementList);
-        
-        //WHEN
-        StatusService.NotificationStatusUpdate statuses = statusService.getStatus(dto, hashSet, notification);
-        
-        //THEN
-        Assertions.assertNotEquals(statuses.getOldStatus(), statuses.getNewStatus()); // changed status
+        Set<TimelineElementInternal> timelineElementList = new HashSet<>(getListTimelineElementInternal(iun));
+
+        StatusService.NotificationStatusUpdate statuses = statusService.getStatus(dto, timelineElementList, notification);
+        Assertions.assertNotNull(statuses);
+        Assertions.assertNotEquals(statuses.getOldStatus(), statuses.getNewStatus());
     }
 
     @Test
@@ -98,34 +87,25 @@ class StatusServiceImplTest {
         List<NotificationStatusHistoryElementInt> secondListReturn = new ArrayList<>(firstListReturn);
         secondListReturn.add(element2);
 
-        Mockito.when(statusUtils.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any() ))
-                .thenReturn(firstListReturn)
-                .thenReturn(secondListReturn)
+        Mockito.when(statusUtils.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any()))
                 .thenReturn(firstListReturn)
                 .thenReturn(secondListReturn);
 
-       // Mockito.when(pnDeliveryClient.updateStatus(Mockito.any(RequestUpdateStatusDto.class))).thenReturn(ResponseEntity.ok().body(null));
-
         NotificationInfoInt notification = getNotification(iun);
-
 
         String id1 = "sender_ack";
         TimelineElementInternal dto = TimelineElementInternal.builder()
                 .iun(iun)
                 .elementId(id1)
                 .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
-                .details( NotificationRequestAcceptedDetailsInt.builder().build() )
+                .details(NotificationRequestAcceptedDetailsInt.builder().build())
                 .timestamp(Instant.now())
                 .build();
 
-        List<TimelineElementInternal> timelineElementList  =  getListTimelineElementInternal(iun);
-        HashSet<TimelineElementInternal> hashSet = new HashSet<>(timelineElementList);
-
-        //WHEN
-        StatusService.NotificationStatusUpdate statuses = statusService.getStatus(dto, hashSet, notification);
-
-        //THEN
-        Assertions.assertEquals(statuses.getOldStatus(), statuses.getNewStatus()); // same status (didn't change)
+        List<TimelineElementInternal> timelineElementList = getListTimelineElementInternal(iun);
+        Set<TimelineElementInternal> timelineElementSet= new HashSet<>(timelineElementList);
+        StatusService.NotificationStatusUpdate statuses = statusService.getStatus(dto, timelineElementSet, notification);
+        Assertions.assertEquals(statuses.getOldStatus(), statuses.getNewStatus());
     }
     
     private List<TimelineElementInternal> getListTimelineElementInternal(String iun){
@@ -153,29 +133,11 @@ class StatusServiceImplTest {
         return timelineElementList;
     }
 
-    private TimelineElementInternal getTimelineElement(String iun) {
-         SendAnalogFeedbackDetailsInt details =  SendAnalogFeedbackDetailsInt.builder()
-                .newAddress(
-                        PhysicalAddressInt.builder()
-                                .province("province")
-                                .municipality("munic")
-                                .at("at")
-                                .build()
-                )
-                .recIndex(0)
-                .sentAttemptMade(0)
-                .build();
-        return TimelineElementInternal.builder()
-                .iun(iun)
-                .details( details )
-                .build();
-    }
-
-
     private NotificationInfoInt getNotification(String iun) {
         return NotificationInfoInt.builder()
                 .iun(iun)
                 .paProtocolNumber("protocol_01")
+                .numberOfRecipients(1)
                 .build();
     }
 }
