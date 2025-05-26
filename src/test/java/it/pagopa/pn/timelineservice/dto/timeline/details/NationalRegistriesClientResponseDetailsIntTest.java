@@ -22,10 +22,7 @@ class NationalRegistriesClientResponseDetailsIntTest {
     @Test
     void testEquals() {
         PublicRegistryResponseDetailsInt expected = buildPublicRegistryResponseDetailsInt();
-        Assertions.assertEquals(expected.getDigitalAddress(), detailsInt.getDigitalAddress());
-        Assertions.assertEquals(expected.getPhysicalAddress(), detailsInt.getPhysicalAddress());
-        Assertions.assertEquals(expected.getRecIndex(), detailsInt.getRecIndex());
-        Assertions.assertEquals(expected.getRequestTimelineId(), detailsInt.getRequestTimelineId());
+        Assertions.assertEquals(Boolean.TRUE, expected.equals(detailsInt));
     }
     @Test
     void getRecIndex() {

@@ -4,7 +4,6 @@ import it.pagopa.pn.timelineservice.dto.address.CourtesyDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.io.IoSendMessageResultInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
@@ -12,10 +11,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @ToString
-public class SendCourtesyMessageDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, CourtesyAddressRelatedTimelineElement {
+public class SendCourtesyMessageDetailsInt implements RecipientRelatedTimelineElementDetails, CourtesyAddressRelatedTimelineElement {
     private int recIndex;
     private CourtesyDigitalAddressInt digitalAddress;
     private Instant sendDate;

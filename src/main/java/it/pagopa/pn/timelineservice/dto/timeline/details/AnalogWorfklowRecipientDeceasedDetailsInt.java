@@ -3,7 +3,6 @@ package it.pagopa.pn.timelineservice.dto.timeline.details;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
@@ -11,10 +10,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @ToString
-public class AnalogWorfklowRecipientDeceasedDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, PhysicalAddressRelatedTimelineElement, ElementTimestampTimelineElementDetails {
+public class AnalogWorfklowRecipientDeceasedDetailsInt implements RecipientRelatedTimelineElementDetails, PhysicalAddressRelatedTimelineElement, ElementTimestampTimelineElementDetails {
     private int recIndex;
     private PhysicalAddressInt physicalAddress;
     private Integer notificationCost;

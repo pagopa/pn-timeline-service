@@ -5,7 +5,6 @@ import it.pagopa.pn.timelineservice.dto.ext.externalchannel.AttachmentDetailsInt
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.ResponseStatusInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,10 +13,10 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @ToString
-public class SendAnalogFeedbackDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails,
+public class SendAnalogFeedbackDetailsInt implements RecipientRelatedTimelineElementDetails, 
         NewAddressRelatedTimelineElement, PhysicalAddressRelatedTimelineElement, ElementTimestampTimelineElementDetails {
     private int recIndex;
     private PhysicalAddressInt physicalAddress;

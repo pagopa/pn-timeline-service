@@ -4,28 +4,29 @@ import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElemen
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
-import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClientReactive;
+import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClient;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.mapper.ConfidentialTimelineElementDtoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class ConfidentialInformationServiceImpl implements ConfidentialInformationService {
-    private final PnDataVaultClientReactive pnDataVaultClientReactive;
+    private final PnDataVaultClient pnDataVaultClient;
 
-    public ConfidentialInformationServiceImpl(PnDataVaultClientReactive pnDataVaultClientReactive) {
-        this.pnDataVaultClientReactive = pnDataVaultClientReactive;
+    public ConfidentialInformationServiceImpl(PnDataVaultClient pnDataVaultClient) {
+        this.pnDataVaultClient = pnDataVaultClient;
     }
 
     @Override
-    public Mono<Void> saveTimelineConfidentialInformation(TimelineElementInternal timelineElement) {
+    public void saveTimelineConfidentialInformation(TimelineElementInternal timelineElement) {
         String iun = timelineElement.getIun();
 
         if (timelineElement.getDetails() instanceof ConfidentialInformationTimelineElement) {
@@ -34,12 +35,10 @@ public class ConfidentialInformationServiceImpl implements ConfidentialInformati
 
             ConfidentialTimelineElementDto dtoExt = ConfidentialTimelineElementDtoMapper.internalToExternal(dtoInt);
 
-            return pnDataVaultClientReactive.updateNotificationTimelineByIunAndTimelineElementId(iun, dtoExt)
-                    .doOnSuccess(unused -> log.debug("UpdateNotificationTimelineByIunAndTimelineElementId OK for - iun {} timelineElementId {}", iun, dtoInt.getTimelineElementId()))
-                    .then();
-        }
+            pnDataVaultClient.updateNotificationTimelineByIunAndTimelineElementId(iun, dtoExt);
 
-        return Mono.empty();
+            log.debug("UpdateNotificationTimelineByIunAndTimelineElementId OK for - iun {} timelineElementId {}", iun, dtoInt.getTimelineElementId());
+        }
     }
 
     private ConfidentialTimelineElementDtoInt getConfidentialDtoFromTimeline(TimelineElementInternal timelineElement) {
@@ -77,30 +76,37 @@ public class ConfidentialInformationServiceImpl implements ConfidentialInformati
     }
 
     @Override
-    public Mono<ConfidentialTimelineElementDtoInt> getTimelineElementConfidentialInformation(String iun, String timelineElementId) {
-        return pnDataVaultClientReactive.getNotificationTimelineByIunAndTimelineElementId(iun, timelineElementId)
-                .map(ConfidentialTimelineElementDtoMapper::externalToInternal)
-                .doOnNext(dto -> log.debug("getTimelineElementConfidentialInformation OK for - iun {} timelineElementId {}", iun, timelineElementId))
-                .switchIfEmpty(Mono.defer(() -> {
-                    log.debug("getTimelineElementConfidentialInformation haven't confidential information for - iun {} timelineElementId {}", iun, timelineElementId);
-                    return Mono.empty();
-                }));
+    public Optional<ConfidentialTimelineElementDtoInt> getTimelineElementConfidentialInformation(String iun, String timelineElementId) {
+      ConfidentialTimelineElementDto dtoExt = pnDataVaultClient.getNotificationTimelineByIunAndTimelineElementId(iun, timelineElementId);
+
+
+      log.debug("getTimelineElementConfidentialInformation OK for - iun {} timelineElementId {}", iun, timelineElementId);
+         
+
+      if (dtoExt != null) {
+         return Optional.of(ConfidentialTimelineElementDtoMapper.externalToInternal(dtoExt));
+      }
+
+      log.debug("getTimelineElementConfidentialInformation haven't confidential information for - iun {} timelineElementId {}", iun, timelineElementId);
+      return Optional.empty();
+        
     }
 
     @Override
-    public Mono<Map<String, ConfidentialTimelineElementDtoInt>> getTimelineConfidentialInformation(String iun) {
-        return pnDataVaultClientReactive.getNotificationTimelineByIun(iun)
-                .collectList()
-                .flatMap(listDtoExt -> {
-                    if (listDtoExt != null && !listDtoExt.isEmpty()) {
-                        Map<String, ConfidentialTimelineElementDtoInt> result = listDtoExt.stream()
-                                .map(ConfidentialTimelineElementDtoMapper::externalToInternal)
-                                .collect(Collectors.toMap(ConfidentialTimelineElementDtoInt::getTimelineElementId, Function.identity()));
-                        log.debug("getTimelineConfidentialInformation OK for - iun {} ", iun);
-                        return Mono.just(result);
-                    }
+    public Optional<Map<String, ConfidentialTimelineElementDtoInt>> getTimelineConfidentialInformation(String iun) {
+        List<ConfidentialTimelineElementDto> listDtoExt = pnDataVaultClient.getNotificationTimelineByIunWithHttpInfo(iun);
 
-                    return Mono.empty();
-                });
+        log.debug("getTimelineConfidentialInformation OK for - iun {} ", iun);
+      
+        if (listDtoExt != null && !listDtoExt.isEmpty()) {
+            return Optional.of(
+                    listDtoExt.stream()
+                            .map(ConfidentialTimelineElementDtoMapper::externalToInternal)
+                            .collect(Collectors.toMap(ConfidentialTimelineElementDtoInt::getTimelineElementId, Function.identity()))
+            );
+        }
+        log.debug("getTimelineConfidentialInformation haven't confidential information for - iun {} ", iun);
+        return Optional.empty();
+       
     }
 }

@@ -6,6 +6,4 @@ public interface TimelineElementDetailsInt {
      * Sensitive information must NOT be returned (taxId, email address, address number, physical address etc.)
      */
     String toLog();
-
-    void setCategoryType(String category);
 }

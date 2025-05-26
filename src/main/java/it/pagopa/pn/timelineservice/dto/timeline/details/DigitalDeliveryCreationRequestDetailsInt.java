@@ -3,7 +3,6 @@ package it.pagopa.pn.timelineservice.dto.timeline.details;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
@@ -11,10 +10,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @ToString
-public class DigitalDeliveryCreationRequestDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, DigitalAddressRelatedTimelineElement{
+public class DigitalDeliveryCreationRequestDetailsInt implements RecipientRelatedTimelineElementDetails, DigitalAddressRelatedTimelineElement{
     private int recIndex;
     private EndWorkflowStatus endWorkflowStatus;
     private Instant completionWorkflowDate;

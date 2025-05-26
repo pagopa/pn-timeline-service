@@ -21,9 +21,7 @@ class AarGenerationDetailsIntTest {
     @Test
     void testEquals() {
         AarGenerationDetailsInt expected = buildAarGenerationDetailsInt();
-        Assertions.assertEquals(expected.getGeneratedAarUrl(), detailsInt.getGeneratedAarUrl());
-        Assertions.assertEquals(expected.getNumberOfPages(), detailsInt.getNumberOfPages());
-        Assertions.assertEquals(expected.getRecIndex(), detailsInt.getRecIndex());
+        Assertions.assertEquals(Boolean.TRUE, expected.equals(detailsInt));
     }
     @Test
     void getRecIndex() {

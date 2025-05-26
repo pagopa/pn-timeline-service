@@ -2,7 +2,6 @@ package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.AttachmentDetailsInt;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,10 +10,10 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @ToString
-public class SimpleRegisteredLetterProgressDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, ElementTimestampTimelineElementDetails {
+public class SimpleRegisteredLetterProgressDetailsInt implements RecipientRelatedTimelineElementDetails, ElementTimestampTimelineElementDetails {
     private int recIndex;
     private Instant notificationDate;
     private String deliveryFailureCause;

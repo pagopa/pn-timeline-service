@@ -1,16 +1,15 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @Getter
 @Setter
 @ToString
-public class NotificationCancellationRequestDetailsInt extends CategoryTypeTimelineElementDetailsInt implements TimelineElementDetailsInt {
+public class NotificationCancellationRequestDetailsInt implements TimelineElementDetailsInt {
 
     private String cancellationRequestId;
 

@@ -10,9 +10,9 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder( toBuilder = true )
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 @ToString
-public class BaseAnalogDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, PhysicalAddressRelatedTimelineElement {
+public class BaseAnalogDetailsInt implements RecipientRelatedTimelineElementDetails, PhysicalAddressRelatedTimelineElement {
 
     protected int recIndex;
     protected PhysicalAddressInt physicalAddress;

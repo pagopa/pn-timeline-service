@@ -3,7 +3,7 @@ package it.pagopa.pn.timelineservice.service.mapper;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes;
+import it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -33,7 +33,7 @@ public class TimelineMapperBeforeFix extends TimelineMapper {
                         result.setTimestamp(endAnalogWorkflowBusinessDate);
                     } else {
                         log.error("SEARCH LAST SEND_ANALOG_FEEDBACK DETAILS NULL element {}", result);
-                        throw new PnInternalException("SEND_ANALOG_FEEDBACK NOT PRESENT, ERROR IN MAPPING", PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT);
+                        throw new PnInternalException("SEND_ANALOG_FEEDBACK NOT PRESENT, ERROR IN MAPPING", PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_TIMELINE_ELEMENT_NOT_PRESENT);
                     }
                 }
                 case REFINEMENT -> caseRefinement(timelineElementInternalSet, result);

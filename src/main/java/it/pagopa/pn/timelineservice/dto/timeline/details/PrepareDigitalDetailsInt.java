@@ -4,7 +4,6 @@ import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
@@ -12,10 +11,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @ToString
-public class PrepareDigitalDetailsInt extends CategoryTypeTimelineElementDetailsInt implements DigitalSendTimelineElementDetails {
+public class PrepareDigitalDetailsInt implements DigitalSendTimelineElementDetails {
     private int recIndex;
 
     // info relative a lastAddress

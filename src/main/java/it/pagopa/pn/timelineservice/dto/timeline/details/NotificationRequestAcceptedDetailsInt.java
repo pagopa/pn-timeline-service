@@ -2,27 +2,18 @@ package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 
 @NoArgsConstructor
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @ToString
-public class NotificationRequestAcceptedDetailsInt extends CategoryTypeTimelineElementDetailsInt implements TimelineElementDetailsInt{
-
-    private String notificationRequestId;
-    private String paProtocolNumber;
-    private String idempotenceToken;
+public class NotificationRequestAcceptedDetailsInt implements TimelineElementDetailsInt{
 
     public String toLog() {
-        return String.format("notificationRequestId=%s, paProtocolNumber=%s, idempotenceToken=%s",
-                notificationRequestId,
-                paProtocolNumber,
-                idempotenceToken
-        );
+        return AuditLogUtils.EMPTY;
     }
 }
 

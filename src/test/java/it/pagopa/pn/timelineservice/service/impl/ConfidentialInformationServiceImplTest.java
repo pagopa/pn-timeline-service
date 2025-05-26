@@ -3,66 +3,84 @@ package it.pagopa.pn.timelineservice.service.impl;
 import it.pagopa.pn.commons.exceptions.PnHttpResponseException;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
+import it.pagopa.pn.timelineservice.dto.mandate.DelegateInfoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationViewedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogDetailsInt;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.AddressDto;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.AnalogDomicile;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
-import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClientReactive;
+import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClient;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ConfidentialInformationServiceImplTest {
     private ConfidentialInformationService confidentialInformationService;
-    private PnDataVaultClientReactive pnDataVaultClient;
+    private PnDataVaultClient pnDataVaultClient;
     
     @BeforeEach
     void setup() {
-        pnDataVaultClient = Mockito.mock( PnDataVaultClientReactive.class );
-        confidentialInformationService = new ConfidentialInformationServiceImpl(pnDataVaultClient);
-    }
+        pnDataVaultClient = Mockito.mock( PnDataVaultClient.class );
 
+        confidentialInformationService = new ConfidentialInformationServiceImpl(
+                pnDataVaultClient);
+
+    }
+    
     @Test
     void saveTimelineConfidentialInformation() {
         String iun = "testIun";
         String elementId = "testElementId";
 
-        // GIVEN
+        //GIVEN
         TimelineElementInternal element = getSendPaperDetailsTimelineElement(iun, elementId);
 
-        Mockito.when(pnDataVaultClient.updateNotificationTimelineByIunAndTimelineElementId(Mockito.anyString(), Mockito.any(ConfidentialTimelineElementDto.class)))
-                .thenReturn(Mono.empty());
+        //Mockito.when(pnDataVaultClient.updateNotificationTimelineByIunAndTimelineElementId(Mockito.anyString(), Mockito.any(ConfidentialTimelineElementDto.class)))
+       // .doNothing();
 
-        // WHEN
-        Mono<Void> result = confidentialInformationService.saveTimelineConfidentialInformation(element);
+        //WHEN
+        confidentialInformationService.saveTimelineConfidentialInformation(element);
 
-        // THEN
-        StepVerifier.create(result)
-                .verifyComplete();
-
+        //THEN
         ArgumentCaptor<ConfidentialTimelineElementDto> confDtoCaptor = ArgumentCaptor.forClass(ConfidentialTimelineElementDto.class);
+
         Mockito.verify(pnDataVaultClient).updateNotificationTimelineByIunAndTimelineElementId(Mockito.eq(iun), confDtoCaptor.capture());
 
         ConfidentialTimelineElementDto capturedDto = confDtoCaptor.getValue();
-        StepVerifier.create(Mono.just(capturedDto))
-            .assertNext(dto -> {
-                Assertions.assertNotNull(dto.getPhysicalAddress());
-                Assertions.assertEquals(((SendAnalogDetailsInt) element.getDetails()).getPhysicalAddress().getAddress(), dto.getPhysicalAddress().getAddress());
-            })
-            .verifyComplete();
+        Assertions.assertNotNull( capturedDto.getPhysicalAddress() );
+        Assertions.assertEquals( ((SendAnalogDetailsInt) element.getDetails()).getPhysicalAddress().getAddress(), capturedDto.getPhysicalAddress().getAddress() );
+    }
+
+    @Test
+    void saveTimelineConfidentialInformationNotificationViewed() {
+        String iun = "testIun";
+        String elementId = "testElementId";
+
+        //GIVEN
+        TimelineElementInternal element = notificationViewedDetails(iun, elementId);
+        
+        //WHEN
+        confidentialInformationService.saveTimelineConfidentialInformation(element);
+
+        //THEN
+        ArgumentCaptor<ConfidentialTimelineElementDto> confDtoCaptor = ArgumentCaptor.forClass(ConfidentialTimelineElementDto.class);
+
+        Mockito.verify(pnDataVaultClient).updateNotificationTimelineByIunAndTimelineElementId(Mockito.eq(iun), confDtoCaptor.capture());
+
+        ConfidentialTimelineElementDto capturedDto = confDtoCaptor.getValue();
+        Assertions.assertNotNull( capturedDto.getTaxId() );
+        Assertions.assertNotNull( capturedDto.getDenomination() );
     }
 
     @Test
@@ -77,38 +95,37 @@ class ConfidentialInformationServiceImplTest {
         
 
         //WHEN
-        assertThrows(PnHttpResponseException.class, () -> confidentialInformationService.saveTimelineConfidentialInformation(element));
+        assertThrows(PnHttpResponseException.class, () -> {
+            confidentialInformationService.saveTimelineConfidentialInformation(element);
+        });
     }
 
 
     @Test
-        void getTimelineElementConfidentialInformation() {
-            //GIVEN
-            String iun = "testIun";
-            String elementId = "testElementId";
+    void getTimelineElementConfidentialInformation() {
+        //GIVEN
+        String iun = "testIun";
+        String elementId = "testElementId";
 
-            ConfidentialTimelineElementDto elementDto = ConfidentialTimelineElementDto.builder()
-                    .digitalAddress(
-                            AddressDto.builder()
-                                    .value("indirizzo@test.com")
-                                    .build()
-                    )
-                    .build();
+        ConfidentialTimelineElementDto elementDto = ConfidentialTimelineElementDto.builder()
+                .digitalAddress(
+                        AddressDto.builder()
+                                .value("indirizzo@test.com")
+                                .build()
+                )
+                .build();
+        ConfidentialTimelineElementDto resp = elementDto;
 
-            Mockito.when(pnDataVaultClient.getNotificationTimelineByIunAndTimelineElementId(Mockito.anyString(), Mockito.anyString()))
-                    .thenReturn(Mono.just(elementDto));
+        Mockito.when(pnDataVaultClient.getNotificationTimelineByIunAndTimelineElementId(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(resp);
 
-            //WHEN
-            Mono<ConfidentialTimelineElementDtoInt> monoConf = confidentialInformationService.getTimelineElementConfidentialInformation(iun, elementId);
+        //WHEN
+        Optional<ConfidentialTimelineElementDtoInt> optConf =  confidentialInformationService.getTimelineElementConfidentialInformation(iun, elementId);
 
-            //THEN
-            StepVerifier.create(monoConf)
-                    .assertNext(conf -> {
-                        Assertions.assertNotNull(conf);
-                        Assertions.assertEquals(conf.getDigitalAddress(), elementDto.getDigitalAddress().getValue());
-                    })
-                    .verifyComplete();
-        }
+        //THEN
+        Assertions.assertTrue(optConf.isPresent());
+        Assertions.assertEquals(optConf.get().getDigitalAddress(), elementDto.getDigitalAddress().getValue());
+    }
     
     @Test
     void getTimelineElementConfidentialInformationKo() {
@@ -120,12 +137,14 @@ class ConfidentialInformationServiceImplTest {
                 .thenThrow(PnHttpResponseException.class);
         
         //WHEN
-        assertThrows(PnHttpResponseException.class, () -> confidentialInformationService.getTimelineElementConfidentialInformation(iun, elementId));
+        assertThrows(PnHttpResponseException.class, () -> {
+            confidentialInformationService.getTimelineElementConfidentialInformation(iun, elementId);
+        });
     }
     
     @Test
     void getTimelineConfidentialInformation() {
-        // GIVEN
+        //GIVEN
         String iun = "testIun";
         String elementId1 = "elementId1";
         String elementId2 = "elementId2";
@@ -152,52 +171,36 @@ class ConfidentialInformationServiceImplTest {
         List<ConfidentialTimelineElementDto> list = new ArrayList<>();
         list.add(elementDto1);
         list.add(elementDto2);
+        
 
-        // WHEN
-        Mockito.when(pnDataVaultClient.getNotificationTimelineByIun(iun))
-                .thenReturn(Flux.fromIterable(list));
+        Mockito.when(pnDataVaultClient.getNotificationTimelineByIunWithHttpInfo(Mockito.anyString()))
+                .thenReturn(list);
 
-        Mono<Map<String, ConfidentialTimelineElementDtoInt>> mapOtpMono = confidentialInformationService.getTimelineConfidentialInformation(iun);
+        //WHEN
+        Optional<Map<String, ConfidentialTimelineElementDtoInt>> mapOtp = confidentialInformationService.getTimelineConfidentialInformation(iun);
+                
+        //THEN
+        Assertions.assertTrue(mapOtp.isPresent());
 
-        // THEN
-        StepVerifier.create(mapOtpMono)
-                .assertNext(mapOtp -> {
-                    Assertions.assertNotNull(mapOtp.get(elementId1));
-                    Assertions.assertEquals(mapOtp.get(elementId1).getDigitalAddress(), elementDto1.getDigitalAddress().getValue());
+        Assertions.assertNotNull(mapOtp.get().get(elementId1));
+        Assertions.assertEquals(mapOtp.get().get(elementId1).getDigitalAddress(), elementDto1.getDigitalAddress().getValue());
 
-                    Assertions.assertNotNull(mapOtp.get(elementId2));
-                    Assertions.assertEquals(mapOtp.get(elementId2).getNewPhysicalAddress().getAddress(), elementDto2.getNewPhysicalAddress().getAddress());
-                })
-                .verifyComplete();
+        Assertions.assertNotNull(mapOtp.get().get(elementId2));
+        Assertions.assertEquals(mapOtp.get().get(elementId2).getNewPhysicalAddress().getAddress(), elementDto2.getNewPhysicalAddress().getAddress());
     }
     
     @Test
     void getTimelineConfidentialInformationKo() {
-        // GIVEN
+        //GIVEN
         String iun = "testIun";
 
-        Mockito.when(pnDataVaultClient.getNotificationTimelineByIun(Mockito.anyString()))
-                .thenReturn(Flux.error(new PnHttpResponseException("Error", 0)));
+        Mockito.when(pnDataVaultClient.getNotificationTimelineByIunWithHttpInfo(Mockito.anyString()))
+                .thenThrow(PnHttpResponseException.class);
 
-        // WHEN & THEN
-        StepVerifier.create(confidentialInformationService.getTimelineConfidentialInformation(iun))
-                .expectError(PnHttpResponseException.class)
-                .verify();
-    }
-
-    @Test
-    void getTimelineConfidentialInformationEmpty() {
-        // GIVEN
-        String iun = "testIun";
-
-        Mockito.when(pnDataVaultClient.getNotificationTimelineByIun(Mockito.anyString()))
-                .thenReturn(Flux.empty());
-
-        // WHEN & THEN
-        StepVerifier.create(confidentialInformationService.getTimelineConfidentialInformation(iun))
-                .expectNextCount(0)
-                .expectComplete()
-                .verify();
+        //WHEN
+        assertThrows(PnHttpResponseException.class, () -> {
+            confidentialInformationService.getTimelineConfidentialInformation(iun);
+        });
     }
     
     private TimelineElementInternal getSendPaperDetailsTimelineElement(String iun, String elementId) {
@@ -215,6 +218,25 @@ class ConfidentialInformationServiceImplTest {
                 .sentAttemptMade(0)
                 .build();
          
+        return TimelineElementInternal.builder()
+                .elementId(elementId)
+                .iun(iun)
+                .details( details )
+                .build();
+    }
+
+    private TimelineElementInternal notificationViewedDetails(String iun, String elementId) {
+        NotificationViewedDetailsInt details =  NotificationViewedDetailsInt.builder()
+                .notificationCost(100)
+                .recIndex(0)
+                .raddTransactionId("154")
+                .delegateInfo(DelegateInfoInt.builder()
+                        .internalId("idInterno")
+                        .denomination("test")
+                        .taxId("prova")
+                        .build())
+                .build();
+
         return TimelineElementInternal.builder()
                 .elementId(elementId)
                 .iun(iun)

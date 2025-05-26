@@ -4,20 +4,19 @@ import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @ToString
-public class PublicRegistryResponseDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, DigitalAddressRelatedTimelineElement {
-    protected int recIndex;
-    protected LegalDigitalAddressInt digitalAddress;
-    protected PhysicalAddressInt physicalAddress;
-    protected String requestTimelineId;
+public class PublicRegistryResponseDetailsInt implements RecipientRelatedTimelineElementDetails, DigitalAddressRelatedTimelineElement {
+    private int recIndex;
+    private LegalDigitalAddressInt digitalAddress;
+    private PhysicalAddressInt physicalAddress;
+    private String requestTimelineId;
 
     public String toLog() {
         return String.format(

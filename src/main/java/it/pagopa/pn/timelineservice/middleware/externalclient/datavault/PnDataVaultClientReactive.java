@@ -1,19 +1,23 @@
 package it.pagopa.pn.timelineservice.middleware.externalclient.datavault;
 
 import it.pagopa.pn.commons.log.PnLogger;
+import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.BaseRecipientDto;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
+import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementId;
+import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.NotificationRecipientAddressesDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 public interface PnDataVaultClientReactive {
     String CLIENT_NAME = PnLogger.EXTERNAL_SERVICES.PN_DATA_VAULT;
-    String UPDATE_TIMELINE_ELEMENT_CONF_INFORMATION = "UPDATE TIMELINE ELEMENT CONFIDENTIAL INFORMATION";
-    String GET_TIMELINE_ELEMENT_CONF_INFORMATION = "GET TIMELINE ELEMENT CONFIDENTIAL INFORMATION";
-    String GET_TIMELINE_CONF_INFORMATION = "GET TIMELINE CONFIDENTIAL INFORMATION";
+    String GET_RECIPIENT_DENOMINATION = "GET RECIPIENT DENOMINATION";
+    String UPDATE_NOTIFICATION_ADDRESS = "UPDATE CONFIDENTIAL INFO, NOTIFICATION ADDRESS";
+    String NOTIFICATION_TIMELINES_ADDRESS = "RETRIEVE CONFIDENTIAL INFO, NOTIFICATION TIMELINES";
 
-    Mono<Void> updateNotificationTimelineByIunAndTimelineElementId(String iun, ConfidentialTimelineElementDto dto);
+    Flux<BaseRecipientDto> getRecipientsDenominationByInternalId(List<String> listInternalId);
 
-    Mono<ConfidentialTimelineElementDto> getNotificationTimelineByIunAndTimelineElementId(String iun, String timelineElementId);
-
-    Flux<ConfidentialTimelineElementDto> getNotificationTimelineByIun(String iun);
+    Flux<ConfidentialTimelineElementDto> getNotificationTimelines(List<ConfidentialTimelineElementId> confidentialTimelineElementId);
+    Mono<Void> updateNotificationAddressesByIun(String iun, Boolean normalized, List<NotificationRecipientAddressesDto> list);
 }

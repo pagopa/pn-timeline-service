@@ -1,58 +1,44 @@
-/*
 package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.dynamo;
 
-import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
+import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
+import it.pagopa.pn.timelineservice.middleware.dao.TimelineEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.TimelineDaoDynamo;
+import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.EntityToDtoTimelineMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.test.StepVerifier;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-@ExtendWith(MockitoExtension.class)
 class TimelineDaoDynamoTest {
 
-    @Mock
-    private DynamoDbEnhancedAsyncClient dynamoDbEnhancedAsyncClient;
-    @Mock
-    private DynamoDbAsyncTable<Object> table;
-
-    private TimelineDaoDynamo dao;
-
-    @Spy
-    private DtoToEntityTimelineMapper dtoToEntityTimelineMapper;
-
-    @Spy
-    private EntityToDtoTimelineMapper entityToDtoTimelineMapper;
+    private TimelineDao dao;
 
     @BeforeEach
     void setup() {
-        when(dynamoDbEnhancedAsyncClient.table(any(), any())).thenReturn(table);
-        PnTimelineServiceConfigs pnTimelineServiceConfigs = new PnTimelineServiceConfigs();
-        PnTimelineServiceConfigs.TimelineDao timelineDao = new PnTimelineServiceConfigs.TimelineDao();
-        timelineDao.setTableName("timeline");
-        pnTimelineServiceConfigs.setTimelineDao(timelineDao);
-        dao = new TimelineDaoDynamo(dynamoDbEnhancedAsyncClient, pnTimelineServiceConfigs, dtoToEntityTimelineMapper, entityToDtoTimelineMapper);
+
+        DtoToEntityTimelineMapper dto2Entity = new DtoToEntityTimelineMapper();
+        EntityToDtoTimelineMapper entity2dto = new EntityToDtoTimelineMapper();
+        TimelineEntityDao entityDao = new TestMyTimelineEntityDao();
+
+        dao = new TimelineDaoDynamo(entityDao, dto2Entity, entity2dto);
     }
 
     @ExtendWith(MockitoExtension.class)
@@ -66,9 +52,8 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .elementId(id1)
                 .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
-                .details(NotificationRequestAcceptedDetailsInt.builder().categoryType("REQUEST_ACCEPTED").build())
+                .details( NotificationRequestAcceptedDetailsInt.builder().build() )
                 .timestamp(Instant.now())
-                .eventTimestamp(Instant.now())
                 .statusInfo(StatusInfoInternal.builder().build())
                 .build();
         String id2 = "SendDigitalDetails";
@@ -76,76 +61,56 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .elementId(id2)
                 .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
-                .details(SendDigitalDetailsInt.builder().build())
+                .details( SendDigitalDetailsInt.builder().build() )
+                .timestamp(Instant.now())
+                .statusInfo(StatusInfoInternal.builder().build())
+                .build();
+        
+        // WHEN
+        dao.addTimelineElementIfAbsent(row1);
+        dao.addTimelineElementIfAbsent(row2);
+
+        // THEN
+        // check first row
+        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1, false);
+        Assertions.assertTrue(retrievedRow1.isPresent());
+        Assertions.assertEquals(row1, retrievedRow1.get());
+
+        // check second row
+        Optional<TimelineElementInternal> retrievedRow2 = dao.getTimelineElement(iun, id2, false);
+        Assertions.assertTrue(retrievedRow2.isPresent());
+        Assertions.assertEquals(row2, retrievedRow2.get());
+
+        // check full retrieve
+        Set<TimelineElementInternal> result = dao.getTimeline(iun);
+        Assertions.assertEquals(Set.of(row1, row2), result);
+    }
+
+    @ExtendWith(MockitoExtension.class)
+    @Test
+    void successfullyInsertAndRetrieveWithTimestamps() {
+        // GIVEN
+        String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
+
+        String id1 = "sender_ack";
+        TimelineElementInternal row1 = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(id1)
+                .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
+                .details( NotificationRequestAcceptedDetailsInt.builder().build() )
                 .timestamp(Instant.now())
                 .eventTimestamp(Instant.now())
                 .statusInfo(StatusInfoInternal.builder().build())
                 .build();
 
-        when(table.putItem(any(PutItemEnhancedRequest.class))).thenReturn(CompletableFuture.completedFuture(null));
         // WHEN
-        dao.addTimelineElementIfAbsent(row1).block();
-        dao.addTimelineElementIfAbsent(row2).block();
-
+        dao.addTimelineElementIfAbsent(row1);
 
         // THEN
         // check first row
-        TimelineElementInternal retrievedRow1 = dao.getTimelineElement(iun, id1, false).block();
-        Assertions.assertEquals(row1.getTimestamp(), retrievedRow1.getTimestamp());
-        Assertions.assertEquals(row1.getIun(), retrievedRow1.getIun());
-        Assertions.assertEquals(row1.getElementId(), retrievedRow1.getElementId());
-        Assertions.assertEquals(row1.getCategory(), retrievedRow1.getCategory());
-        Assertions.assertEquals(row1.getStatusInfo(), retrievedRow1.getStatusInfo());
-        Assertions.assertEquals(row1.getNotificationSentAt(), retrievedRow1.getNotificationSentAt());
-        Assertions.assertEquals(row1.getPaId(), retrievedRow1.getPaId());
-        Assertions.assertEquals(row1.getLegalFactsIds(), retrievedRow1.getLegalFactsIds());
-        Assertions.assertEquals(row1.getEventTimestamp(), retrievedRow1.getEventTimestamp());
-        Assertions.assertEquals(row1.getIngestionTimestamp(), retrievedRow1.getIngestionTimestamp());
-        Assertions.assertEquals(row1.getCategory().getDetailsJavaClass(), retrievedRow1.getCategory().getDetailsJavaClass());
-        Assertions.assertEquals(row1.getCategory().getPriority(), retrievedRow1.getCategory().getPriority());
-
-        // check second row
-        TimelineElementInternal retrievedRow2 = dao.getTimelineElement(iun, id2, false).block();
-        Assertions.assertEquals(row2.getTimestamp(), retrievedRow2.getTimestamp());
-        Assertions.assertEquals(row2.getIun(), retrievedRow2.getIun());
-        Assertions.assertEquals(row2.getElementId(), retrievedRow2.getElementId());
-        Assertions.assertEquals(row2.getCategory(), retrievedRow2.getCategory());
-        Assertions.assertEquals(row2.getStatusInfo(), retrievedRow2.getStatusInfo());
-        Assertions.assertEquals(row2.getNotificationSentAt(), retrievedRow2.getNotificationSentAt());
-        Assertions.assertEquals(row2.getPaId(), retrievedRow2.getPaId());
-        Assertions.assertEquals(row2.getLegalFactsIds(), retrievedRow2.getLegalFactsIds());
-        Assertions.assertEquals(row2.getEventTimestamp(), retrievedRow2.getEventTimestamp());
-        Assertions.assertEquals(row2.getIngestionTimestamp(), retrievedRow2.getIngestionTimestamp());
-        Assertions.assertEquals(row2.getCategory().getDetailsJavaClass(), retrievedRow2.getCategory().getDetailsJavaClass());
-        Assertions.assertEquals(row2.getCategory().getPriority(), retrievedRow2.getCategory().getPriority());
-
-        // check full retrieve
-        List<TimelineElementInternal> result = dao.getTimeline(iun).collectList().block();
-        Assertions.assertEquals(row1.getTimestamp(), result.getFirst().getTimestamp());
-        Assertions.assertEquals(row1.getIun(), result.getFirst().getIun());
-        Assertions.assertEquals(row1.getElementId(), result.getFirst().getElementId());
-        Assertions.assertEquals(row1.getCategory(), result.getFirst().getCategory());
-        Assertions.assertEquals(row1.getStatusInfo(), result.getFirst().getStatusInfo());
-        Assertions.assertEquals(row1.getNotificationSentAt(), result.getFirst().getNotificationSentAt());
-        Assertions.assertEquals(row1.getPaId(), result.getFirst().getPaId());
-        Assertions.assertEquals(row1.getLegalFactsIds(), result.getFirst().getLegalFactsIds());
-        Assertions.assertEquals(row1.getEventTimestamp(), result.getFirst().getEventTimestamp());
-        Assertions.assertEquals(row1.getIngestionTimestamp(), result.getFirst().getIngestionTimestamp());
-        Assertions.assertEquals(row1.getCategory().getDetailsJavaClass(), result.getFirst().getCategory().getDetailsJavaClass());
-        Assertions.assertEquals(row1.getCategory().getPriority(), result.getFirst().getCategory().getPriority());
-
-        Assertions.assertEquals(row2.getIun(), result.getLast().getIun());
-        Assertions.assertEquals(row2.getElementId(), result.getLast().getElementId());
-        Assertions.assertEquals(row2.getCategory(), result.getLast().getCategory());
-        Assertions.assertEquals(row2.getStatusInfo(), result.getLast().getStatusInfo());
-        Assertions.assertEquals(row2.getNotificationSentAt(), result.getLast().getNotificationSentAt());
-        Assertions.assertEquals(row2.getPaId(), result.getLast().getPaId());
-        Assertions.assertEquals(row2.getLegalFactsIds(), result.getLast().getLegalFactsIds());
-        Assertions.assertEquals(row2.getEventTimestamp(), result.getLast().getEventTimestamp());
-        Assertions.assertEquals(row2.getIngestionTimestamp(), result.getLast().getIngestionTimestamp());
-        Assertions.assertEquals(row2.getCategory().getDetailsJavaClass(), result.getLast().getCategory().getDetailsJavaClass());
-        Assertions.assertEquals(row2.getCategory().getPriority(), result.getLast().getCategory().getPriority());
-
+        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1, false);
+        Assertions.assertTrue(retrievedRow1.isPresent());
+        Assertions.assertEquals(row1, retrievedRow1.get());
     }
 
     @ExtendWith(MockitoExtension.class)
@@ -159,7 +124,7 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .elementId(id1)
                 .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
-                .details(NotificationRequestAcceptedDetailsInt.builder().build())
+                .details( NotificationRequestAcceptedDetailsInt.builder().build() )
                 .timestamp(Instant.now())
                 .statusInfo(StatusInfoInternal.builder().build())
                 .build();
@@ -168,7 +133,7 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .elementId(id2)
                 .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
-                .details(SendDigitalDetailsInt.builder().build())
+                .details( SendDigitalDetailsInt.builder().build() )
                 .timestamp(Instant.now())
                 .statusInfo(StatusInfoInternal.builder().build())
                 .build();
@@ -179,61 +144,18 @@ class TimelineDaoDynamoTest {
 
         // THEN
         // check first row
-        TimelineElementInternal retrievedRow1 = dao.getTimelineElement(iun, id1, true).block();
-        Assertions.assertEquals(row1.getTimestamp(), retrievedRow1.getTimestamp());
-        Assertions.assertEquals(row1.getIun(), retrievedRow1.getIun());
-        Assertions.assertEquals(row1.getElementId(), retrievedRow1.getElementId());
-        Assertions.assertEquals(row1.getCategory(), retrievedRow1.getCategory());
-        Assertions.assertEquals(row1.getStatusInfo(), retrievedRow1.getStatusInfo());
-        Assertions.assertEquals(row1.getNotificationSentAt(), retrievedRow1.getNotificationSentAt());
-        Assertions.assertEquals(row1.getPaId(), retrievedRow1.getPaId());
-        Assertions.assertEquals(row1.getLegalFactsIds(), retrievedRow1.getLegalFactsIds());
-        Assertions.assertEquals(row1.getEventTimestamp(), retrievedRow1.getEventTimestamp());
-        Assertions.assertEquals(row1.getIngestionTimestamp(), retrievedRow1.getIngestionTimestamp());
-        Assertions.assertEquals(row1.getCategory().getDetailsJavaClass(), retrievedRow1.getCategory().getDetailsJavaClass());
-        Assertions.assertEquals(row1.getCategory().getPriority(), retrievedRow1.getCategory().getPriority());
+        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1, false);
+        Assertions.assertTrue(retrievedRow1.isPresent());
+        Assertions.assertEquals(row1, retrievedRow1.get());
 
         // check second row
-        TimelineElementInternal retrievedRow2 = dao.getTimelineElement(iun, id2, true).block();
-        Assertions.assertEquals(row2.getTimestamp(), retrievedRow2.getTimestamp());
-        Assertions.assertEquals(row2.getIun(), retrievedRow2.getIun());
-        Assertions.assertEquals(row2.getElementId(), retrievedRow2.getElementId());
-        Assertions.assertEquals(row2.getCategory(), retrievedRow2.getCategory());
-        Assertions.assertEquals(row2.getStatusInfo(), retrievedRow2.getStatusInfo());
-        Assertions.assertEquals(row2.getNotificationSentAt(), retrievedRow2.getNotificationSentAt());
-        Assertions.assertEquals(row2.getPaId(), retrievedRow2.getPaId());
-        Assertions.assertEquals(row2.getLegalFactsIds(), retrievedRow2.getLegalFactsIds());
-        Assertions.assertEquals(row2.getEventTimestamp(), retrievedRow2.getEventTimestamp());
-        Assertions.assertEquals(row2.getIngestionTimestamp(), retrievedRow2.getIngestionTimestamp());
-        Assertions.assertEquals(row2.getCategory().getDetailsJavaClass(), retrievedRow2.getCategory().getDetailsJavaClass());
-        Assertions.assertEquals(row2.getCategory().getPriority(), retrievedRow2.getCategory().getPriority());
+        Optional<TimelineElementInternal> retrievedRow2 = dao.getTimelineElement(iun, id2, false);
+        Assertions.assertTrue(retrievedRow2.isPresent());
+        Assertions.assertEquals(row2, retrievedRow2.get());
 
         // check full retrieve
-        List<TimelineElementInternal> result = dao.getTimeline(iun).collectList().block();
-        Assertions.assertEquals(row1.getTimestamp(), result.getFirst().getTimestamp());
-        Assertions.assertEquals(row1.getIun(), result.getFirst().getIun());
-        Assertions.assertEquals(row1.getElementId(), result.getFirst().getElementId());
-        Assertions.assertEquals(row1.getCategory(), result.getFirst().getCategory());
-        Assertions.assertEquals(row1.getStatusInfo(), result.getFirst().getStatusInfo());
-        Assertions.assertEquals(row1.getNotificationSentAt(), result.getFirst().getNotificationSentAt());
-        Assertions.assertEquals(row1.getPaId(), result.getFirst().getPaId());
-        Assertions.assertEquals(row1.getLegalFactsIds(), result.getFirst().getLegalFactsIds());
-        Assertions.assertEquals(row1.getEventTimestamp(), result.getFirst().getEventTimestamp());
-        Assertions.assertEquals(row1.getIngestionTimestamp(), result.getFirst().getIngestionTimestamp());
-        Assertions.assertEquals(row1.getCategory().getDetailsJavaClass(), result.getFirst().getCategory().getDetailsJavaClass());
-        Assertions.assertEquals(row1.getCategory().getPriority(), result.getFirst().getCategory().getPriority());
-
-        Assertions.assertEquals(row2.getIun(), result.getLast().getIun());
-        Assertions.assertEquals(row2.getElementId(), result.getLast().getElementId());
-        Assertions.assertEquals(row2.getCategory(), result.getLast().getCategory());
-        Assertions.assertEquals(row2.getStatusInfo(), result.getLast().getStatusInfo());
-        Assertions.assertEquals(row2.getNotificationSentAt(), result.getLast().getNotificationSentAt());
-        Assertions.assertEquals(row2.getPaId(), result.getLast().getPaId());
-        Assertions.assertEquals(row2.getLegalFactsIds(), result.getLast().getLegalFactsIds());
-        Assertions.assertEquals(row2.getEventTimestamp(), result.getLast().getEventTimestamp());
-        Assertions.assertEquals(row2.getIngestionTimestamp(), result.getLast().getIngestionTimestamp());
-        Assertions.assertEquals(row2.getCategory().getDetailsJavaClass(), result.getLast().getCategory().getDetailsJavaClass());
-        Assertions.assertEquals(row2.getCategory().getPriority(), result.getLast().getCategory().getPriority());
+        Set<TimelineElementInternal> result = dao.getTimelineStrongly(iun);
+        Assertions.assertEquals(Set.of(row1, row2), result);
     }
 
     @ExtendWith(MockitoExtension.class)
@@ -247,7 +169,7 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .elementId(id1)
                 .category(TimelineElementCategoryInt.SEND_SIMPLE_REGISTERED_LETTER)
-                .details(SimpleRegisteredLetterDetailsInt.builder()
+                .details( SimpleRegisteredLetterDetailsInt.builder()
                         .physicalAddress(PhysicalAddressInt.builder()
                                 .foreignState("IT")
                                 .zip("12345")
@@ -257,7 +179,7 @@ class TimelineDaoDynamoTest {
                                 .province("RM")
                                 .at("at")
                                 .build())
-                        .build())
+                        .build() )
                 .timestamp(Instant.now())
                 .statusInfo(StatusInfoInternal.builder().build())
                 .build();
@@ -266,7 +188,7 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .elementId(id2)
                 .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
-                .details(SendAnalogDetailsInt.builder()
+                .details( SendAnalogDetailsInt.builder()
                         .physicalAddress(PhysicalAddressInt.builder()
                                 .foreignState("IT")
                                 .zip("12345")
@@ -276,7 +198,7 @@ class TimelineDaoDynamoTest {
                                 .province("RM")
                                 .at("at")
                                 .build())
-                        .build())
+                        .build() )
                 .timestamp(Instant.now())
                 .statusInfo(StatusInfoInternal.builder().build())
                 .build();
@@ -287,34 +209,27 @@ class TimelineDaoDynamoTest {
 
         // THEN
         // check first row
-        StepVerifier.create(dao.getTimelineElement(iun, id1, false))
-                .assertNext(row -> {
-                    Assertions.assertEquals(((SimpleRegisteredLetterDetailsInt) row1.getDetails()).getPhysicalAddress().getForeignState(),
-                            ((SimpleRegisteredLetterDetailsInt) row.getDetails()).getPhysicalAddress().getForeignState());
-                    Assertions.assertEquals(((SimpleRegisteredLetterDetailsInt) row1.getDetails()).getPhysicalAddress().getZip(),
-                            ((SimpleRegisteredLetterDetailsInt) row.getDetails()).getPhysicalAddress().getZip());
-                    Assertions.assertNull(((SimpleRegisteredLetterDetailsInt) row.getDetails()).getPhysicalAddress().getAddress());
-                    Assertions.assertNull(((SimpleRegisteredLetterDetailsInt) row.getDetails()).getPhysicalAddress().getMunicipality());
-                    Assertions.assertNull(((SimpleRegisteredLetterDetailsInt) row.getDetails()).getPhysicalAddress().getMunicipalityDetails());
-                    Assertions.assertNull(((SimpleRegisteredLetterDetailsInt) row.getDetails()).getPhysicalAddress().getProvince());
-                    Assertions.assertNull(((SimpleRegisteredLetterDetailsInt) row.getDetails()).getPhysicalAddress().getAt());
-                })
-                .verifyComplete();
+        Optional<TimelineElementInternal> retrievedRow1 = dao.getTimelineElement(iun, id1, false);
+        Assertions.assertTrue(retrievedRow1.isPresent());
+        Assertions.assertEquals(((SimpleRegisteredLetterDetailsInt)row1.getDetails()).getPhysicalAddress().getForeignState(), ((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getForeignState());
+        Assertions.assertEquals(((SimpleRegisteredLetterDetailsInt)row1.getDetails()).getPhysicalAddress().getZip(), ((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getZip());
+        Assertions.assertNull(((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getAddress());
+        Assertions.assertNull(((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getMunicipality());
+        Assertions.assertNull(((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getMunicipalityDetails());
+        Assertions.assertNull(((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getProvince());
+        Assertions.assertNull(((SimpleRegisteredLetterDetailsInt)retrievedRow1.get().getDetails()).getPhysicalAddress().getAt());
 
         // check second row
-        StepVerifier.create(dao.getTimelineElement(iun, id2, false))
-                .assertNext(row -> {
-                    Assertions.assertEquals(((SendAnalogDetailsInt) row2.getDetails()).getPhysicalAddress().getForeignState(),
-                            ((SendAnalogDetailsInt) row.getDetails()).getPhysicalAddress().getForeignState());
-                    Assertions.assertEquals(((SendAnalogDetailsInt) row2.getDetails()).getPhysicalAddress().getZip(),
-                            ((SendAnalogDetailsInt) row.getDetails()).getPhysicalAddress().getZip());
-                    Assertions.assertNull(((SendAnalogDetailsInt) row.getDetails()).getPhysicalAddress().getAddress());
-                    Assertions.assertNull(((SendAnalogDetailsInt) row.getDetails()).getPhysicalAddress().getMunicipality());
-                    Assertions.assertNull(((SendAnalogDetailsInt) row.getDetails()).getPhysicalAddress().getMunicipalityDetails());
-                    Assertions.assertNull(((SendAnalogDetailsInt) row.getDetails()).getPhysicalAddress().getProvince());
-                    Assertions.assertNull(((SendAnalogDetailsInt) row.getDetails()).getPhysicalAddress().getAt());
-                })
-                .verifyComplete();
+        Optional<TimelineElementInternal> retrievedRow2 = dao.getTimelineElement(iun, id2, false);
+        Assertions.assertTrue(retrievedRow2.isPresent());
+        Assertions.assertEquals(((SendAnalogDetailsInt)row2.getDetails()).getPhysicalAddress().getForeignState(), ((SendAnalogDetailsInt)retrievedRow2.get().getDetails()).getPhysicalAddress().getForeignState());
+        Assertions.assertEquals(((SendAnalogDetailsInt)row2.getDetails()).getPhysicalAddress().getZip(), ((SendAnalogDetailsInt)retrievedRow2.get().getDetails()).getPhysicalAddress().getZip());
+        Assertions.assertNull(((SendAnalogDetailsInt)retrievedRow2.get().getDetails()).getPhysicalAddress().getAddress());
+        Assertions.assertNull(((SendAnalogDetailsInt)retrievedRow2.get().getDetails()).getPhysicalAddress().getMunicipality());
+        Assertions.assertNull(((SendAnalogDetailsInt)retrievedRow2.get().getDetails()).getPhysicalAddress().getMunicipalityDetails());
+        Assertions.assertNull(((SendAnalogDetailsInt)retrievedRow2.get().getDetails()).getPhysicalAddress().getProvince());
+        Assertions.assertNull(((SendAnalogDetailsInt)retrievedRow2.get().getDetails()).getPhysicalAddress().getAt());
+
     }
 
     @ExtendWith(MockitoExtension.class)
@@ -322,24 +237,34 @@ class TimelineDaoDynamoTest {
     void successfullyInsertAndRetrieveSearch() {
         // GIVEN
         String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
-        String idPrefix = "SendDigitalDetails_";
+        String id_prefix = "SendDigitalDetails_";
 
         String id1 = "sender_ack";
         TimelineElementInternal row1 = TimelineElementInternal.builder()
                 .iun(iun)
                 .elementId(id1)
                 .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
-                .details(NotificationRequestAcceptedDetailsInt.builder().build())
+                .details( NotificationRequestAcceptedDetailsInt.builder().build() )
                 .timestamp(Instant.now())
                 .statusInfo(StatusInfoInternal.builder().build())
                 .notificationSentAt(Instant.now())
                 .build();
-        String id2 = idPrefix + "1";
+        String id2 = id_prefix + "1";
         TimelineElementInternal row2 = TimelineElementInternal.builder()
                 .iun(iun)
                 .elementId(id2)
                 .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
-                .details(SendDigitalDetailsInt.builder().build())
+                .details( SendDigitalDetailsInt.builder().build() )
+                .timestamp(Instant.now())
+                .statusInfo(StatusInfoInternal.builder().build())
+                .notificationSentAt(Instant.now())
+                .build();
+        String id3 = id_prefix + "2";
+        TimelineElementInternal row3 = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(id3)
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
+                .details( SendDigitalDetailsInt.builder().build() )
                 .timestamp(Instant.now())
                 .statusInfo(StatusInfoInternal.builder().build())
                 .notificationSentAt(Instant.now())
@@ -348,21 +273,130 @@ class TimelineDaoDynamoTest {
         // WHEN
         dao.addTimelineElementIfAbsent(row1);
         dao.addTimelineElementIfAbsent(row2);
+        dao.addTimelineElementIfAbsent(row3);
 
-        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, idPrefix).collectList().block();
-        Assertions.assertEquals(row2.getTimestamp(), result.getFirst().getTimestamp());
-        Assertions.assertEquals(row2.getIun(), result.getFirst().getIun());
-        Assertions.assertEquals(row2.getElementId(), result.getFirst().getElementId());
-        Assertions.assertEquals(row2.getCategory(), result.getFirst().getCategory());
-        Assertions.assertEquals(row2.getStatusInfo(), result.getFirst().getStatusInfo());
-        Assertions.assertEquals(row2.getNotificationSentAt(), result.getFirst().getNotificationSentAt());
-        Assertions.assertEquals(row2.getPaId(), result.getFirst().getPaId());
-        Assertions.assertEquals(row2.getLegalFactsIds(), result.getFirst().getLegalFactsIds());
-        Assertions.assertEquals(row2.getEventTimestamp(), result.getFirst().getEventTimestamp());
-        Assertions.assertEquals(row2.getIngestionTimestamp(), result.getFirst().getIngestionTimestamp());
-        Assertions.assertEquals(row2.getCategory().getDetailsJavaClass(), result.getFirst().getCategory().getDetailsJavaClass());
-        Assertions.assertEquals(row2.getCategory().getPriority(), result.getFirst().getCategory().getPriority());
+        // THEN
+
+
+        // check full retrieve
+        Set<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, id_prefix);
+        Assertions.assertEquals(Set.of(row2, row3), result);
+    }
+
+    @ExtendWith(MockitoExtension.class)
+    @Test
+    void successfullyDelete() {
+        // GIVEN
+        String iun = "iun1";
+
+        StatusInfoInternal statusInfo = Mockito.mock(StatusInfoInternal.class);
+
+        String id1 = "sender_ack";
+        TimelineElementInternal row1 = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(id1)
+                .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
+                .details( NotificationRequestAcceptedDetailsInt.builder().build() )
+                .timestamp(Instant.now())
+                .statusInfo(statusInfo)
+                .notificationSentAt(Instant.now())
+                .build();
+        String id2 = "SendDigitalDetails";
+        TimelineElementInternal row2 = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(id2)
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
+                .details( SendDigitalDetailsInt.builder().build() )
+                .timestamp(Instant.now())
+                .statusInfo(statusInfo)
+                .notificationSentAt(Instant.now())
+                .build();
+
+        // WHEN
+        dao.addTimelineElementIfAbsent(row1);
+        dao.addTimelineElementIfAbsent(row2);
+
+        dao.deleteTimeline(iun);
+
+        // THEN
+        Assertions.assertTrue(dao.getTimeline(iun).isEmpty());
+    }
+
+    private static class TestMyTimelineEntityDao implements TimelineEntityDao {
+
+        private final Map<Key, TimelineElementEntity> store = new ConcurrentHashMap<>();
+
+        @Override
+        public void put(TimelineElementEntity timelineElementEntity) {
+            Key key = Key.builder()
+                    .partitionValue(timelineElementEntity.getIun())
+                    .sortValue(timelineElementEntity.getTimelineElementId())
+                    .build();
+            this.store.put(key, timelineElementEntity);
+        }
+
+        @Override
+        public void putIfAbsent(TimelineElementEntity timelineElementEntity) throws PnIdConflictException {
+            Key key = Key.builder()
+                    .partitionValue(timelineElementEntity.getIun())
+                    .sortValue(timelineElementEntity.getTimelineElementId())
+                    .build();
+
+            if (this.store.put(key, timelineElementEntity) != null) {
+                throw new PnIdConflictException(Collections.singletonMap("errorKey", key.toString()));
+            }
+        }
+
+        @Override
+        public Optional<TimelineElementEntity> get(Key key) {
+            return Optional.ofNullable(store.get(key));
+        }
+
+        @Override
+        public void delete(Key key) {
+            store.remove(key);
+        }
+
+
+        @Override
+        public Set<TimelineElementEntity> findByIun(String iun) {
+            return this.store.values().stream()
+                    .filter(el -> iun.equals(el.getIun()))
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public Set<TimelineElementEntity> findByIunStrongly(String iun) {
+            return this.store.values().stream()
+                    .filter(el -> iun.equals(el.getIun()))
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public Optional<TimelineElementEntity> getTimelineElementStrongly(String iun, String timelineId) {
+            return this.store.values().stream()
+                    .filter(el -> iun.equals(el.getIun()) && el.getTimelineElementId().startsWith(timelineId))
+                    .findFirst();
+        }
+
+        @Override
+        public Set<TimelineElementEntity> searchByIunAndElementId(String iun, String elementId) {
+            return this.store.values().stream()
+                    .filter(el -> iun.equals(el.getIun()) && el.getTimelineElementId().startsWith(elementId))
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public void deleteByIun(String iun) {
+            Set<Key> toRemove = this.store.keySet().stream()
+                    .filter(key -> iun.equals(key.partitionKeyValue().s()))
+                    .collect(Collectors.toSet());
+
+            for (Key key : toRemove) {
+                this.store.remove(key);
+            }
+        }
 
     }
 
-}*/
+}

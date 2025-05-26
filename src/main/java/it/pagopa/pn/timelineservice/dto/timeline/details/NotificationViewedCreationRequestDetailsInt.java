@@ -2,7 +2,6 @@ package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import it.pagopa.pn.timelineservice.dto.mandate.DelegateInfoInt;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
@@ -10,10 +9,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder( toBuilder = true )
-@EqualsAndHashCode(callSuper = true)
+@Builder( toBuilder = true )
+@EqualsAndHashCode
 @ToString
-public class NotificationViewedCreationRequestDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, PersonalInformationRelatedTimelineElement{
+public class NotificationViewedCreationRequestDetailsInt implements RecipientRelatedTimelineElementDetails, PersonalInformationRelatedTimelineElement{
     private int recIndex;
     private String legalFactId;
     private String raddType;

@@ -1,7 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
@@ -9,10 +8,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder( toBuilder = true )
-@EqualsAndHashCode(callSuper = true)
+@Builder( toBuilder = true )
+@EqualsAndHashCode
 @ToString
-public class NotificationRADDRetrievedDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, ElementTimestampTimelineElementDetails{
+public class NotificationRADDRetrievedDetailsInt implements RecipientRelatedTimelineElementDetails, ElementTimestampTimelineElementDetails{
     private int recIndex;
     private String raddType;
     private String raddTransactionId;

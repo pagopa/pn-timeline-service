@@ -1,20 +1,24 @@
 package it.pagopa.pn.timelineservice.middleware.dao;
 
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+import java.util.Set;
 
 public interface TimelineDao {
 
-    Mono<Void> addTimelineElementIfAbsent(TimelineElementInternal dto);
+    String IMPLEMENTATION_TYPE_PROPERTY_NAME = "pn.middleware.impl.timeline-dao";
+
+    void addTimelineElementIfAbsent(TimelineElementInternal dto);
     
-    Mono<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly);
+    Optional<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly);
 
-    Flux<TimelineElementInternal> getTimeline(String iun);
+    Set<TimelineElementInternal> getTimeline(String iun);
 
-    Flux<TimelineElementInternal> getTimelineStrongly(String iun);
+    Set<TimelineElementInternal> getTimelineStrongly(String iun);
 
-    Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String timelineId);
+    Set<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String timelineId);
+
+    void deleteTimeline(String iun);
 
 }

@@ -1,18 +1,17 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @Getter
 @Setter
 @ToString
-public class NotificationCancelledDetailsInt extends CategoryTypeTimelineElementDetailsInt implements TimelineElementDetailsInt {
+public class NotificationCancelledDetailsInt implements TimelineElementDetailsInt {
 
     private int notificationCost;
     private List<Integer> notRefinedRecipientIndexes;

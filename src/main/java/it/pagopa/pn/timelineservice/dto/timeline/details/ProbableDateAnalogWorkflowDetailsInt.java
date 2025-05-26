@@ -1,18 +1,17 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @Getter
 @Setter
 @ToString
-public class ProbableDateAnalogWorkflowDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
+public class ProbableDateAnalogWorkflowDetailsInt implements RecipientRelatedTimelineElementDetails {
     private int recIndex;
     private Instant schedulingAnalogDate;
 

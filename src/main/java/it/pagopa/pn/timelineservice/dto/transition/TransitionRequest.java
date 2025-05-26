@@ -1,6 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.transition;
 
-import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import lombok.Builder;
 import lombok.Data;

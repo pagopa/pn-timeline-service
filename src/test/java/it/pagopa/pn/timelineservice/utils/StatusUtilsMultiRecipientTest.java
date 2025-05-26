@@ -1,10 +1,9 @@
 package it.pagopa.pn.timelineservice.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
-import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
@@ -30,10 +29,9 @@ class StatusUtilsMultiRecipientTest {
 
     @BeforeEach
     public void setup() {
-        PnTimelineServiceConfigs pnDeliveryPushConfigs = mock(PnTimelineServiceConfigs.class);
+        PnTimelineServiceConfigs pnTimelineServiceConfigs = mock(PnTimelineServiceConfigs.class);
         FeatureEnabledUtils featureEnabledUtils = mock(FeatureEnabledUtils.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        this.statusUtils = new StatusUtils(new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfigs), objectMapper, featureEnabledUtils));
+        this.statusUtils = new StatusUtils(new SmartMapper(new TimelineMapperFactory(pnTimelineServiceConfigs), featureEnabledUtils));
     }
     
     @Test

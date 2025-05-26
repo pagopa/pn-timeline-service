@@ -24,10 +24,7 @@ class GetAddressInfoDetailsIntTest {
     @Test
     void testEquals() {
         GetAddressInfoDetailsInt expected = buildGetAddressInfoDetailsInt();
-        Assertions.assertEquals(expected.getAttemptDate(), detailsInt.getAttemptDate());
-        Assertions.assertEquals(expected.getDigitalAddressSource(), detailsInt.getDigitalAddressSource());
-        Assertions.assertEquals(expected.getIsAvailable(), detailsInt.getIsAvailable());
-        Assertions.assertEquals(expected.getRecIndex(), detailsInt.getRecIndex());
+        Assertions.assertEquals(Boolean.TRUE, detailsInt.equals(expected));
     }
     @Test
     void getRecIndex() {

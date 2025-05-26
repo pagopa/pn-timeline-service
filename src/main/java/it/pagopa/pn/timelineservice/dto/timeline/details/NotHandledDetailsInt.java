@@ -1,16 +1,15 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder(toBuilder = true)
+@EqualsAndHashCode
 @ToString
-public class NotHandledDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails{
+public class NotHandledDetailsInt implements RecipientRelatedTimelineElementDetails{
   public static final String PAPER_MESSAGE_NOT_HANDLED_CODE = "001";
   public static final String PAPER_MESSAGE_NOT_HANDLED_REASON = "Paper message not handled";
 
