@@ -12,7 +12,7 @@ import java.time.Instant;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public class CompletelyUnreachableCreationRequestDetails extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
+public class CompletelyUnreachableCreationRequestDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
     private int recIndex;
     private String legalFactId;
     private Instant completionWorkflowDate;

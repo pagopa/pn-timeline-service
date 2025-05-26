@@ -1,8 +1,5 @@
 package it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity;
 
-import it.pagopa.pn.timelineservice.dto.timeline.details.PublicRegistryValidationCallDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.PublicRegistryValidationResponseDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import lombok.Getter;
 import lombok.ToString;
 

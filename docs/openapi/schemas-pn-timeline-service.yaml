@@ -163,7 +163,8 @@ components:
         - "$ref": "#/components/schemas/GeneratedF24Details"
         - "$ref": "#/components/schemas/NotificationCancelledDocumentCreationRequestDetails"
         - "$ref": "#/components/schemas/AnalogWorkflowRecipientDeceasedDetails"
-        - "$ref": "#/components/schemas/GenerateF24"
+        - "$ref": "#/components/schemas/ValidateF24RequestDetails"
+        - "$ref": "#/components/schemas/GenerateF24RequestDetails"
         - "$ref": "#/components/schemas/ValidateNormalizeAddressDetails"
       discriminator:
         propertyName: "categoryType"
@@ -176,7 +177,15 @@ components:
         properties:
           categoryType:
             type: string
-    GenerateF24:
+    ValidateF24RequestDetails:
+      x-discriminator-value: "VALIDATE_F24_REQUEST"
+      type: object
+      required:
+          - categoryType
+      properties:
+        categoryType:
+          type: string
+    GenerateF24RequestDetails:
       x-discriminator-value: "GENERATE_F24_REQUEST"
       type: object
       required:
@@ -279,7 +288,7 @@ components:
           type: integer
           description: Index destinatario notifica digitale
           format: int32
-        legalfactId:
+        legalFactId:
           type: string
           maxLength: 128
           description: Identificativo dell'atto opponibile a terzi del quale è stata richiesta la creazione
@@ -343,7 +352,7 @@ components:
           type: string
           description: Data chiusura workflow
           format: date-time
-        legalfactId:
+        legalFactId:
           type: string
           maxLength: 128
           description: Identificativo dell'atto opponibile a terzi del quale è stata richiesta la creazione
@@ -422,7 +431,7 @@ components:
           type: integer
           description: Index destinatario notifica digitale
           format: int32
-        legalfactId:
+        legalFactId:
           type: string
           maxLength: 128
           description: Identificativo dell'atto opponibile a terzi del quale è stata richiesta la creazione
@@ -1511,6 +1520,7 @@ components:
       enum:
         - SUCCESS
         - FAILURE
+        - DECEASED
 
     SendingReceipt:
       type: object
