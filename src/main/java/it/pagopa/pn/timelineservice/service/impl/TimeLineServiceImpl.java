@@ -7,19 +7,16 @@ import it.pagopa.pn.commons.log.PnAuditLogEvent;
 import it.pagopa.pn.commons.log.PnAuditLogEventType;
 import it.pagopa.pn.commons.utils.MDCUtils;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
-import it.pagopa.pn.timelineservice.dto.NotificationHistoryResponse;
-import it.pagopa.pn.timelineservice.dto.NotificationStatusHistoryElementMapper;
-import it.pagopa.pn.timelineservice.dto.NotificationStatusV26;
-import it.pagopa.pn.timelineservice.dto.ProbableSchedulingAnalogDateDto;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
+import it.pagopa.pn.timelineservice.dto.notification.ProbableSchedulingAnalogDateInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.ProbableDateAnalogWorkflowDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
@@ -64,7 +61,7 @@ public class TimeLineServiceImpl implements TimelineService {
     private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
 
     @Override
-    public boolean addTimelineElement(TimelineElementInternal dto, NotificationInt notification) {
+    public boolean addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
         MDC.put(MDCUtils.MDC_PN_CTX_TOPIC, MdcKey.TIMELINE_KEY);
 
         log.debug("addTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
@@ -75,7 +72,7 @@ public class TimeLineServiceImpl implements TimelineService {
 
 
         if (notification != null) {
-            boolean isMultiRecipient = notification.getRecipients().size() > 1;
+            boolean isMultiRecipient = notification.getNumberOfRecipients() > 1;
             boolean isCriticalTimelineElement = COMPLETED_DELIVERY_WORKFLOW_CATEGORY.contains(dto.getCategory());
             if (isMultiRecipient && isCriticalTimelineElement) {
                 return addCriticalTimelineElement(dto, notification, logEvent);
@@ -91,7 +88,7 @@ public class TimeLineServiceImpl implements TimelineService {
 
     }
 
-    private boolean addCriticalTimelineElement(TimelineElementInternal dto, NotificationInt notification, PnAuditLogEvent logEvent) {
+    private boolean addCriticalTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         log.debug("addCriticalTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
 
         Optional<SimpleLock> optSimpleLock = lockProvider.lock(new LockConfiguration(Instant.now(), notification.getIun(), pnTimelineServiceConfigs.getTimelineLockDuration(), Duration.ZERO));
@@ -113,7 +110,7 @@ public class TimeLineServiceImpl implements TimelineService {
         }
     }
 
-    private boolean addTimelineElement(TimelineElementInternal dto, NotificationInt notification, PnAuditLogEvent logEvent) {
+    private boolean addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         try {
             return processTimelinePersistence(dto, notification, logEvent);
         } catch (Exception ex) {
@@ -123,7 +120,7 @@ public class TimeLineServiceImpl implements TimelineService {
         }
     }
 
-    private boolean processTimelinePersistence(TimelineElementInternal dto, NotificationInt notification, PnAuditLogEvent logEvent) {
+    private boolean processTimelinePersistence(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         boolean timelineInsertSkipped;
         Set<TimelineElementInternal> currentTimeline = getTimeline(dto.getIun(), null,false,false);
         StatusService.NotificationStatusUpdate notificationStatuses = statusService.getStatus(dto, currentTimeline, notification);
@@ -319,7 +316,7 @@ public class TimeLineServiceImpl implements TimelineService {
     }
 
     @Override
-    public NotificationHistoryResponse getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
+    public NotificationHistoryInt getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
         log.debug("getTimelineAndStatusHistory Start - iun={} ", iun);
 
         Set<TimelineElementInternal> timelineElements = getTimeline(iun, null, true,false);
@@ -365,24 +362,21 @@ public class TimeLineServiceImpl implements TimelineService {
         }
     }
 
-    private NotificationHistoryResponse createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,
+    private NotificationHistoryInt createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,
                                                        NotificationStatusInt currentStatus) {
 
         var timelineList = timelineElements.stream()
-                .map(t -> smartMapper.mapTimelineInternal(t, timelineElements)) // rimappo su se stessa, per sistemare eventuali campi interni
+                .map(t -> smartMapper.mapTimelineInternal(t, timelineElements))
                 .sorted(Comparator.naturalOrder())
                 .filter(this::isNotDiagnosticTimelineElement)
                 .toList();
 
-        return NotificationHistoryResponse.builder()
-                .timeline(timelineList)
-                .notificationStatusHistory(
-                        statusHistory.stream().map(
-                                NotificationStatusHistoryElementMapper::internalToExternal
-                        ).toList()
-                )
-                .notificationStatus(currentStatus != null ? NotificationStatusV26.valueOf(currentStatus.getValue()) : null)
-                .build();
+        NotificationHistoryInt notificationHistoryInt = new NotificationHistoryInt();
+        notificationHistoryInt.setTimeline(timelineList);
+        notificationHistoryInt.setNotificationStatus(currentStatus);
+        notificationHistoryInt.setNotificationStatusHistory(statusHistory);
+
+        return notificationHistoryInt;
     }
 
     public boolean isNotDiagnosticTimelineElement(TimelineElementInternal timelineElementInternal) {
@@ -390,13 +384,14 @@ public class TimeLineServiceImpl implements TimelineService {
             return true;
         }
         String internalCategory = timelineElementInternal.getCategory().name();
-        return Arrays.stream(TimelineElementCategory.values())
-                .anyMatch(TimelineElementCategory -> TimelineElementCategory.getValue().equalsIgnoreCase(internalCategory));
+        return Arrays.stream(TimelineElementCategoryInt.values())
+                .map(Enum::name)
+                .anyMatch(category -> category.equalsIgnoreCase(internalCategory));
 
     }
 
     @Override
-    public Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, int recIndex) {
+    public Mono<ProbableSchedulingAnalogDateInt> getSchedulingAnalogDate(String iun, int recIndex) {
         return Mono.justOrEmpty(getTimelineElementDetailForSpecificRecipient(
                 iun,
                 recIndex,
@@ -404,10 +399,11 @@ public class TimeLineServiceImpl implements TimelineService {
                 PROBABLE_SCHEDULING_ANALOG_DATE,
                 ProbableDateAnalogWorkflowDetailsInt.class
             ))
-            .map(details -> new ProbableSchedulingAnalogDateDto()
+            .map(details -> ProbableSchedulingAnalogDateInt.builder()
                     .iun(iun)
                     .recIndex(details.getRecIndex())
-                    .schedulingAnalogDate(details.getSchedulingAnalogDate()))
+                    .schedulingAnalogDate(details.getSchedulingAnalogDate())
+                    .build())
             .switchIfEmpty(Mono.error(() -> {
                 String message = String.format("ProbableSchedulingDateAnalog not found for iun: %s, recIndex: %d", iun, recIndex);
                 return new PnNotFoundException("Not found", message, ERROR_CODE_DELIVERYPUSH_STATUSNOTFOUND);

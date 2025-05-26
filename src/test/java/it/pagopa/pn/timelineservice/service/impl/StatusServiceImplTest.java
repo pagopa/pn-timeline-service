@@ -1,11 +1,9 @@
 package it.pagopa.pn.timelineservice.service.impl;
 
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationRecipientInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationSenderInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationRequestAcceptedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogDetailsInt;
@@ -61,7 +59,7 @@ class StatusServiceImplTest {
 
         //Mockito.when(pnDeliveryClient.updateStatus(Mockito.any(RequestUpdateStatusDto.class))).thenReturn(ResponseEntity.ok().body(null));
                 
-        NotificationInt notification = getNotification(iun);
+        NotificationInfoInt notification = getNotification(iun);
         
         
         String id1 = "sender_ack";
@@ -108,7 +106,7 @@ class StatusServiceImplTest {
 
        // Mockito.when(pnDeliveryClient.updateStatus(Mockito.any(RequestUpdateStatusDto.class))).thenReturn(ResponseEntity.ok().body(null));
 
-        NotificationInt notification = getNotification(iun);
+        NotificationInfoInt notification = getNotification(iun);
 
 
         String id1 = "sender_ack";
@@ -174,20 +172,10 @@ class StatusServiceImplTest {
     }
 
 
-    private NotificationInt getNotification(String iun) {
-        return NotificationInt.builder()
+    private NotificationInfoInt getNotification(String iun) {
+        return NotificationInfoInt.builder()
                 .iun(iun)
                 .paProtocolNumber("protocol_01")
-                .sender(NotificationSenderInt.builder()
-                        .paId(" pa_02")
-                        .build()
-                )
-                .recipients(Collections.singletonList(
-                        NotificationRecipientInt.builder()
-                                .taxId("testIdRecipient")
-                                .denomination("Nome Cognome/Ragione Sociale")
-                                .build()
-                ))
                 .build();
     }
 }

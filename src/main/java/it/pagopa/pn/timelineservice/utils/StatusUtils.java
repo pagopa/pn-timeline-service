@@ -1,13 +1,13 @@
 package it.pagopa.pn.timelineservice.utils;
 
 import it.pagopa.pn.commons.exceptions.PnInternalException;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.AnalogWorfklowRecipientDeceasedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationViewedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.dto.ext.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import org.springframework.stereotype.Component;

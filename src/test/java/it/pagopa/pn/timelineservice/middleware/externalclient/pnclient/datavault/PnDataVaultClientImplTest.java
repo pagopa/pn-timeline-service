@@ -1,9 +1,10 @@
 package it.pagopa.pn.timelineservice.middleware.externalclient.pnclient.datavault;
 
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
-import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.api.NotificationsApi;
+
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.AddressDto;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
+import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault_reactive.api.NotificationsApi;
 import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClientImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +61,7 @@ class PnDataVaultClientImplTest {
 
         Mockito.when(restTemplate.exchange(Mockito.any(RequestEntity.class), Mockito.any(ParameterizedTypeReference.class)))
                 .thenReturn(ResponseEntity.ok(""));
-        Mockito.when(pnDataVaultNotificationApi.getNotificationTimelineByIunAndTimelineElementIdWithHttpInfo("001", "001")).thenReturn(ResponseEntity.ok(dto));
+        Mockito.when(pnDataVaultNotificationApi.getNotificationTimelineByIunAndTimelineElementIdWithHttpInfo("001", "001")).thenReturn(Mono.just(ResponseEntity.ok(dto)));
 
         ConfidentialTimelineElementDto resp = client.getNotificationTimelineByIunAndTimelineElementId("001", "001");
 
@@ -74,7 +76,7 @@ class PnDataVaultClientImplTest {
 
         Mockito.when(restTemplate.exchange(Mockito.any(RequestEntity.class), Mockito.any(ParameterizedTypeReference.class)))
                 .thenReturn(ResponseEntity.ok(""));
-        Mockito.when(pnDataVaultNotificationApi.getNotificationTimelineByIunWithHttpInfo("001")).thenReturn(ResponseEntity.ok(dtoList));
+        Mockito.when(pnDataVaultNotificationApi.getNotificationTimelineByIunWithHttpInfo("001")).thenReturn(Mono.just(ResponseEntity.ok(dtoList)));
 
         List<ConfidentialTimelineElementDto> resp = client.getNotificationTimelineByIunWithHttpInfo("001");
 
