@@ -1,0 +1,498 @@
+openapi: 3.0.3
+info:
+  termsOfService: https://termofservice.it
+  title: OpenAPI servizi ad uso solo interno
+  x-summary: OpenAPI servizi ad uso solo interno
+  x-api-id: api-private
+  description: >-
+    API accessibili solo da microservizi interni
+  version: '1.0.0'
+  contact:
+    email: pn@pagopa.it
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: http://internal-pn-in-appli-em20o634urpg-965454854.eu-central-1.elb.amazonaws.com:8080
+    description: Generated server url
+    x-sandbox: true
+paths:
+  /timeline-service-private/element/add:
+    post:
+      summary: Aggiunge un elemento alla timeline
+      description: >
+          Aggiunge un elemento alla timeline di un notifica, anonimizzando le eventuali informazioni sensibili ed effettuando
+          il calcolo dello stato di avanzamento della notifica.
+      tags:
+        - timeline-controller
+      operationId: addTimelineElement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timelineElement:
+                  $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
+                notificationInfo:
+                  $ref: '#/components/schemas/NotificationInfo'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: boolean
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/counter/{timelineId}:
+    get:
+      summary: Recupera il contatore di un evento della timeline e lo incrementa
+      description: >
+        Recupera il contatore associato ad un evento della timeline e lo incrementa.
+        <br/>
+        Il contatore può essere utilizzato per tenere traccia del numero di volte che un evento specifico ha prodotto un progresso.
+      tags:
+        - timeline-controller
+      operationId: retrieveAndIncrementCounterForTimelineEvent
+      parameters:
+        - name: timelineId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: integer
+                format: int64
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/{iun}/element/{timelineId}:
+    get:
+      summary: Recupera un elemento della timeline
+      description: >
+          Recupera un elemento della timeline di una notifica, deanonimizzando le eventuali informazioni sensibili.
+          <br/>
+          Se il parametro <b>strongly</b> è impostato a true, viene effettuata una consistent read, altrimenti viene effettuata una read eventuale.
+      tags:
+        - timeline-controller
+      operationId: getTimelineElement
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: timelineId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: strongly
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/{iun}:
+    get:
+      summary: Recupera la timeline di una notifica
+      description: >
+          Recupera la timeline di una notifica.
+          <br/>
+          Se il parametro <b>timelineId</b> è specificato, vengono recuperati solo gli eventi della timeline che iniziano con l'id specificato.
+          <br/>
+          Se il parametro <b>confidentialInfoRequired</b> è impostato a true, vengono deanonimizzate le eventuali informazioni sensibili.
+          <br/>
+          Se il parametro <b>strongly</b> è impostato a true, viene effettuata una consistent read, altrimenti viene effettuata una read eventuale.
+      tags:
+        - timeline-controller
+      operationId: getTimeline
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: timelineId
+          in: query
+          schema:
+            type: string
+        - name: confidentialInfoRequired
+          in: query
+          required: true
+          schema:
+            type: boolean
+        - name: strongly
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/{iun}/details/{timelineId}:
+    get:
+      summary: Recupera i dettagli di un elemento della timeline
+      description: > 
+          Recupera i dettagli di un elemento della timeline di una notifica deanonimizzando le eventuali informazioni sensibili.
+      tags:
+        - timeline-controller
+      operationId: getTimelineElementDetails
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: timelineId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElementDetails'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/{iun}/recipient/{recIndex}/detail:
+    get:
+      summary: Recupera i dettagli di un elemento della timeline per un destinatario specifico
+      description: > 
+          Recupera i dettagli di un elemento della timeline di una notifica data la categoria, per un destinatario specifico.
+          <br/>
+          Se il parametro <b>confidentialInfoRequired</b> è impostato a true, vengono deanonimizzate le eventuali informazioni sensibili.
+      tags:
+        - timeline-controller
+      operationId: getTimelineElementDetailForSpecificRecipient
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: confidentialInfoRequired
+          in: query
+          required: true
+          schema:
+            type: boolean
+        - name: category
+          in: query
+          required: true
+          schema:
+            $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineCategory'
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElementDetails'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/{iun}/recipient/{recIndex}/element:
+    get:
+      summary: Recupera un elemento della timeline per un destinatario specifico
+      description: > 
+          Recupera un elemento della timeline di una notifica data la categoria, per un destinatario specifico, deanonimizzando le eventuali informazioni sensibili.
+      tags:
+        - timeline-controller
+      operationId: getTimelineElementForSpecificRecipient
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: category
+          in: query
+          required: true
+          schema:
+            $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineCategory'
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/{iun}/recipient/{recIndex}/scheduling-analog-date:
+    get:
+      summary: Recupera la data di scheduling analogica per un destinatario specifico.
+      description: > 
+        Recupera l'elemento di timeline che riporta la data di scheduling della consegna analogica 
+        per un destinatario specifico.
+      tags:
+        - timeline-controller
+      operationId: getSchedulingAnalogDate
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProbableSchedulingAnalogDate'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/{iun}/history:
+    get:
+      summary: Storico eventi notifica
+      description: >-
+        Legge e restituisce la timeline di una notifica, il suo stato e la storia dei 
+        suoi cambiamenti di stato.
+      tags:
+        - timeline-controller
+      operationId: getTimelineAndStatusHistory
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: numberOfRecipients
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: createdAt
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/NotificationHistoryResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+
+components:
+  schemas:
+    NotificationInfo:
+      type: object
+      properties:
+        iun:
+          type: string
+        paProtocolNumber:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        numberOfRecipients:
+          type: integer
+    ProbableSchedulingAnalogDate:
+      type: object
+      properties:
+        iun:
+          type: string
+        recIndex:
+          type: integer
+          format: int32
+        schedulingAnalogDate:
+          type: string
+          format: date-time
+    NotificationHistoryResponse:
+      type: object
+      properties:
+        notificationStatus:
+          $ref: '#/components/schemas/NotificationStatus'
+        notificationStatusHistory:
+          $ref: '#/components/schemas/NotificationStatusHistory'
+        timeline:
+          type: array
+          items:
+            $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
+    NotificationStatus:
+      type: string
+      description: >
+        stato di avanzamento del processo di notifica:
+          * `IN_VALIDATION` - notifica depositata in attesa di validazione
+          * `ACCEPTED` - L'ente ha depositato la notifica con successo
+          * `REFUSED` - Notifica rifiutata a seguito della validazione
+          * `DELIVERING` - L'invio della notifica è in corso
+          * `DELIVERED` - La notifica è stata consegnata a tutti i destinatari
+          * `VIEWED` - Il destinatario ha letto la notifica entro il termine stabilito
+          * `EFFECTIVE_DATE` - Il destinatario non ha letto la notifica entro il termine stabilito
+          * `UNREACHABLE` - Il destinatario non è reperibile
+          * `CANCELLED` - L'ente ha annullato l'invio della notifica
+          * `PAID` - [DEPRECATO] Uno dei destinatari ha pagato la notifica
+          * `RETURNED_TO_SENDER` - La notifica è stata restituita al mittente
+      enum:
+        - IN_VALIDATION
+        - ACCEPTED
+        - REFUSED
+        - DELIVERING
+        - DELIVERED
+        - VIEWED
+        - EFFECTIVE_DATE
+        - PAID
+        - UNREACHABLE
+        - CANCELLED
+        - RETURNED_TO_SENDER
+    NotificationStatusHistory:
+      description: elenco degli avanzamenti effettuati dal processo di notifica
+      type: array
+      items:
+        $ref: "#/components/schemas/NotificationStatusHistoryElement"
+    NotificationStatusHistoryElement:
+      description: elenco degli avanzamenti effettuati dal processo di notifica
+      type: object
+      required:
+        - status
+        - activeFrom
+        - relatedTimelineElements
+      properties:
+        status:
+          $ref: "#/components/schemas/NotificationStatus"
+        activeFrom:
+          type: string
+          description: data e ora di raggiungimento dello stato di avanzamento
+          format: date-time
+        relatedTimelineElements:
+          type: array
+          description: Eventi avvenuti nello stato
+          items:
+            type: string
