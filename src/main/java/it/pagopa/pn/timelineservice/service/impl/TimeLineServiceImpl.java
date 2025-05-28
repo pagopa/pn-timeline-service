@@ -128,7 +128,11 @@ public class TimeLineServiceImpl implements TimelineService {
                             .thenReturn(enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt()))
                             .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
                             .flatMap(this::persistTimelineElement)
-                            .map(timelineInsertSkipped -> logAndCleanMdc(dto, logEvent, timelineInsertSkipped));
+                            .map(timelineInsertSkipped -> logAndCleanMdc(dto, logEvent, false))
+                            .doOnError(PnIdConflictException.class, ex -> {
+                                logAndCleanMdc(dto, logEvent, true);
+                                log.warn("Exception idconflict is expected for retry, letting flow continue");
+                            });
                 });
     }
 
@@ -164,11 +168,7 @@ public class TimeLineServiceImpl implements TimelineService {
 
     private Mono<Boolean> persistTimelineElement(TimelineElementInternal dtoWithStatusInfo) {
         return timelineDao.addTimelineElementIfAbsent(dtoWithStatusInfo)
-                .thenReturn(false)
-                .onErrorResume(PnIdConflictException.class, ex -> {
-                    log.warn("Exception idconflict is expected for retry, letting flow continue");
-                    return Mono.just(true);
-                });
+                .thenReturn(false);
     }
 
     private PnAuditLogEvent getPnAuditLogEvent(TimelineElementInternal dto, PnAuditLogBuilder auditLogBuilder) {
@@ -195,10 +195,10 @@ public class TimeLineServiceImpl implements TimelineService {
 
     private Mono<TimelineElementInternal> addConfidentialInformationIfTimelineElementIsPresent(String iun, String timelineId, TimelineElementInternal timelineElement) {
         return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineId)
-                .doOnNext(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
+                .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                         timelineElement.getDetails(), confidentialDto
                 ))
-                .thenReturn(timelineElement);
+                .map(timelineElementDetailsInt -> timelineElement);
     }
 
     public Mono<Long> retrieveAndIncrementCounterForTimelineEvent(String timelineId) {
@@ -213,10 +213,9 @@ public class TimeLineServiceImpl implements TimelineService {
         return this.timelineDao.getTimelineElement(iun, timelineId, false)
                 .flatMap(timelineElement -> confidentialInformationService
                         .getTimelineElementConfidentialInformation(iun, timelineId)
-                        .doOnNext(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
+                        .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                                 timelineElement.getDetails(), confidentialDto
-                        ))
-                        .thenReturn(timelineElement.getDetails()));
+                        )));
     }
 
     @Override
@@ -250,10 +249,9 @@ public class TimeLineServiceImpl implements TimelineService {
                 .flatMap(timelineElement -> {
                     if (confidentialInfoRequired) {
                         return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineElement.getElementId())
-                                .doOnNext(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
+                                .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                                         timelineElement.getDetails(), confidentialDto
-                                ))
-                                .thenReturn(timelineElement.getDetails());
+                                ));
                     } else {
                         return Mono.just(timelineElement.getDetails());
                     }
@@ -274,6 +272,10 @@ public class TimeLineServiceImpl implements TimelineService {
             setTimelineElements = timelineDao.getTimeline(iun);
         }
 
+        return setConfidentialInfo(iun, confidentialInfoRequired, setTimelineElements);
+    }
+
+    private Flux<TimelineElementInternal> setConfidentialInfo(String iun, boolean confidentialInfoRequired, Flux<TimelineElementInternal> setTimelineElements) {
         if (confidentialInfoRequired) {
             return setTimelineElements
                     .collect(Collectors.toSet())
