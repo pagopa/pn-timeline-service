@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockConfiguration;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -54,7 +53,7 @@ import static it.pagopa.pn.timelineservice.utils.StatusUtils.COMPLETED_DELIVERY_
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TimelineServiceImpl implements TimelineService {
+public class TimeLineServiceImpl implements TimelineService {
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
     private final StatusUtils statusUtils;
