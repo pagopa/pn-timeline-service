@@ -2,6 +2,7 @@ package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationRefusedErrorInt;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
@@ -9,18 +10,24 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder(toBuilder = true)
-@EqualsAndHashCode
+@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
 @ToString
-public class RequestRefusedDetailsInt implements TimelineElementDetailsInt {
+public class RequestRefusedDetailsInt extends CategoryTypeTimelineElementDetailsInt implements TimelineElementDetailsInt {
     private List<NotificationRefusedErrorInt> refusalReasons;
     private Integer numberOfRecipients;
     private Integer notificationCost;
+    private String notificationRequestId;
+    private String paProtocolNumber;
+    private String idempotenceToken;
 
     public String toLog() {
         return String.format(
-                "errors=%s",
-                refusalReasons
+                "errors=%s, notificationRequestId=%s, paProtocolNumber=%s, idempotenceToken=%s",
+                refusalReasons,
+                notificationRequestId,
+                paProtocolNumber,
+                idempotenceToken
         );
     }
 }

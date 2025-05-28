@@ -29,7 +29,7 @@ public enum TimelineElementCategoryInt {
     DIGITAL_FAILURE_WORKFLOW(DigitalFailureWorkflowDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     ANALOG_SUCCESS_WORKFLOW(AnalogSuccessWorkflowDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_SUCCESS_WORKFLOW, TimelineElementCategoryInt.VERSION_10),
     ANALOG_FAILURE_WORKFLOW(AnalogFailureWorkflowDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_FAILURE_WORKFLOW, TimelineElementCategoryInt.VERSION_10),
-    COMPLETELY_UNREACHABLE_CREATION_REQUEST(CompletelyUnreachableCreationRequestDetails.class, TimelineElementCategoryInt.PRIORITY_COMPLETELY_UNREACHABLE_CREATION_REQUEST, TimelineElementCategoryInt.VERSION_10),
+    COMPLETELY_UNREACHABLE_CREATION_REQUEST(CompletelyUnreachableCreationRequestDetailsInt.class, TimelineElementCategoryInt.PRIORITY_COMPLETELY_UNREACHABLE_CREATION_REQUEST, TimelineElementCategoryInt.VERSION_10),
     PREPARE_SIMPLE_REGISTERED_LETTER(BaseRegisteredLetterDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_SIMPLE_REGISTERED_LETTER(SimpleRegisteredLetterDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     NOTIFICATION_VIEWED_CREATION_REQUEST(NotificationViewedCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
@@ -51,8 +51,9 @@ public enum TimelineElementCategoryInt {
     NOTIFICATION_CANCELLED(NotificationCancelledDetailsInt.class, TimelineElementCategoryInt.VERSION_20),
     NOTIFICATION_RADD_RETRIEVED(NotificationRADDRetrievedDetailsInt.class, TimelineElementCategoryInt.VERSION_23),
     NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST(NotificationCancelledDocumentCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_25),
-    ANALOG_WORKFLOW_RECIPIENT_DECEASED(AnalogWorfklowRecipientDeceasedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_WORKFLOW_RECIPIENT_DECEASED, TimelineElementCategoryInt.VERSION_26);
-
+    ANALOG_WORKFLOW_RECIPIENT_DECEASED(AnalogWorfklowRecipientDeceasedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_WORKFLOW_RECIPIENT_DECEASED, TimelineElementCategoryInt.VERSION_26),
+    PUBLIC_REGISTRY_VALIDATION_CALL(PublicRegistryValidationCallDetailsInt.class, TimelineElementCategoryInt.VERSION_27),
+    PUBLIC_REGISTRY_VALIDATION_RESPONSE(PublicRegistryValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_27);
 
     private final Class<? extends TimelineElementDetailsInt> detailsJavaClass;
     private final int priority;
@@ -74,6 +75,7 @@ public enum TimelineElementCategoryInt {
     public static final int VERSION_23 = 23;
     public static final int VERSION_25 = 25;
     public static final int VERSION_26 = 26;
+    public static final int VERSION_27 = 27;
 
     TimelineElementCategoryInt(Class<? extends TimelineElementDetailsInt> detailsJavaClass, int version) {
         this(detailsJavaClass, PRIORITY_BEFORE, version);
@@ -84,23 +86,6 @@ public enum TimelineElementCategoryInt {
         this.detailsJavaClass = detailsJavaClass;
         this.priority = priority;
         this.version = version;
-    }
-    
-    public Class<? extends TimelineElementDetailsInt> getDetailsJavaClass() {
-        return this.detailsJavaClass;
-    }
-
-    public enum DiagnosticTimelineElementCategory {
-        VALIDATED_F24("VALIDATED_F24"),
-        VALIDATE_F24_REQUEST("VALIDATE_F24_REQUEST"),
-        GENERATED_F24("GENERATED_F24"),
-        GENERATE_F24_REQUEST("GENERATE_F24_REQUEST"),
-        NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST("NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST");
-
-        private final String value;
-        DiagnosticTimelineElementCategory(String value) {
-            this.value = value;
-        }
     }
 
 }
