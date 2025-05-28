@@ -1,9 +1,13 @@
 package it.pagopa.pn.timelineservice.service.mapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
+import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
+import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -20,20 +26,20 @@ class SmartMapperTest {
 
     private SmartMapper smartMapper;
     private FeatureEnabledUtils featureEnabledUtils;
-    private PnTimelineServiceConfigs pnDeliveryPushConfig;
+    private PnTimelineServiceConfigs pnTimelineServiceConfigs;
 
 
     @BeforeEach
     void setUp() {
-        pnDeliveryPushConfig = mock(PnTimelineServiceConfigs.class);
-        Mockito.when(pnDeliveryPushConfig.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(Instant.now());
+        pnTimelineServiceConfigs = mock(PnTimelineServiceConfigs.class);
+        Mockito.when(pnTimelineServiceConfigs.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(Instant.now());
         featureEnabledUtils = mock(FeatureEnabledUtils.class);
-        smartMapper = new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfig), featureEnabledUtils);
+        ObjectMapper objectMapper = new ObjectMapper();
+        smartMapper = new SmartMapper(new TimelineMapperFactory(pnTimelineServiceConfigs), objectMapper, featureEnabledUtils);
         Mockito.when(featureEnabledUtils.isPfNewWorkflowEnabled(any())).thenReturn(false);
     }
 
-    //TODO: rivedere quando definita openapi
-   /* @Test
+    @Test
     void fromInternalToExternalSendDigitalDetails() {
         SendDigitalDetailsInt sendDigitalDetails = SendDigitalDetailsInt.builder()
                 .recIndex(0)
@@ -43,37 +49,36 @@ class SmartMapperTest {
                         .address("testAddress@gmail.com")
                         .build())
                 .retryNumber(0)
+                .categoryType("SEND_DIGITAL_DOMICILE")
                 .downstreamId(DownstreamIdInt.builder()
                         .messageId("messageId")
                         .systemId("systemId")
                         .build())
                 .build();
 
-        var details = SmartMapper.mapToClass(sendDigitalDetails, TimelineElementDetailsV26.class);
-        
-        Assertions.assertEquals(sendDigitalDetails.getRecIndex(), details.getRecIndex());
-        Assertions.assertEquals(sendDigitalDetails.getDigitalAddress().getAddress(), details.getDigitalAddress().getAddress() );
-    }*/
+        var details = smartMapper.mapToClassWithObjectMapper(sendDigitalDetails, TimelineElementDetails.class);
+        var sendDigitalDetailsExt = (SendDigitalDetails) details;
+        Assertions.assertEquals(sendDigitalDetails.getRecIndex(),  sendDigitalDetailsExt.getRecIndex());
+        Assertions.assertEquals(sendDigitalDetails.getDigitalAddress().getAddress(), sendDigitalDetailsExt.getDigitalAddress().getAddress() );
+    }
 
-    /*@Test
+    @Test
     void fromExternalToInternalSendDigitalDetails() {
-        var timelineElementDetails = TimelineElementDetailsV26.builder()
+        var timelineElementDetails = new SendDigitalDetails()
                 .recIndex(0)
                 .digitalAddressSource(DigitalAddressSource.PLATFORM)
-                .digitalAddress(DigitalAddress.builder()
+                .digitalAddress(new DigitalAddress()
                         .type("PEC")
-                        .address("testAddress@gmail.com")
-                        .build())
-                .retryNumber(0)
-                .build();
+                        .address("testAddress@gmail.com"))
+                .retryNumber(0);
 
         SendDigitalDetailsInt details = SmartMapper.mapToClass(timelineElementDetails, SendDigitalDetailsInt.class);
 
         Assertions.assertEquals(timelineElementDetails.getRecIndex(), details.getRecIndex());
         Assertions.assertEquals(timelineElementDetails.getDigitalAddress().getAddress(), details.getDigitalAddress().getAddress() );
-    }*/
+    }
 
-   /* @Test
+    @Test
     void fromInternalToPrepareAnalogDomicileFailureDetails() {
         PrepareAnalogDomicileFailureDetailsInt sendDigitalDetails = PrepareAnalogDomicileFailureDetailsInt.builder()
                 .recIndex(0)
@@ -85,37 +90,11 @@ class SmartMapperTest {
                         .build())
                 .build();
 
-        var details = SmartMapper.mapToClass(sendDigitalDetails, TimelineElementDetailsV26.class);
+        var details = SmartMapper.mapToClass(sendDigitalDetails, PrepareAnalogDomicileFailureDetails.class);
 
         Assertions.assertEquals(sendDigitalDetails.getRecIndex(), details.getRecIndex());
         Assertions.assertEquals(sendDigitalDetails.getFoundAddress().getAddress(), details.getFoundAddress().getAddress() );
-        Assertions.assertNull(details.getPhysicalAddress() );
     }
-
-    @Test
-    void testNotRefinedRecipientPostMappingTransformer(){
-        NotificationCancelledDetailsInt source = new NotificationCancelledDetailsInt();
-        List<Integer> list = new ArrayList<>();
-        list.add(1);
-        source.setNotRefinedRecipientIndexes(list);
-        source.setNotificationCost(100);
-
-        TimelineElementDetailsV26 ret = SmartMapper.mapToClass(source, TimelineElementDetailsV26.class);
-
-        Assertions.assertEquals(1, ret.getNotRefinedRecipientIndexes().size());
-
-        source.getNotRefinedRecipientIndexes().clear();
-        ret = SmartMapper.mapToClass(source, TimelineElementDetailsV26.class);
-
-        Assertions.assertEquals(0, ret.getNotRefinedRecipientIndexes().size());
-
-        NotHandledDetailsInt altro = new NotHandledDetailsInt();
-        altro.setReason("test");
-        ret = SmartMapper.mapToClass(altro, TimelineElementDetailsV26.class);
-
-        Assertions.assertNull(ret.getNotRefinedRecipientIndexes());
-    }*/
-
 
     @Test
     void testTimelineElementInternalMappingTransformer(){
@@ -143,6 +122,8 @@ class SmartMapperTest {
     void testTimelineElementInternalMappingTransformerNo1(){
         Instant elementTimestamp = Instant.EPOCH.plusMillis(100);
 
+        Instant eventTimestamp = Instant.EPOCH.plusMillis(10);
+
         TimelineElementInternal source = TimelineElementInternal.builder()
                 .elementId("elementid")
                 .iun("iun")
@@ -161,6 +142,8 @@ class SmartMapperTest {
     @Test
     void testTimelineElementInternalMappingTransformerNo2(){
         Instant elementTimestamp = Instant.EPOCH.plusMillis(100);
+
+        Instant eventTimestamp = Instant.EPOCH.plusMillis(10);
 
         TimelineElementInternal source = TimelineElementInternal.builder()
                 .elementId("elementid")
@@ -212,7 +195,7 @@ class SmartMapperTest {
 
     @Test
     void testMapSendDigitalFeedbackSercQOldWorkflowMapperBeforeFix(){
-        Mockito.when(pnDeliveryPushConfig.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(null);
+        Mockito.when(pnTimelineServiceConfigs.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(null);
         Instant sourceEventTimestamp = Instant.EPOCH;
         Instant sourceIngestionTimestamp = Instant.now();
 
@@ -428,7 +411,7 @@ class SmartMapperTest {
     @Test
     void testMapSendDigitalFeedbackSercQNewWorkflowDomicileBeforeFeedbackMapperBeforeFix(){
         Mockito.when(featureEnabledUtils.isPfNewWorkflowEnabled(any())).thenReturn(true);
-        Mockito.when(pnDeliveryPushConfig.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(null);
+        Mockito.when(pnTimelineServiceConfigs.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(null);
 
         Instant sourceEventTimestamp = Instant.EPOCH;
         Instant sourceIngestionTimestamp = Instant.now();
@@ -471,7 +454,7 @@ class SmartMapperTest {
     @Test
     void testMapSendDigitalFeedbackSercQNewWorkflowDomicileAfterFeedbackMapperBeforeFix(){
         Mockito.when(featureEnabledUtils.isPfNewWorkflowEnabled(any())).thenReturn(true);
-        Mockito.when(pnDeliveryPushConfig.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(null);
+        Mockito.when(pnTimelineServiceConfigs.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(null);
 
         Instant sourceIngestionTimestamp = Instant.now();
         Instant digitalDomicileTimestamp = sourceIngestionTimestamp.minusSeconds(3600);
@@ -513,7 +496,7 @@ class SmartMapperTest {
     @Test
     void testMapSendDigitalFeedbackSercQNewWorkflowMapperBeforeFix(){
         Mockito.when(featureEnabledUtils.isPfNewWorkflowEnabled(any())).thenReturn(true);
-        Mockito.when(pnDeliveryPushConfig.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(null);
+        Mockito.when(pnTimelineServiceConfigs.getFeatureUnreachableRefinementPostAARStartDate()).thenReturn(null);
 
         Instant sourceEventTimestamp = Instant.EPOCH;
         Instant sourceIngestionTimestamp = Instant.now();
