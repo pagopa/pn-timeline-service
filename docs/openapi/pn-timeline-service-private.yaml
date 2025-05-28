@@ -19,6 +19,10 @@ servers:
 paths:
   /timeline-service-private/element/add:
     post:
+      summary: Aggiunge un elemento alla timeline
+      description: >
+          Aggiunge un elemento alla timeline di un notifica, anonimizzando le eventuali informazioni sensibili ed effettuando
+          il calcolo dello stato di avanzamento della notifica.
       tags:
         - timeline-controller
       operationId: addTimelineElement
@@ -54,6 +58,11 @@ paths:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/counter/{timelineId}:
     get:
+      summary: Recupera il contatore di un evento della timeline e lo incrementa
+      description: >
+        Recupera il contatore associato ad un evento della timeline e lo incrementa.
+        <br/>
+        Il contatore può essere utilizzato per tenere traccia del numero di volte che un evento specifico ha prodotto un progresso.
       tags:
         - timeline-controller
       operationId: retrieveAndIncrementCounterForTimelineEvent
@@ -85,6 +94,11 @@ paths:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/{iun}/element/{timelineId}:
     get:
+      summary: Recupera un elemento della timeline
+      description: >
+          Recupera un elemento della timeline di una notifica, deanonimizzando le eventuali informazioni sensibili.
+          <br/>
+          Se il parametro <b>strongly</b> è impostato a true, viene effettuata una consistent read, altrimenti viene effettuata una read eventuale.
       tags:
         - timeline-controller
       operationId: getTimelineElement
@@ -125,6 +139,15 @@ paths:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/{iun}:
     get:
+      summary: Recupera la timeline di una notifica
+      description: >
+          Recupera la timeline di una notifica.
+          <br/>
+          Se il parametro <b>timelineId</b> è specificato, vengono recuperati solo gli eventi della timeline che iniziano con l'id specificato.
+          <br/>
+          Se il parametro <b>confidentialInfoRequired</b> è impostato a true, vengono deanonimizzate le eventuali informazioni sensibili.
+          <br/>
+          Se il parametro <b>strongly</b> è impostato a true, viene effettuata una consistent read, altrimenti viene effettuata una read eventuale.
       tags:
         - timeline-controller
       operationId: getTimeline
@@ -171,6 +194,9 @@ paths:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/{iun}/details/{timelineId}:
     get:
+      summary: Recupera i dettagli di un elemento della timeline
+      description: > 
+          Recupera i dettagli di un elemento della timeline di una notifica deanonimizzando le eventuali informazioni sensibili.
       tags:
         - timeline-controller
       operationId: getTimelineElementDetails
@@ -206,6 +232,11 @@ paths:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/{iun}/recipient/{recIndex}/detail:
     get:
+      summary: Recupera i dettagli di un elemento della timeline per un destinatario specifico
+      description: > 
+          Recupera i dettagli di un elemento della timeline di una notifica data la categoria, per un destinatario specifico.
+          <br/>
+          Se il parametro <b>confidentialInfoRequired</b> è impostato a true, vengono deanonimizzate le eventuali informazioni sensibili.
       tags:
         - timeline-controller
       operationId: getTimelineElementDetailForSpecificRecipient
@@ -251,6 +282,9 @@ paths:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/{iun}/recipient/{recIndex}/element:
     get:
+      summary: Recupera un elemento della timeline per un destinatario specifico
+      description: > 
+          Recupera un elemento della timeline di una notifica data la categoria, per un destinatario specifico, deanonimizzando le eventuali informazioni sensibili.
       tags:
         - timeline-controller
       operationId: getTimelineElementForSpecificRecipient
@@ -291,6 +325,10 @@ paths:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/{iun}/recipient/{recIndex}/scheduling-analog-date:
     get:
+      summary: Recupera la data di scheduling analogica per un destinatario specifico.
+      description: > 
+        Recupera l'elemento di timeline che riporta la data di scheduling della consegna analogica 
+        per un destinatario specifico.
       tags:
         - timeline-controller
       operationId: getSchedulingAnalogDate
@@ -326,6 +364,10 @@ paths:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/{iun}/history:
     get:
+      summary: Storico eventi notifica
+      description: >-
+        Legge e restituisce la timeline di una notifica, il suo stato e la storia dei 
+        suoi cambiamenti di stato.
       tags:
         - timeline-controller
       operationId: getTimelineAndStatusHistory
