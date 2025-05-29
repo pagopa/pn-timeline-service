@@ -28,19 +28,19 @@ public class TimelineElementMapper {
                 .elementId( timelineElement.getElementId() )
                 .category( category )
                 .timestamp( timelineElement.getTimestamp() )
-                .details( parseDetailsFromEntity( timelineElement.getDetails(), category) )
-                .legalFactsIds( convertLegalFactsFromEntity( timelineElement.getLegalFactsIds() ) )
-                .statusInfo(entityToStatusInfoInternal(timelineElement.getStatusInfo()))
+                .details( parseDetailsFromExternal( timelineElement.getDetails(), category) )
+                .legalFactsIds( convertLegalFactsFromExternal( timelineElement.getLegalFactsIds() ) )
+                .statusInfo(toStatusInfoInternal(timelineElement.getStatusInfo()))
                 .notificationSentAt(timelineElement.getNotificationSentAt())
                 .paId(timelineElement.getPaId())
                 .build();
     }
 
-    private List<LegalFactsIdInt> convertLegalFactsFromEntity(List<LegalFactsId>  entity ) {
+    private List<LegalFactsIdInt> convertLegalFactsFromExternal(List<LegalFactsId>  factsIds ) {
         List<LegalFactsIdInt> legalFactsIds = null;
 
-        if (entity != null){
-            legalFactsIds = entity.stream().map( this::mapOneLegalFact ).toList();
+        if (factsIds != null){
+            legalFactsIds = factsIds.stream().map( this::mapOneLegalFact ).toList();
         }
 
         return legalFactsIds;
@@ -55,13 +55,13 @@ public class TimelineElementMapper {
                 .build();
     }
 
-    private TimelineElementDetailsInt parseDetailsFromEntity(TimelineElementDetails timelineElementDetails, TimelineElementCategoryInt category) {
+    private TimelineElementDetailsInt parseDetailsFromExternal(TimelineElementDetails timelineElementDetails, TimelineElementCategoryInt category) {
         TimelineElementDetailsInt timelineElementDetailsInt = SmartMapper.mapToClass(timelineElementDetails, category.getDetailsJavaClass());
         timelineElementDetailsInt.setCategoryType(category.name());
         return timelineElementDetailsInt;
     }
 
-    private StatusInfoInternal entityToStatusInfoInternal(StatusInfo statusInfo) {
+    private StatusInfoInternal toStatusInfoInternal(StatusInfo statusInfo) {
         if(statusInfo == null) return null;
 
         return StatusInfoInternal.builder()
