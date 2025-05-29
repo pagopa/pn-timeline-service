@@ -277,41 +277,34 @@ class TimelineServiceImplTest {
         String iun = "iun_12345";
         String elementId = "elementId_12345";
 
-        NotificationInfoInt notification = getNotification(iun);
+        NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
         Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
-        String elementId2 = "elementId2";
-        Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId2);
+        Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any())).thenReturn(Mono.empty());
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any()))
+                .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
+        Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.error(new PnIdConflictException(new HashMap<>())));
+        Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId);
         Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
                 .thenReturn(Flux.fromIterable(setTimelineElement));
 
-        Instant timestampLastElementInTimeline = setTimelineElement.iterator().next().getTimestamp();
-        StatusInfoInternal expectedStatusInfo = StatusInfoInternal.builder()
-                .actual(NotificationStatusInt.ACCEPTED.getValue())
-                .statusChangeTimestamp(timestampLastElementInTimeline).build();
+        TimelineElementInternal newElement = TimelineElementInternal.builder()
+                .elementId(elementId)
+                .iun(iun)
+                .timestamp(Instant.now())
+                .build();
 
-        TimelineElementInternal newElement = getAarGenerationTimelineElement(iun, elementId);
+        // WHEN
+        Mono<Void> result = timeLineService.addTimelineElement(newElement, notification).then();
 
-        Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.error(new PnIdConflictException(Collections.emptyMap())));
-        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(Mockito.anyString()))
-                .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
-        Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any())).thenReturn(Mono.empty());
+        // THEN
+        StepVerifier.create(result)
+                .verifyError(PnIdConflictException.class);
 
-        // WHEN & THEN
-        StepVerifier.create(timeLineService.addTimelineElement(newElement, notification))
-                .expectNext(true)
-                .verifyComplete();
-
-        // mi aspetto che il timestampLastUpdateStatus sia null quando gli elementi già salvati non hanno valorizzato
-        // lo statusInfo e non c'è stato un cambio di stato
-        StatusInfoInternal actualStatusInfo = timeLineService.buildStatusInfo(notificationStatuses, null);
-        TimelineElementInternal dtoWithStatusInfo = newElement.toBuilder().statusInfo(actualStatusInfo).build();
-        Assertions.assertEquals(expectedStatusInfo.getActual(), actualStatusInfo.getActual());
-        Assertions.assertEquals(expectedStatusInfo.isStatusChanged(), actualStatusInfo.isStatusChanged());
-        Assertions.assertNull(actualStatusInfo.getStatusChangeTimestamp());
-        Mockito.verify(timelineDao).addTimelineElementIfAbsent(dtoWithStatusInfo);
-        Mockito.verify(statusService).getStatus(newElement, setTimelineElement, notification);
-        Mockito.verify(confidentialInformationService).saveTimelineConfidentialInformation(newElement);
+        ArgumentCaptor<TimelineElementInternal> captor = ArgumentCaptor.forClass(TimelineElementInternal.class);
+        verify(timelineDao).addTimelineElementIfAbsent(captor.capture());
+        TimelineElementInternal dtoToPersist = captor.getValue();
+        Assertions.assertEquals(dtoToPersist.getTimestamp(), newElement.getTimestamp());
     }
 
     @Test
@@ -822,7 +815,7 @@ class TimelineServiceImplTest {
                     .thenReturn(Mono.just(daoElement));
 
             Mockito.when(confidentialInformationService.getTimelineElementConfidentialInformation(Mockito.anyString(), Mockito.anyString()))
-                    .thenReturn(Mono.empty());
+                    .thenReturn(Mono.just(new ConfidentialTimelineElementDtoInt()));
 
             //WHEN
             Mono<TimelineElementInternal> retrievedElementMono = timeLineService.getTimelineElement(iun, timelineId, false);
@@ -835,6 +828,31 @@ class TimelineServiceImplTest {
                     })
                     .verifyComplete();
         }
+
+    @Test
+    void getTimelineElementWithoutConfidentialInformationNull(){
+        //GIVEN
+        String iun = "iun";
+        String timelineId = "idTimeline";
+
+        TimelineElementInternal daoElement = getScheduleAnalogWorkflowTimelineElement(iun, timelineId);
+        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean()))
+                .thenReturn(Mono.just(daoElement));
+
+        Mockito.when(confidentialInformationService.getTimelineElementConfidentialInformation(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(Mono.empty());
+
+        //WHEN
+        Mono<TimelineElementInternal> retrievedElementMono = timeLineService.getTimelineElement(iun, timelineId, false);
+
+        //THEN
+        StepVerifier.create(retrievedElementMono)
+                .assertNext(retrievedElement -> {
+                    Assertions.assertEquals(retrievedElement.getElementId(), daoElement.getElementId());
+                    Assertions.assertEquals(retrievedElement.getDetails(), daoElement.getDetails());
+                })
+                .verifyComplete();
+    }
 
     @Test
     void getTimeline() {

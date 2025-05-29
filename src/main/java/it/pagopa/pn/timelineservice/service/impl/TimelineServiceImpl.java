@@ -53,7 +53,7 @@ import static it.pagopa.pn.timelineservice.utils.StatusUtils.COMPLETED_DELIVERY_
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TimeLineServiceImpl implements TimelineService {
+public class TimelineServiceImpl implements TimelineService {
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
     private final StatusUtils statusUtils;
@@ -111,9 +111,14 @@ public class TimeLineServiceImpl implements TimelineService {
 
     private Mono<Boolean> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return processTimelinePersistence(dto, notification, logEvent)
-                .onErrorMap(ex -> {
+                .doOnError(throwable -> {
                     MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-                    logEvent.generateFailure("Exception in addTimelineElement", ex).log();
+                    logEvent.generateFailure("IdConflictException in addTimelineElement", throwable).log();
+                })
+                .onErrorMap(ex -> {
+                    if( ex instanceof PnIdConflictException) {
+                        return ex;
+                    }
                     return new PnInternalException("Exception in addTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                 });
     }
@@ -198,7 +203,7 @@ public class TimeLineServiceImpl implements TimelineService {
                 .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                         timelineElement.getDetails(), confidentialDto
                 ))
-                .map(timelineElementDetailsInt -> timelineElement);
+                .thenReturn(timelineElement);
     }
 
     public Mono<Long> retrieveAndIncrementCounterForTimelineEvent(String timelineId) {
