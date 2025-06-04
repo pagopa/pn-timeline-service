@@ -17,7 +17,7 @@ servers:
     description: Generated server url
     x-sandbox: true
 paths:
-  /timeline-service-private/element/add:
+  /timeline-service-private/timelines/element:
     post:
       summary: Aggiunge un elemento alla timeline
       description: >
@@ -62,7 +62,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/counter/{timelineId}:
+  /timeline-service-private/timeline-counters/{timelineId}:
     get:
       summary: Recupera il contatore di un evento della timeline e lo incrementa
       description: >
@@ -98,7 +98,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/{iun}/element/{timelineId}:
+  /timeline-service-private/timelines/{iun}/elements/{timelineId}:
     get:
       summary: Recupera un elemento della timeline
       description: >
@@ -143,7 +143,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/{iun}:
+  /timeline-service-private/timelines/{iun}/elements:
     get:
       summary: Recupera la timeline di una notifica
       description: >
@@ -198,7 +198,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/{iun}/details/{timelineId}:
+  /timeline-service-private/timelines/{iun}/elements/{timelineId}/details:
     get:
       summary: Recupera i dettagli di un elemento della timeline
       description: > 
@@ -236,7 +236,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/{iun}/recipient/{recIndex}/detail:
+  /timeline-service-private/timelines/{iun}/elements/details:
     get:
       summary: Recupera i dettagli di un elemento della timeline per un destinatario specifico
       description: > 
@@ -286,7 +286,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/{iun}/recipient/{recIndex}/element:
+  /timeline-service-private/timelines/{iun}/recipient-elements/{recIndex}:
     get:
       summary: Recupera un elemento della timeline per un destinatario specifico
       description: > 
@@ -329,7 +329,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/{iun}/recipient/{recIndex}/scheduling-analog-date:
+  /timeline-service-private/scheduling-analog-date/{iun}:
     get:
       summary: Recupera la data di scheduling analogica per un destinatario specifico.
       description: > 
@@ -345,7 +345,7 @@ paths:
           schema:
             type: string
         - name: recIndex
-          in: path
+          in: query
           required: true
           schema:
             type: integer
@@ -368,7 +368,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/{iun}/history:
+  /timeline-service-private/history/{iun}:
     get:
       summary: Storico eventi notifica
       description: >-
