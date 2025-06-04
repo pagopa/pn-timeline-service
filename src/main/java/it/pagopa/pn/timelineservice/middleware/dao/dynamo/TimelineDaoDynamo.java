@@ -45,14 +45,12 @@ public class TimelineDaoDynamo implements TimelineDao {
 
     @Override
     public Mono<TimelineElementInternal> getTimelineElement(String iun, String elementId, boolean strongly) {
-        GetItemEnhancedRequest.Builder request = GetItemEnhancedRequest.builder()
-                .key(key -> key
-                        .partitionValue(iun)
-                        .sortValue(elementId));
-        if (strongly) {
-            request.consistentRead(true);
-        }
-        return Mono.fromFuture(table.getItem(request.build()))
+        GetItemEnhancedRequest request = GetItemEnhancedRequest.builder()
+                .key(key -> key.partitionValue(iun).sortValue(elementId))
+                .consistentRead(strongly)
+                .build();
+
+        return Mono.fromFuture(table.getItem(request))
                 .map(entity2dto::entityToDto);
     }
 
@@ -67,12 +65,12 @@ public class TimelineDaoDynamo implements TimelineDao {
     }
 
     private Flux<TimelineElementInternal> getTimeline(String iun, boolean strongly) {
-        QueryEnhancedRequest.Builder request = QueryEnhancedRequest.builder()
-                .queryConditional(keyEqualTo(Key.builder().partitionValue(iun).build()));
-        if (strongly) {
-            request.consistentRead(true);
-        }
-        return Flux.from(table.query(request.build()))
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                .queryConditional(keyEqualTo(Key.builder().partitionValue(iun).build()))
+                .consistentRead(strongly)
+                .build();
+
+        return Flux.from(table.query(request))
                 .flatMap(page -> Flux.fromIterable(page.items()))
                 .map(entity2dto::entityToDto);
     }
