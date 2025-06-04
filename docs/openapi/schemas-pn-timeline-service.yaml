@@ -1687,9 +1687,11 @@ components:
               type: string
             registry:
               type: string
-              items: enum
-                - ANPR
-                - REGISTRO_IMPRESE
+              description: >
+                Rappresenta il registro consultato per ottenere l'indirizzo.
+                Può assumere i seguenti valori:
+                  - ANPR
+                  - REGISTRO_IMPRESE
 
     RecipientType:
       type: string
