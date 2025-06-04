@@ -11,7 +11,7 @@ public class ConfidentialDetailEnricher {
 
     }
 
-    public static void enrichTimelineElementWithConfidentialInformation(TimelineElementDetailsInt details,
+    public static TimelineElementDetailsInt enrichTimelineElementWithConfidentialInformation(TimelineElementDetailsInt details,
                                                                   ConfidentialTimelineElementDtoInt confidentialDto) {
 
         if (details instanceof CourtesyAddressRelatedTimelineElement courtesyAddressRelatedTimelineElement && confidentialDto.getDigitalAddress() != null) {
@@ -51,6 +51,8 @@ public class ConfidentialDetailEnricher {
             personalInformationRelatedTimelineElement.setTaxId(confidentialDto.getTaxId());
             personalInformationRelatedTimelineElement.setDenomination(confidentialDto.getDenomination());
         }
+
+        return details;
     }
 
     private static LegalDigitalAddressInt getDigitalAddress(ConfidentialTimelineElementDtoInt confidentialDto, LegalDigitalAddressInt address) {

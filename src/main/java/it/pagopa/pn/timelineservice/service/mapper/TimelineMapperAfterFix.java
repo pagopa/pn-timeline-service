@@ -4,7 +4,7 @@ import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.exceptions.PnDeliveryPushExceptionCodes;
+import it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -42,7 +42,7 @@ public class TimelineMapperAfterFix extends TimelineMapper {
                         result.setTimestamp(endAnalogWorkflowBusinessDate);
                     } else {
                         log.error("SEARCH LAST SEND_ANALOG_FEEDBACK DETAILS NULL element {}", result);
-                        throw new PnInternalException("SEND_ANALOG_FEEDBACK NOT PRESENT, ERROR IN MAPPING", PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_TIMELINE_ELEMENT_NOT_PRESENT);
+                        throw new PnInternalException("SEND_ANALOG_FEEDBACK NOT PRESENT, ERROR IN MAPPING", PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT);
                     }
                 }
                 case COMPLETELY_UNREACHABLE_CREATION_REQUEST, COMPLETELY_UNREACHABLE -> {
@@ -51,7 +51,7 @@ public class TimelineMapperAfterFix extends TimelineMapper {
                     if (analogFailureWorkflowDate != null)
                         result.setTimestamp(analogFailureWorkflowDate);
                     else
-                        throw new PnInternalException("ANALOG_FAILURE_WORKFLOW NOT PRESENT, ERROR IN MAPPING", PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_TIMELINE_ELEMENT_NOT_PRESENT);
+                        throw new PnInternalException("ANALOG_FAILURE_WORKFLOW NOT PRESENT, ERROR IN MAPPING", PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT);
                 }
                 case REFINEMENT -> //Viene recuperato per lo stesso destinatario un elemento di tipologia SCHEDULE_REFINEMENT e
                                    //dal dettaglio di quest’ultimo viene estrapolata la data che aveva registrato per l’esecuzione futura del processo di perfezionamento.
@@ -72,7 +72,7 @@ public class TimelineMapperAfterFix extends TimelineMapper {
 
     private Instant getAnalogFailureWorkflowDate(RecipientRelatedTimelineElementDetails elementDetails, Set<TimelineElementInternal> timelineElementInternalSet, String iun) {
         if (elementDetails == null) {
-            throw new PnInternalException("ELEMENT DETAILS NULL", PnDeliveryPushExceptionCodes.ERROR_CODE_DELIVERYPUSH_TIMELINE_ELEMENT_NOT_PRESENT);
+            throw new PnInternalException("ELEMENT DETAILS NULL", PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT);
         }
         int recIndex = elementDetails.getRecIndex();
         Instant analogFailureWorkflowDate = timelineElementInternalSet.stream()

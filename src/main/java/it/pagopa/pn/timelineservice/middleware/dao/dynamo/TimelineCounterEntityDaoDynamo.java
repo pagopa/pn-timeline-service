@@ -1,26 +1,24 @@
 package it.pagopa.pn.timelineservice.middleware.dao.dynamo;
 
 
-import it.pagopa.pn.commons.abstractions.impl.AbstractDynamoKeyValueStore;
-import it.pagopa.pn.commons.abstractions.impl.MiddlewareTypes;
-import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import reactor.core.publisher.Mono;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 
 @Component
-@ConditionalOnProperty(name = TimelineCounterEntityDao.IMPLEMENTATION_TYPE_PROPERTY_NAME, havingValue = MiddlewareTypes.DYNAMO)
 @Slf4j
-public class TimelineCounterEntityDaoDynamo extends AbstractDynamoKeyValueStore<TimelineCounterEntity> implements TimelineCounterEntityDao {
+public class TimelineCounterEntityDaoDynamo implements TimelineCounterEntityDao {
+    private final DynamoDbAsyncTable<TimelineCounterEntity> table;
 
-    protected TimelineCounterEntityDaoDynamo(DynamoDbEnhancedClient dynamoDbEnhancedClient, PnTimelineServiceConfigs cfg) {
-        super(dynamoDbEnhancedClient.table( tableName(cfg), TableSchema.fromClass(TimelineCounterEntity.class)));
+    public TimelineCounterEntityDaoDynamo(DynamoDbEnhancedAsyncClient dynamoDbEnhancedAsyncClient, PnTimelineServiceConfigs cfg) {
+        this.table = dynamoDbEnhancedAsyncClient.table( tableName(cfg), TableSchema.fromClass(TimelineCounterEntity.class));
     }
  
     private static String tableName( PnTimelineServiceConfigs cfg ) {
@@ -29,8 +27,8 @@ public class TimelineCounterEntityDaoDynamo extends AbstractDynamoKeyValueStore<
 
 
     @Override
-    public TimelineCounterEntity getCounter(String timelineElementId) {
-        return table.updateItem(createUpdateItemEnhancedRequest(timelineElementId));
+    public Mono<TimelineCounterEntity> getCounter(String timelineElementId) {
+        return Mono.fromFuture(table.updateItem(createUpdateItemEnhancedRequest(timelineElementId)));
     }
 
     protected UpdateItemEnhancedRequest<TimelineCounterEntity> createUpdateItemEnhancedRequest(String timelineElementId) {
@@ -40,10 +38,5 @@ public class TimelineCounterEntityDaoDynamo extends AbstractDynamoKeyValueStore<
                 .builder(TimelineCounterEntity.class)
                 .item(counterModel)
                 .build();
-    }
-
-    @Override
-    public void putIfAbsent(TimelineCounterEntity value) throws PnIdConflictException {
-       // nothing to do
     }
 }

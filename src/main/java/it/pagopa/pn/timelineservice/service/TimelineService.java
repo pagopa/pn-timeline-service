@@ -1,34 +1,33 @@
 package it.pagopa.pn.timelineservice.service;
 
-import it.pagopa.pn.timelineservice.dto.NotificationHistoryResponse;
-import it.pagopa.pn.timelineservice.dto.ProbableSchedulingAnalogDateDto;
-import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationInt;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
+import it.pagopa.pn.timelineservice.dto.notification.ProbableSchedulingAnalogDateInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import java.time.Instant;
-import java.util.Optional;
-import java.util.Set;
 
 public interface TimelineService {
 
-    boolean addTimelineElement(TimelineElementInternal element, NotificationInt notification);
+    Mono<Boolean> addTimelineElement(TimelineElementInternal element, NotificationInfoInt notification);
 
-    Long retrieveAndIncrementCounterForTimelineEvent(String timelineId);
+    Mono<Long> retrieveAndIncrementCounterForTimelineEvent(String timelineId);
 
-    Optional<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly);
+    Mono<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly);
 
-    Set<TimelineElementInternal> getTimeline(String iun, String timelineId, boolean confidentialInfoRequired, boolean strongly);
+    Flux<TimelineElementInternal> getTimeline(String iun, String timelineId, boolean confidentialInfoRequired, boolean strongly);
 
-    <T> Optional<T> getTimelineElementDetails(String iun, String timelineId, Class<T> timelineDetailsClass);
+    Mono<TimelineElementDetailsInt> getTimelineElementDetails(String iun, String timelineId);
 
-    <T> Optional<T> getTimelineElementDetailForSpecificRecipient(String iun, int recIndex, boolean confidentialInfoRequired, TimelineElementCategoryInt category, Class<T> timelineDetailsClass);
+    Mono<TimelineElementDetailsInt> getTimelineElementDetailForSpecificRecipient(String iun, int recIndex, boolean confidentialInfoRequired, TimelineElementCategoryInt category);
 
-    Optional<TimelineElementInternal> getTimelineElementForSpecificRecipient(String iun, int recIndex, TimelineElementCategoryInt category);
+    Mono<TimelineElementInternal> getTimelineElementForSpecificRecipient(String iun, int recIndex, TimelineElementCategoryInt category);
 
-    Mono<ProbableSchedulingAnalogDateDto> getSchedulingAnalogDate(String iun, int recIndex);
+    Mono<ProbableSchedulingAnalogDateInt> getSchedulingAnalogDate(String iun, int recIndex);
 
-    NotificationHistoryResponse getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
+    Mono<NotificationHistoryInt> getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
 
 }

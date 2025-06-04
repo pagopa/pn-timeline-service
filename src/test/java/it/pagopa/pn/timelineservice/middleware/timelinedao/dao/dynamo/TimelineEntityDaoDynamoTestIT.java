@@ -1,88 +1,65 @@
 package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.dynamo;
 
-import it.pagopa.pn.commons.abstractions.impl.MiddlewareTypes;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
-import it.pagopa.pn.timelineservice.LocalStackTestConfig;
-import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
+import it.pagopa.pn.timelineservice.config.BaseTest;
+import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
+import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
+import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
+import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
+import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
-import it.pagopa.pn.timelineservice.middleware.dao.TimelineEntityDao;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.*;
+import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.NotificationRefusedErrorEntity;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@ExtendWith(SpringExtension.class)
-@TestPropertySource(properties = {
-        TimelineDao.IMPLEMENTATION_TYPE_PROPERTY_NAME + "=" + MiddlewareTypes.DYNAMO,
-        TimelineCounterEntityDao.IMPLEMENTATION_TYPE_PROPERTY_NAME + "=" + MiddlewareTypes.DYNAMO,
-})
-@SpringBootTest
-@Import(LocalStackTestConfig.class)
-class TimelineEntityDaoDynamoTestIT {
+
+class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
     @Autowired
-    private TimelineEntityDao timelineEntityDao;
-    
+    private TimelineDao timelineEntityDao;
+
+
     @Test
     void put() {
         //GIVEN
-        TimelineElementEntity elementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal elementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
-                .timelineElementId("elementId1")
+                .elementId(UUID.randomUUID().toString())
                 .paId("paid001")
                 .timestamp(Instant.now())
-                .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
+                .category(TimelineElementCategoryInt.SEND_SIMPLE_REGISTERED_LETTER)
                 .details(
-                        TimelineElementDetailsEntity.builder()
+                        SimpleRegisteredLetterDetailsInt.builder()
                                 .recIndex(0)
                                 .numberOfPages(1)
-                                .physicalAddress(
-                                        PhysicalAddressEntity.builder()
-                                                .foreignState("IT")
-                                                .address("Indirizzo")
-                                                .at("At")
-                                                .addressDetails("Dettaglio")
-                                                .build()
-                                )
                                 .build()
                 )
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
-        
+
         try{
             //WHEN
-            timelineEntityDao.put(elementToInsert);
+            timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
 
-            //THEN
-            Key key = Key.builder()
-                    .partitionValue(elementToInsert.getIun())
-                    .sortValue(elementToInsert.getTimelineElementId())
-                    .build();
+            TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
+            Assertions.assertEquals(elementToInsert.toString(), elementFromDbOpt.toString());
 
-            Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(key);
-
-            Assertions.assertTrue(elementFromDbOpt.isPresent());
-            TimelineElementEntity elementFromDb = elementFromDbOpt.get();
-            Assertions.assertEquals(elementToInsert, elementFromDb);
-            
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -91,328 +68,198 @@ class TimelineEntityDaoDynamoTestIT {
 
     @Test
     void putIfAbsentKo() {
-        
+
         //GIVEN
-        TimelineElementEntity elementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal elementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.PUBLIC_REGISTRY_CALL)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL)
+                .details(PublicRegistryCallDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        TimelineElementEntity elementNotToBeInserted = TimelineElementEntity.builder()
-                .iun("pa1-1")
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.SEND_ANALOG_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
-                        .recIndex(0)
-                        .build())
-                .legalFactIds(
-                        Collections.singletonList(
-                                LegalFactsIdEntity.builder()
-                                        .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
-                                        .build()
-                        )
-                )
-                .build();
+        assertDoesNotThrow(() -> timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block());
+        assertThrows(PnIdConflictException.class, () -> timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block());
 
-        Key elementsKey = Key.builder()
-                .partitionValue(elementToInsert.getIun())
-                .sortValue(elementToInsert.getTimelineElementId())
-                .build();
 
-        removeElementFromDb(elementToInsert);
-        removeElementFromDb(elementNotToBeInserted);
-
-        
-        assertDoesNotThrow(() -> timelineEntityDao.putIfAbsent(elementToInsert));
-
-        //WHEN
-        
-        assertThrows(PnIdConflictException.class, () -> timelineEntityDao.putIfAbsent(elementNotToBeInserted));
-        
-        //THEN
-        Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(elementsKey);
-
-        Assertions.assertTrue(elementFromDbOpt.isPresent());
-        TimelineElementEntity elementFromDb = elementFromDbOpt.get();
-        Assertions.assertEquals(elementToInsert, elementFromDb);
-        Assertions.assertNotEquals(elementNotToBeInserted, elementFromDb);
+        TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
+        Assertions.assertEquals(elementToInsert.toString(), elementFromDbOpt.toString());
     }
 
     @Test
     void putIfAbsentOk() {
 
         //GIVEN
-        TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.NOTIFICATION_VIEWED)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.NOTIFICATION_VIEWED)
+                .details(NotificationViewedDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        Key firstElementsKey = Key.builder()
-                .partitionValue(firstElementToInsert.getIun())
-                .sortValue(firstElementToInsert.getTimelineElementId())
-                .build();
-
-        TimelineElementEntity secondElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
-                .timelineElementId("elementId2")
-                .category(TimelineElementCategoryEntity.SEND_ANALOG_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(SendAnalogDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
-
-        Key secondElementsKey = Key.builder()
-                .partitionValue(secondElementToInsert.getIun())
-                .sortValue(secondElementToInsert.getTimelineElementId())
-                .build();
-        
-        removeElementFromDb(firstElementToInsert);
-        removeElementFromDb(secondElementToInsert);
 
         //WHEN
-        assertDoesNotThrow(() -> timelineEntityDao.putIfAbsent(firstElementToInsert));
-        assertDoesNotThrow(() -> timelineEntityDao.putIfAbsent(secondElementToInsert));
+        assertDoesNotThrow(() -> timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block());
+        assertDoesNotThrow(() -> timelineEntityDao.addTimelineElementIfAbsent(secondElementToInsert).block());
 
         //THEN
-        Optional<TimelineElementEntity> firstElementFromDbOpt =  timelineEntityDao.get(firstElementsKey);
-        Assertions.assertTrue(firstElementFromDbOpt.isPresent());
-        TimelineElementEntity firstElementFromDb = firstElementFromDbOpt.get();
-        Assertions.assertEquals(firstElementToInsert, firstElementFromDb);
+        TimelineElementInternal firstElementFromDbOpt =  timelineEntityDao.getTimelineElement(firstElementToInsert.getIun(), firstElementToInsert.getElementId(), false).block();
+        Assertions.assertEquals(firstElementToInsert.toString(), firstElementFromDbOpt.toString());
 
-        Optional<TimelineElementEntity> secondElementFromDbOpt =  timelineEntityDao.get(secondElementsKey);
-        Assertions.assertTrue(secondElementFromDbOpt.isPresent());
-        TimelineElementEntity secondElementFromDb = secondElementFromDbOpt.get();
-        Assertions.assertEquals(secondElementToInsert, secondElementFromDb);
+        TimelineElementInternal secondElementFromDbOpt =  timelineEntityDao.getTimelineElement(secondElementToInsert.getIun(),secondElementToInsert.getElementId(), false).block();
+        Assertions.assertEquals(secondElementToInsert.toString(), secondElementFromDbOpt.toString());
     }
-    
+
     @Test
     void get() {
 
         //GIVEN
-        TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.REQUEST_ACCEPTED)
-                .details(TimelineElementDetailsEntity.builder()
-                        .recIndex(0)
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
+                .details(NotificationRequestAcceptedDetailsInt.builder()
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
-        Key firstElementToInsertKey = Key.builder()
-                .partitionValue(firstElementToInsert.getIun())
-                .sortValue(firstElementToInsert.getTimelineElementId())
-                .build();
 
-        TimelineElementEntity secondElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-2")
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.SEND_ANALOG_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(SendAnalogDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
-        Key secondElementToInsertKey = Key.builder()
-                .partitionValue(secondElementToInsert.getIun())
-                .sortValue(secondElementToInsert.getTimelineElementId())
-                .build();
-        
-        removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
 
-        removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
-        
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(secondElementToInsert).block();
+
         //Check first element
         //WHEN
-        Optional<TimelineElementEntity> firstElementFromDbOpt =  timelineEntityDao.get(firstElementToInsertKey);
-        
-        //THEN
-        Assertions.assertTrue(firstElementFromDbOpt.isPresent());
-        TimelineElementEntity firstElementFromDb = firstElementFromDbOpt.get();
-        Assertions.assertEquals(firstElementToInsert, firstElementFromDb);
+        TimelineElementInternal firstElementFromDbOpt =  timelineEntityDao.getTimelineElement(firstElementToInsert.getIun(), firstElementToInsert.getElementId(), false).block();
+        Assertions.assertEquals(firstElementToInsert.toString(), firstElementFromDbOpt.toString());
 
         //Check second element
         //WHEN
-        Optional<TimelineElementEntity> secondElementFromDbOpt =  timelineEntityDao.get(secondElementToInsertKey);
-
-        //THEN
-        Assertions.assertTrue(secondElementFromDbOpt.isPresent());
-        TimelineElementEntity secondElementFromDb = secondElementFromDbOpt.get();
-        Assertions.assertEquals(secondElementToInsert, secondElementFromDb);
+        TimelineElementInternal secondElementFromDbOpt =  timelineEntityDao.getTimelineElement(secondElementToInsert.getIun(), secondElementToInsert.getElementId(), false).block();
+        Assertions.assertEquals(secondElementToInsert.toString(), secondElementFromDbOpt.toString());
     }
 
     @Test
     void getNoElement() {
 
-        //GIVEN
-        TimelineElementEntity element = TimelineElementEntity.builder()
-                .iun("pa1-1")
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
-                        .recIndex(0)
-                        .build())
-                .legalFactIds(
-                        Collections.singletonList(
-                                LegalFactsIdEntity.builder()
-                                        .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
-                                        .build()
-                        )
-                )
-                .build();
-        
-        Key elementToInsertKey = Key.builder()
-                .partitionValue(element.getIun())
-                .sortValue(element.getTimelineElementId())
-                .build();
-        
-        removeElementFromDb(element);
-
         //Check first element
         //WHEN
-        Optional<TimelineElementEntity> firstElementFromDbOpt =  timelineEntityDao.get(elementToInsertKey);
+        TimelineElementInternal firstElementFromDbOpt =  timelineEntityDao.getTimelineElement("iun", "timelineId", false).block();
 
         //THEN
-        Assertions.assertTrue(firstElementFromDbOpt.isEmpty());
+        Assertions.assertTrue(Objects.isNull(firstElementFromDbOpt));
     }
-    
-    @Test
-    void delete() {
-        //GIVEN
-        TimelineElementEntity elementToInsert = TimelineElementEntity.builder()
-                .iun("pa1-delete")
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.PUBLIC_REGISTRY_CALL)
-                .details(TimelineElementDetailsEntity.builder()
-                        .recIndex(0)
-                        .build())
-                .legalFactIds(
-                        Collections.singletonList(
-                                LegalFactsIdEntity.builder()
-                                        .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
-                                        .build()
-                        )
-                )
-                .build();
 
-        removeElementFromDb(elementToInsert);
-        timelineEntityDao.put(elementToInsert);
-        
-        //WHEN
-        Key key = Key.builder()
-                .partitionValue(elementToInsert.getIun())
-                .sortValue(elementToInsert.getTimelineElementId())
-                .build();
-
-        timelineEntityDao.delete(key);
-        
-        //THEN
-        Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(key);
-
-        Assertions.assertTrue(elementFromDbOpt.isEmpty());
-    }
-    
     @Test
     void findByIun() {
         String iun = "pa1-1";
-        
+
         //GIVEN
-        TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.REFINEMENT)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.REFINEMENT)
+                .details(RefinementDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        TimelineElementEntity secondElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .timelineElementId("elementId2")
-                .category(TimelineElementCategoryEntity.SEND_ANALOG_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(SendAnalogDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
-        removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+
+        timelineEntityDao.addTimelineElementIfAbsent(secondElementToInsert).block();
 
         //WHEN
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.findByIun(iun);
+        List<TimelineElementInternal> elementSet =  timelineEntityDao.getTimeline(iun).collectList().block();
 
         //THEN
+        Assertions.assertNotNull(elementSet);
         Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.contains(firstElementToInsert));
-        Assertions.assertTrue(elementSet.contains(secondElementToInsert));
+        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
+                .anyMatch(s -> s.equals(firstElementToInsert.toString())));
+        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
+                .anyMatch(s -> s.equals(secondElementToInsert.toString())));
     }
 
     @Test
@@ -420,115 +267,107 @@ class TimelineEntityDaoDynamoTestIT {
         String iun = "pa1-1";
 
         //GIVEN
-        TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.REFINEMENT)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.REFINEMENT)
+                .details(RefinementDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        TimelineElementEntity secondElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .timelineElementId("elementId2")
-                .category(TimelineElementCategoryEntity.SEND_ANALOG_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(SendAnalogDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
-        removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(secondElementToInsert).block();
 
         //WHEN
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.findByIunStrongly(iun);
+        List<TimelineElementInternal> elementSet =  timelineEntityDao.getTimelineStrongly(iun).collectList().block();
 
         //THEN
         Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.contains(firstElementToInsert));
-        Assertions.assertTrue(elementSet.contains(secondElementToInsert));
+        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
+                .anyMatch(s -> s.equals(firstElementToInsert.toString())));
+        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
+                .anyMatch(s -> s.equals(secondElementToInsert.toString())));
     }
 
     @Test
     void getTimelineElmentStrongly() {
         String iun = "pa1-1";
-        String timelineElementIdToSearch = "elementId2";
+        String elementIdToSearch = UUID.randomUUID().toString();
         //GIVEN
-        TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.REFINEMENT)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.AAR_CREATION_REQUEST)
+                .details(AarCreationRequestDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        TimelineElementEntity secondElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .timelineElementId(timelineElementIdToSearch)
-                .category(TimelineElementCategoryEntity.SEND_ANALOG_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(elementIdToSearch)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(SendAnalogDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
-        removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(secondElementToInsert).block();
 
         //WHEN
-        Optional<TimelineElementEntity> timelineElmentStrongly = timelineEntityDao.getTimelineElementStrongly(iun, timelineElementIdToSearch);
+        TimelineElementInternal timelineElmentStrongly = timelineEntityDao.getTimelineElement(iun, elementIdToSearch, true).block();
 
-        //THEN
-        Assertions.assertFalse(timelineElmentStrongly.isEmpty());
-        Assertions.assertEquals(timelineElmentStrongly.get(),secondElementToInsert);
+        Assertions.assertNotNull(timelineElmentStrongly);
+        Assertions.assertEquals(timelineElmentStrongly.toString(), secondElementToInsert.toString());
     }
 
     @Test
     void findByIunNoElements() {
         String iun = "pa1-1";
-        timelineEntityDao.deleteByIun(iun);
-
-        //WHEN
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.findByIun(iun);
-
-        //THEN
+        List<TimelineElementInternal> elementSet =  timelineEntityDao.getTimeline(iun).collectList().block();
         Assertions.assertTrue(elementSet.isEmpty());
     }
 
@@ -538,135 +377,75 @@ class TimelineEntityDaoDynamoTestIT {
 
 
         String iun = "pa1-1";
-        String elementId = "elementId";
+        String elementId = UUID.randomUUID().toString();
 
         //GIVEN
-        TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .timelineElementId(elementId + "1")
-                .category(TimelineElementCategoryEntity.REFINEMENT)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(elementId + "1")
+                .category(TimelineElementCategoryInt.REFINEMENT)
+                .details(RefinementDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        TimelineElementEntity secondElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .timelineElementId(elementId + "2")
-                .category(TimelineElementCategoryEntity.SEND_ANALOG_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(elementId + "2")
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(SendAnalogDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        TimelineElementEntity nomatchElementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal nomatchElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .timelineElementId("otherelement" + "1")
-                .category(TimelineElementCategoryEntity.SEND_ANALOG_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
+                .elementId(UUID.randomUUID() + "1")
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(SendAnalogDetailsInt.builder()
                         .recIndex(0)
                         .build())
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
                                         .build()
                         )
                 )
                 .build();
 
-        removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
-        removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
-        removeElementFromDb(nomatchElementToInsert);
-        timelineEntityDao.put(nomatchElementToInsert);
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(secondElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(nomatchElementToInsert).block();
 
         //WHEN
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.searchByIunAndElementId(iun, elementId);
+        List<TimelineElementInternal> elementSet =  timelineEntityDao.getTimelineFilteredByElementId(iun, elementId).collectList().block();
 
         //THEN
+        Assertions.assertNotNull(elementSet);
         Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.contains(firstElementToInsert));
-        Assertions.assertTrue(elementSet.contains(secondElementToInsert));
+        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
+                .anyMatch(s -> s.equals(firstElementToInsert.toString())));
+        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
+                .anyMatch(s -> s.equals(secondElementToInsert.toString())));
         Assertions.assertEquals(2, elementSet.size());
-    }
-
-    @Test
-    void deleteByIun() {
-        String iun = "pa1-1";
-
-        //GIVEN
-        TimelineElementEntity firstElementToInsert = TimelineElementEntity.builder()
-                .iun(iun)
-                .timelineElementId("elementId1")
-                .category(TimelineElementCategoryEntity.PUBLIC_REGISTRY_CALL)
-                .details(TimelineElementDetailsEntity.builder()
-                        .recIndex(0)
-                        .build())
-                .legalFactIds(
-                        Collections.singletonList(
-                                LegalFactsIdEntity.builder()
-                                        .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
-                                        .build()
-                        )
-                )
-                .build();
-
-        TimelineElementEntity secondElementToInsert = TimelineElementEntity.builder()
-                .iun(iun)
-                .timelineElementId("elementId2")
-                .category(TimelineElementCategoryEntity.SEND_ANALOG_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder()
-                        .recIndex(0)
-                        .build())
-                .legalFactIds(
-                        Collections.singletonList(
-                                LegalFactsIdEntity.builder()
-                                        .key("key")
-                                        .category(LegalFactCategoryEntity.DIGITAL_DELIVERY)
-                                        .build()
-                        )
-                )
-                .build();
-
-        removeElementFromDb(firstElementToInsert);
-        timelineEntityDao.put(firstElementToInsert);
-        removeElementFromDb(secondElementToInsert);
-        timelineEntityDao.put(secondElementToInsert);
-
-        //Check elements is present
-        Set<TimelineElementEntity> elementSet =  timelineEntityDao.findByIun(iun);
-        Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.contains(firstElementToInsert));
-        Assertions.assertTrue(elementSet.contains(secondElementToInsert));
-        
-        //WHEN
-        timelineEntityDao.deleteByIun(iun);
-
-        //THEN
-        //Check elements is not present
-        Set<TimelineElementEntity> elementSetAfterDelete =  timelineEntityDao.findByIun(iun);
-        Assertions.assertTrue(elementSetAfterDelete.isEmpty());
-
     }
 
     @Test
@@ -678,85 +457,61 @@ class TimelineEntityDaoDynamoTestIT {
                 .build();
         errors.add(notificationRefusedError);
         //GIVEN
-        TimelineElementEntity elementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal elementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
-                .timelineElementId("elementId1")
+                .elementId(UUID.randomUUID().toString())
                 .paId("paid001")
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
-                                        .category(LegalFactCategoryEntity.PEC_RECEIPT)
+                                LegalFactsIdInt.builder()
+                                        .category(LegalFactCategoryInt.PEC_RECEIPT)
                                         .key("test")
                                         .build()
                         )
                 )
-                .category(TimelineElementCategoryEntity.SEND_DIGITAL_PROGRESS)
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_PROGRESS)
                 .details(
-                        TimelineElementDetailsEntity.builder()
+                        SendDigitalProgressDetailsInt.builder()
                                 .recIndex(0)
                                 .digitalAddress(
-                                        DigitalAddressEntity.builder()
-                                                .type(DigitalAddressEntity.TypeEnum.PEC)
+                                        LegalDigitalAddressInt.builder()
+                                                .type(LegalDigitalAddressInt.LEGAL_DIGITAL_ADDRESS_TYPE.PEC)
                                                 .address("test@address.it")
                                                 .build()
                                 )
-                                .digitalAddressSource(DigitalAddressSourceEntity.PLATFORM)
+                                .digitalAddressSource(DigitalAddressSourceInt.PLATFORM)
                                 .retryNumber(0)
-                                .notificationDate(Instant.now())
-                                .sendingReceipts(
-                                        Collections.singletonList(
-                                                SendingReceiptEntity.builder()
-                                                        .id("id")
-                                                        .system("system")
-                                                        .build()
-                                        )
-                                )
-                                .refusalReasons(errors)
                                 .build()
                 )
                 .build();
-
-        try{
             //WHEN
-            timelineEntityDao.put(elementToInsert);
+            timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
 
-            //THEN
-            Key key = Key.builder()
-                    .partitionValue(elementToInsert.getIun())
-                    .sortValue(elementToInsert.getTimelineElementId())
-                    .build();
-
-            Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(key);
-
-            Assertions.assertTrue(elementFromDbOpt.isPresent());
-            TimelineElementEntity elementFromDb = elementFromDbOpt.get();
-            Assertions.assertEquals(elementToInsert, elementFromDb);
-
-        } finally {
-            removeElementFromDb(elementToInsert);
-        }
+            TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
+        Assertions.assertNotNull(elementFromDbOpt);
+        Assertions.assertEquals(elementToInsert.toString(), elementFromDbOpt.toString());
     }
-    
+
     @Test
     void checkNotificationView() {
         //GIVEN
-        TimelineElementEntity elementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal elementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
-                .timelineElementId("elementId1")
+                .elementId(UUID.randomUUID().toString())
                 .paId("paid001")
                 .timestamp(Instant.now())
-                .category(TimelineElementCategoryEntity.NOTIFICATION_VIEWED)
+                .category(TimelineElementCategoryInt.NOTIFICATION_VIEWED)
                 .details(
-                        TimelineElementDetailsEntity.builder()
+                        NotificationViewedDetailsInt.builder()
                                 .recIndex(0)
                                 .notificationCost(100)
                                 .build()
                 )
-                .legalFactIds(
+                .legalFactsIds(
                         Collections.singletonList(
-                                LegalFactsIdEntity.builder()
+                                LegalFactsIdInt.builder()
                                         .key("key")
-                                        .category(LegalFactCategoryEntity.RECIPIENT_ACCESS)
+                                        .category(LegalFactCategoryInt.RECIPIENT_ACCESS)
                                         .build()
                         )
                 )
@@ -768,14 +523,14 @@ class TimelineEntityDaoDynamoTestIT {
     @Test
     void checkRefinement() {
         //GIVEN
-        TimelineElementEntity elementToInsert = TimelineElementEntity.builder()
+        TimelineElementInternal elementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
-                .timelineElementId("elementId1")
+                .elementId(UUID.randomUUID().toString())
                 .paId("paid001")
                 .timestamp(Instant.now())
-                .category(TimelineElementCategoryEntity.REFINEMENT)
+                .category(TimelineElementCategoryInt.REFINEMENT)
                 .details(
-                        TimelineElementDetailsEntity.builder()
+                        RefinementDetailsInt.builder()
                                 .recIndex(0)
                                 .notificationCost(100)
                                 .build()
@@ -785,35 +540,11 @@ class TimelineEntityDaoDynamoTestIT {
         checkElement(elementToInsert);
     }
 
-    private void checkElement(TimelineElementEntity elementToInsert) {
-        try{
+    private void checkElement(TimelineElementInternal elementToInsert) {
             //WHEN
-            timelineEntityDao.put(elementToInsert);
-
-            //THEN
-            Key key = Key.builder()
-                    .partitionValue(elementToInsert.getIun())
-                    .sortValue(elementToInsert.getTimelineElementId())
-                    .build();
-
-            Optional<TimelineElementEntity> elementFromDbOpt =  timelineEntityDao.get(key);
-
-            Assertions.assertTrue(elementFromDbOpt.isPresent());
-            TimelineElementEntity elementFromDb = elementFromDbOpt.get();
-            Assertions.assertEquals(elementToInsert, elementFromDb);
-
-        }finally {
-            removeElementFromDb(elementToInsert);
-        }
-    }
-
-    private void removeElementFromDb(TimelineElementEntity element) {
-        Key key = Key.builder()
-                .partitionValue(element.getIun())
-                .sortValue(element.getTimelineElementId())
-                .build();
-
-        timelineEntityDao.delete(key);
+            timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
+            TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
+            Assertions.assertEquals(elementToInsert.toString(), elementFromDbOpt.toString());
     }
 
 }
