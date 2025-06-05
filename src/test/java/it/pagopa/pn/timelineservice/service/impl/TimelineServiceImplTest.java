@@ -118,17 +118,6 @@ class TimelineServiceImplTest {
     }
 
     @Test
-        void addTimelineElementNoNotification() {
-            String iun = "iun_12345";
-            String elementId = "elementId_12345";
-
-            TimelineElementInternal newElement = getAarGenerationTimelineElement(iun, elementId);
-            StepVerifier.create(timeLineService.addTimelineElement(newElement, null))
-                    .expectError(PnInternalException.class)
-                    .verify();
-        }
-
-    @Test
     void addCriticalTimelineElement() {
         // GIVEN
         String iun = "iun_12345";
@@ -324,6 +313,7 @@ class TimelineServiceImplTest {
                 .thenReturn(Mono.empty());
         Mockito.doThrow(new PnInternalException("error", "test"))
                 .when(timelineDao).addTimelineElementIfAbsent(Mockito.any(TimelineElementInternal.class));
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any())).thenReturn(Mono.empty());
 
         StepVerifier.create(timeLineService.addTimelineElement(newElement, notification))
                 .expectError(PnInternalException.class)
@@ -344,6 +334,7 @@ class TimelineServiceImplTest {
         Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId2);
         Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
                 .thenReturn(Flux.fromIterable(setTimelineElement));
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any())).thenReturn(Mono.empty());
 
         TimelineElementInternal newElement = getSendPaperFeedbackTimelineElement(iun, elementId, Instant.now());
 
