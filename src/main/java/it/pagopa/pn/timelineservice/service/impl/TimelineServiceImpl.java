@@ -76,7 +76,7 @@ public class TimelineServiceImpl implements TimelineService {
 
         return Mono.just(isMultiRecipient && isCriticalTimelineElement)
                 .flatMap(aBoolean -> {
-                    if (aBoolean) {
+                    if (Boolean.TRUE.equals(aBoolean)) {
                         return addCriticalTimelineElement(dto, notification, logEvent);
                     } else {
                         return addTimelineElement(dto, notification, logEvent);
@@ -326,7 +326,7 @@ public class TimelineServiceImpl implements TimelineService {
                 .map(t -> smartMapper.mapTimelineInternal(t, new HashSet<>(notificationHistoryInt.getTimeline())))
                 .sorted(Comparator.naturalOrder())
                 .filter(this::isNotDiagnosticTimelineElement)
-                .collect(Collectors.toList()));
+                .toList());
 
         return notificationHistoryInt;
     }

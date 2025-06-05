@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -252,7 +251,7 @@ class DtoToEntityTimelineMapperTest {
         List<LegalFactsIdEntity> legalFactsIds = null;
 
         if (dto != null) {
-            legalFactsIds = dto.stream().map(this::mapOneLegalFact).collect(Collectors.toList());
+            legalFactsIds = dto.stream().map(this::mapOneLegalFact).toList();
         }
 
         return legalFactsIds;
