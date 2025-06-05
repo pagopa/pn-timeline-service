@@ -71,21 +71,19 @@ public class TimelineServiceImpl implements TimelineService {
         PnAuditLogEvent logEvent = getPnAuditLogEvent(dto, auditLogBuilder);
         logEvent.log();
 
-        if (notification != null) {
-            boolean isMultiRecipient = notification.getNumberOfRecipients() > 1;
-            boolean isCriticalTimelineElement = COMPLETED_DELIVERY_WORKFLOW_CATEGORY.contains(dto.getCategory());
-            if (isMultiRecipient && isCriticalTimelineElement) {
-                return addCriticalTimelineElement(dto, notification, logEvent)
-                        .doFinally(signal -> MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC));
-            }
+        boolean isMultiRecipient = notification.getNumberOfRecipients() > 1;
+        boolean isCriticalTimelineElement = COMPLETED_DELIVERY_WORKFLOW_CATEGORY.contains(dto.getCategory());
 
-            return addTimelineElement(dto, notification, logEvent)
-                    .doFinally(signal -> MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC));
-        } else {
-            MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-            logEvent.generateFailure("Try to update Timeline and Status for non existing iun={}", dto.getIun());
-            return Mono.error(new PnInternalException("Try to update Timeline and Status for non existing iun " + dto.getIun(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED));
-        }
+        return Mono.just(isMultiRecipient && isCriticalTimelineElement)
+                .flatMap(aBoolean -> {
+                    if (aBoolean) {
+                        return addCriticalTimelineElement(dto, notification, logEvent);
+                    } else {
+                        return addTimelineElement(dto, notification, logEvent);
+                    }
+                })
+                .doFinally(signal -> MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC));
+
     }
 
     private Mono<Boolean> addCriticalTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
@@ -101,7 +99,6 @@ public class TimelineServiceImpl implements TimelineService {
                     SimpleLock simpleLock = optSimpleLock.get();
                     return processTimelinePersistence(dto, notification, logEvent)
                             .onErrorMap(ex -> {
-                                MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
                                 logEvent.generateFailure("Exception in addCriticalTimelineElement", ex).log();
                                 return new PnInternalException("Exception in addCriticalTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                             })
@@ -111,10 +108,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     private Mono<Boolean> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return processTimelinePersistence(dto, notification, logEvent)
-                .doOnError(throwable -> {
-                    MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-                    logEvent.generateFailure("IdConflictException in addTimelineElement", throwable).log();
-                })
+                .doOnError(throwable -> logEvent.generateFailure("IdConflictException in addTimelineElement", throwable).log())
                 .onErrorMap(ex -> {
                     if( ex instanceof PnIdConflictException) {
                         return ex;

@@ -124,6 +124,7 @@ Resources:
         ContainerEnvEntry3: !Sub 'PN_TIMELINESERVICE_TIMELINECOUNTERDAO_TABLENAME=${TimelinesCounterTableName}'
         ContainerEnvEntry4: !Sub 'PN_TIMELINESERVICE_LASTPOLLFORFUTUREACTIONDAO_LOCKTABLENAME=${PnDeliveryPushShedLockDynamoTableName}'
         ApplicativeEnvFileChecksum: !Ref ApplicativeEnvFileChecksum
+        TaskRoleManagedPolicyArn: !Ref TimelineServiceMicroserviceTaskManagedPolicy
 
   TimelineServiceMicroserviceTaskManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
