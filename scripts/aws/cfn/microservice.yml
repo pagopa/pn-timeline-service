@@ -96,6 +96,32 @@ Parameters:
     Default: ''
     Description: 'Applicative environment variable file checksum'
 
+  # Logging parameters
+  WireTapLogActivation:
+    Type: String
+    Default: false
+    Description: Activation of wire logs
+    AllowedValues:
+      - true
+      - false
+
+  PnCronAnalyzer:
+    Type: String
+    Default: '-'
+    Description: Cron for which you send the metric to CloudWatch
+
+  # EFS parameters
+  FargateEFSFileSystemID:
+    Type: String
+    Description: "EFS Filesystem"
+
+  MountEfs:
+    Type: String
+    Default: false
+    AllowedValues:
+      - "true"
+      - "false"
+
 
 Resources:
 
@@ -123,7 +149,12 @@ Resources:
         ContainerEnvEntry2: !Sub 'PN_TIMELINESERVICE_TIMELINEDAO_TABLENAME=${TimelinesDynamoTableName}'
         ContainerEnvEntry3: !Sub 'PN_TIMELINESERVICE_TIMELINECOUNTERDAO_TABLENAME=${TimelinesCounterTableName}'
         ContainerEnvEntry4: !Sub 'PN_TIMELINESERVICE_LASTPOLLFORFUTUREACTIONDAO_LOCKTABLENAME=${PnDeliveryPushShedLockDynamoTableName}'
+        ContainerEnvEntry5: !Sub 'PN_CRON_ANALYZER=${PnCronAnalyzer}'
+        ContainerEnvEntry6: !Sub 'WIRE_TAP_LOG=${WireTapLogActivation}'
         ApplicativeEnvFileChecksum: !Ref ApplicativeEnvFileChecksum
+        EfsFilesystem: !Ref FargateEFSFileSystemID
+        MountEfs: !Ref MountEfs
+        WireTapLogActivation: !Ref WireTapLogActivation
 
   TimelineServiceMicroserviceTaskManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
