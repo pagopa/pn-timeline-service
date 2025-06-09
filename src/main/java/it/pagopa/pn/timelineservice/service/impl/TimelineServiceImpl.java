@@ -71,21 +71,19 @@ public class TimelineServiceImpl implements TimelineService {
         PnAuditLogEvent logEvent = getPnAuditLogEvent(dto, auditLogBuilder);
         logEvent.log();
 
-        if (notification != null) {
-            boolean isMultiRecipient = notification.getNumberOfRecipients() > 1;
-            boolean isCriticalTimelineElement = COMPLETED_DELIVERY_WORKFLOW_CATEGORY.contains(dto.getCategory());
-            if (isMultiRecipient && isCriticalTimelineElement) {
-                return addCriticalTimelineElement(dto, notification, logEvent)
-                        .doFinally(signal -> MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC));
-            }
+        boolean isMultiRecipient = notification.getNumberOfRecipients() > 1;
+        boolean isCriticalTimelineElement = COMPLETED_DELIVERY_WORKFLOW_CATEGORY.contains(dto.getCategory());
 
-            return addTimelineElement(dto, notification, logEvent)
-                    .doFinally(signal -> MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC));
-        } else {
-            MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-            logEvent.generateFailure("Try to update Timeline and Status for non existing iun={}", dto.getIun());
-            return Mono.error(new PnInternalException("Try to update Timeline and Status for non existing iun " + dto.getIun(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED));
-        }
+        return Mono.just(isMultiRecipient && isCriticalTimelineElement)
+                .flatMap(aBoolean -> {
+                    if (Boolean.TRUE.equals(aBoolean)) {
+                        return addCriticalTimelineElement(dto, notification, logEvent);
+                    } else {
+                        return addTimelineElement(dto, notification, logEvent);
+                    }
+                })
+                .doFinally(signal -> MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC));
+
     }
 
     private Mono<Boolean> addCriticalTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
@@ -101,7 +99,6 @@ public class TimelineServiceImpl implements TimelineService {
                     SimpleLock simpleLock = optSimpleLock.get();
                     return processTimelinePersistence(dto, notification, logEvent)
                             .onErrorMap(ex -> {
-                                MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
                                 logEvent.generateFailure("Exception in addCriticalTimelineElement", ex).log();
                                 return new PnInternalException("Exception in addCriticalTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                             })
@@ -111,10 +108,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     private Mono<Boolean> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return processTimelinePersistence(dto, notification, logEvent)
-                .doOnError(throwable -> {
-                    MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-                    logEvent.generateFailure("IdConflictException in addTimelineElement", throwable).log();
-                })
+                .doOnError(throwable -> logEvent.generateFailure("IdConflictException in addTimelineElement", throwable).log())
                 .onErrorMap(ex -> {
                     if( ex instanceof PnIdConflictException) {
                         return ex;
@@ -220,7 +214,8 @@ public class TimelineServiceImpl implements TimelineService {
                         .getTimelineElementConfidentialInformation(iun, timelineId)
                         .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                                 timelineElement.getDetails(), confidentialDto
-                        )));
+                        ))
+                        .thenReturn(timelineElement.getDetails()));
     }
 
     @Override
@@ -256,7 +251,8 @@ public class TimelineServiceImpl implements TimelineService {
                         return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineElement.getElementId())
                                 .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                                         timelineElement.getDetails(), confidentialDto
-                                ));
+                                ))
+                                .thenReturn(timelineElement.getDetails());
                     } else {
                         return Mono.just(timelineElement.getDetails());
                     }
@@ -282,18 +278,17 @@ public class TimelineServiceImpl implements TimelineService {
 
     private Flux<TimelineElementInternal> setConfidentialInfo(String iun, boolean confidentialInfoRequired, Flux<TimelineElementInternal> setTimelineElements) {
         if (confidentialInfoRequired) {
-            return setTimelineElements
-                    .collect(Collectors.toSet())
-                    .flatMapMany(set -> confidentialInformationService.getTimelineConfidentialInformation(iun)
-                            .flatMapMany(mapConf -> Flux.fromIterable(set)
-                                    .doOnNext(timelineElementInt -> {
-                                        ConfidentialTimelineElementDtoInt dtoInt = mapConf.get(timelineElementInt.getElementId());
-                                        if (dtoInt != null) {
-                                            enrichTimelineElementWithConfidentialInformation(timelineElementInt.getDetails(), dtoInt);
-                                        }
-                                    })
-                            )
-                    );
+            return confidentialInformationService.getTimelineConfidentialInformation(iun)
+                    .flatMapMany(confidentialMap ->
+                            setTimelineElements.map(element -> {
+                                ConfidentialTimelineElementDtoInt dtoInt = confidentialMap.get(element.getElementId());
+                                if (dtoInt != null) {
+                                    enrichTimelineElementWithConfidentialInformation(element.getDetails(), dtoInt);
+                                }
+                                return element;
+                            })
+                    )
+                    .switchIfEmpty(setTimelineElements);
         } else {
             return setTimelineElements;
         }
@@ -302,21 +297,38 @@ public class TimelineServiceImpl implements TimelineService {
     @Override
     public Mono<NotificationHistoryInt> getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
         log.debug("getTimelineAndStatusHistory Start - iun={} ", iun);
+        NotificationHistoryInt notificationHistoryInt = new NotificationHistoryInt();
 
         return getTimeline(iun, null, true, false)
-                .collect(Collectors.toSet())
-                .map(timelineElements -> {
-                    List<NotificationStatusHistoryElementInt> statusHistory = statusUtils
-                            .getStatusHistory(timelineElements, numberOfRecipients, createdAt);
+                .collect(Collectors.toList())
+                .doOnNext(notificationHistoryInt::setTimeline)
+                .map(timelineElements -> getAndSetStatusHistory(timelineElements, numberOfRecipients, createdAt, notificationHistoryInt))
+                .map(this::getAndSetCurrentStatus)
+                .map(notificationStatusInt -> remapTimelineElements(notificationHistoryInt));
+    }
 
-                    removeNotToBeReturnedElements(statusHistory);
+    private NotificationHistoryInt getAndSetCurrentStatus(NotificationHistoryInt notificationHistoryInt) {
+        notificationHistoryInt.setNotificationStatus(statusUtils.getCurrentStatus(notificationHistoryInt.getNotificationStatusHistory()));
+        return notificationHistoryInt;
+    }
 
-                    NotificationStatusInt currentStatus = statusUtils.getCurrentStatus(statusHistory);
+    private NotificationHistoryInt getAndSetStatusHistory(List<TimelineElementInternal> timelineElements, int numberOfRecipients, Instant createdAt, NotificationHistoryInt notificationHistoryInt) {
+        List<NotificationStatusHistoryElementInt> statusHistory = statusUtils.getStatusHistory(new HashSet<>(timelineElements), numberOfRecipients, createdAt);
+        removeNotToBeReturnedElements(statusHistory);
+        notificationHistoryInt.setNotificationStatusHistory(statusHistory);
+        return notificationHistoryInt;
+    }
 
-                    log.debug("getTimelineAndStatusHistory Ok - iun={} ", iun);
 
-                    return createResponse(timelineElements, statusHistory, currentStatus);
-                });
+    private NotificationHistoryInt remapTimelineElements(NotificationHistoryInt notificationHistoryInt) {
+
+        notificationHistoryInt.setTimeline(notificationHistoryInt.getTimeline().stream()
+                .map(t -> smartMapper.mapTimelineInternal(t, new HashSet<>(notificationHistoryInt.getTimeline())))
+                .sorted(Comparator.naturalOrder())
+                .filter(this::isNotDiagnosticTimelineElement)
+                .toList());
+
+        return notificationHistoryInt;
     }
 
     private void removeNotToBeReturnedElements(List<NotificationStatusHistoryElementInt> statusHistory) {
@@ -336,24 +348,6 @@ public class TimelineServiceImpl implements TimelineService {
                     .findFirst()
                     .ifPresent(el -> el.setActiveFrom(inValidationStatusActiveFrom));
         }
-    }
-
-    private NotificationHistoryInt createResponse(Set<TimelineElementInternal> timelineElements, List<NotificationStatusHistoryElementInt> statusHistory,
-                                                  NotificationStatusInt currentStatus) {
-
-        var timelineList = timelineElements.stream()
-                .map(t -> smartMapper.mapTimelineInternal(t, timelineElements))
-                .sorted(Comparator.naturalOrder())
-                .filter(this::isNotDiagnosticTimelineElement)
-                .toList();
-
-        NotificationHistoryInt notificationHistoryInt = new NotificationHistoryInt();
-        notificationHistoryInt.setTimeline(timelineList);
-        notificationHistoryInt.setNotificationStatus(currentStatus);
-        notificationHistoryInt.setNotificationStatusHistory(statusHistory);
-
-        return notificationHistoryInt;
-
     }
 
     public boolean isNotDiagnosticTimelineElement(TimelineElementInternal timelineElementInternal) {

@@ -31,6 +31,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - timelineElement
+                - notificationInfo
               properties:
                 timelineElement:
                   $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
@@ -419,6 +422,11 @@ components:
   schemas:
     NotificationInfo:
       type: object
+      required:
+        - iun
+        - paProtocolNumber
+        - sentAt
+        - numberOfRecipients
       properties:
         iun:
           type: string

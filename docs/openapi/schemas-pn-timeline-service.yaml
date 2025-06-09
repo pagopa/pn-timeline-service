@@ -83,6 +83,14 @@ components:
           type: boolean
     TimelineElement:
       type: object
+      required:
+        - iun
+        - elementId
+        - timestamp
+        - paId
+        - category
+        - details
+        - notificationSentAt
       properties:
         iun:
           type: string

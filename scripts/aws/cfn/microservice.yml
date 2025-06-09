@@ -155,6 +155,7 @@ Resources:
         EfsFilesystem: !Ref FargateEFSFileSystemID
         MountEfs: !Ref MountEfs
         WireTapLogActivation: !Ref WireTapLogActivation
+        TaskRoleManagedPolicyArn: !Ref TimelineServiceMicroserviceTaskManagedPolicy
 
   TimelineServiceMicroserviceTaskManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
