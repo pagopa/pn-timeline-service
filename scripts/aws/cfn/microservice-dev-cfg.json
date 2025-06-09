@@ -5,6 +5,9 @@
     "PnDeliveryPushShedLockDynamoTableArn": "arn:aws:dynamodb:eu-south-1:830192246553:table/pn-PnDeliveryPushShedLock",
     "TimelinesDynamoTableName": "pn-Timelines",
     "TimelinesCounterTableName": "pn-TimelinesCounters",
-    "PnDeliveryPushShedLockDynamoTableName": "pn-PnDeliveryPushShedLock"
+    "PnDeliveryPushShedLockDynamoTableName": "pn-PnDeliveryPushShedLock",
+    "PnCronAnalyzer": "* */1 * * * *",
+    "WireTapLogActivation": "false",
+    "MountEfs": "false"
   }
 }
