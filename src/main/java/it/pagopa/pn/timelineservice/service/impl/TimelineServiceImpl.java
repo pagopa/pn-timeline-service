@@ -64,7 +64,7 @@ public class TimelineServiceImpl implements TimelineService {
     private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
 
     @Override
-    public Mono<Boolean> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
+    public Mono<Void> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
         log.debug("addTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
         PnAuditLogBuilder auditLogBuilder = new PnAuditLogBuilder();
 
@@ -86,7 +86,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     }
 
-    private Mono<Boolean> addCriticalTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
+    private Mono<Void> addCriticalTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         log.debug("addCriticalTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
 
         return Mono.fromCallable(() -> lockProvider.lock(
@@ -106,7 +106,7 @@ public class TimelineServiceImpl implements TimelineService {
                 });
     }
 
-    private Mono<Boolean> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
+    private Mono<Void> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return processTimelinePersistence(dto, notification, logEvent)
                 .doOnError(throwable -> logEvent.generateFailure("IdConflictException in addTimelineElement", throwable).log())
                 .onErrorMap(ex -> {
@@ -117,7 +117,7 @@ public class TimelineServiceImpl implements TimelineService {
                 });
     }
 
-    private Mono<Boolean> processTimelinePersistence(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
+    private Mono<Void> processTimelinePersistence(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return getTimeline(dto.getIun(), null, true, false)
                 .collectList()
                 .flatMap(list -> {
@@ -127,7 +127,9 @@ public class TimelineServiceImpl implements TimelineService {
                             .thenReturn(enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt()))
                             .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
                             .flatMap(this::persistTimelineElement)
-                            .map(timelineInsertSkipped -> logAndCleanMdc(dto, logEvent, false))
+                            .doOnSuccess(item -> {
+                                logAndCleanMdc(dto, logEvent, false);
+                            })
                             .doOnError(PnIdConflictException.class, ex -> {
                                 logAndCleanMdc(dto, logEvent, true);
                                 log.warn("Exception idconflict is expected for retry, letting flow continue");
@@ -135,7 +137,7 @@ public class TimelineServiceImpl implements TimelineService {
                 });
     }
 
-    private static Boolean logAndCleanMdc(TimelineElementInternal dto, PnAuditLogEvent logEvent, Boolean timelineInsertSkipped) {
+    private static void logAndCleanMdc(TimelineElementInternal dto, PnAuditLogEvent logEvent, Boolean timelineInsertSkipped) {
         String alreadyInsertMsg = "Timeline event was already inserted before - timelineId=" + dto.getElementId();
         String successMsg = String.format("Timeline event inserted with: CATEGORY=%s IUN=%s {DETAILS: %s} TIMELINEID=%s paId=%s TIMESTAMP=%s",
                 dto.getCategory(),
@@ -146,7 +148,6 @@ public class TimelineServiceImpl implements TimelineService {
                 dto.getTimestamp());
         logEvent.generateSuccess(timelineInsertSkipped ? alreadyInsertMsg : successMsg).log();
         MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-        return timelineInsertSkipped;
     }
 
     private Mono<TimelineElementInternal> checkAndAddBusinessTimestamp(TimelineElementInternal dtoWithStatusInfo, Set<TimelineElementInternal> currentTimeline) {
@@ -165,9 +166,8 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
 
-    private Mono<Boolean> persistTimelineElement(TimelineElementInternal dtoWithStatusInfo) {
-        return timelineDao.addTimelineElementIfAbsent(dtoWithStatusInfo)
-                .thenReturn(false);
+    private Mono<Void> persistTimelineElement(TimelineElementInternal dtoWithStatusInfo) {
+        return timelineDao.addTimelineElementIfAbsent(dtoWithStatusInfo);
     }
 
     private PnAuditLogEvent getPnAuditLogEvent(TimelineElementInternal dto, PnAuditLogBuilder auditLogBuilder) {

@@ -12,7 +12,7 @@ import java.time.Instant;
 
 public interface TimelineService {
 
-    Mono<Boolean> addTimelineElement(TimelineElementInternal element, NotificationInfoInt notification);
+    Mono<Void> addTimelineElement(TimelineElementInternal element, NotificationInfoInt notification);
 
     Mono<Long> retrieveAndIncrementCounterForTimelineEvent(String timelineId);
 

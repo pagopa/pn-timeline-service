@@ -1706,3 +1706,31 @@ components:
       enum:
         - PF
         - PG
+
+    NewTimelineElement:
+      type: object
+      required:
+        - timelineElement
+        - notificationInfo
+      properties:
+        timelineElement:
+          $ref: '#/components/schemas/TimelineElement'
+        notificationInfo:
+          $ref: '#/components/schemas/NotificationInfo'
+    NotificationInfo:
+      type: object
+      required:
+        - iun
+        - paProtocolNumber
+        - sentAt
+        - numberOfRecipients
+      properties:
+        iun:
+          type: string
+        paProtocolNumber:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        numberOfRecipients:
+          type: integer

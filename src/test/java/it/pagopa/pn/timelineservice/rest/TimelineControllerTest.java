@@ -62,7 +62,7 @@ public class TimelineControllerTest {
 
     @Test
     void addTimelineElementReturnsOkWhenRequestIsValid() throws JsonProcessingException {
-        AddTimelineElementRequest request = new AddTimelineElementRequest();
+        NewTimelineElement request = new NewTimelineElement();
         String timelineElement = "{\n" +
                 " \"iun\": \"LNWV-GRMV-KPWV-202503-W-1\",\n" +
                 " \"elementId\": \"AAR_CREATION_REQUEST.IUN_LNWV-GRMV-KPWV-202503-W-1.RECINDEX_0\",\n" +
@@ -87,12 +87,11 @@ public class TimelineControllerTest {
         info.setPaProtocolNumber("12345678985");
         request.setNotificationInfo(info);
 
-        when(timelineService.addTimelineElement(any(TimelineElementInternal.class),any(NotificationInfoInt.class))).thenReturn(Mono.just(true));
+        when(timelineService.addTimelineElement(any(TimelineElementInternal.class),any(NotificationInfoInt.class))).thenReturn(Mono.empty());
 
-        Mono<ResponseEntity<Boolean>> response = timelineController.addTimelineElement(Mono.just(request), null);
+        Mono<ResponseEntity<Void>> response = timelineController.addTimelineElement(Mono.just(request), null);
 
         StepVerifier.create(response)
-                .expectNext(ResponseEntity.ok(true))
                 .verifyComplete();
     }
 
