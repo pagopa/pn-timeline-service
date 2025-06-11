@@ -30,23 +30,10 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - timelineElement
-                - notificationInfo
-              properties:
-                timelineElement:
-                  $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
-                notificationInfo:
-                  $ref: '#/components/schemas/NotificationInfo'
-        required: true
+              $ref: './schemas-pn-timeline-service.yaml#/components/schemas/NewTimelineElement'
       responses:
-        '200':
-          description: OK
-          content:
-            '*/*':
-              schema:
-                type: boolean
+        '201':
+          description: Created
         '400':
           description: Invalid input
           content:
@@ -239,7 +226,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/timelines/{iun}/elements/details:
+  /timeline-service-private/timelines/{iun}/elements/details/{recIndex}:
     get:
       summary: Recupera i dettagli di un elemento della timeline per un destinatario specifico
       description: > 
