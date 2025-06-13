@@ -53,7 +53,7 @@ paths:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/timeline-counters/{timelineId}:
-    get:
+    put:
       summary: Recupera il contatore di un evento della timeline e lo incrementa
       description: >
         Recupera il contatore associato ad un evento della timeline e lo incrementa.

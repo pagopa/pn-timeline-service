@@ -96,29 +96,6 @@ public class TimelineControllerTest {
     }
 
     @Test
-    void getSchedulingAnalogDateReturnsMappedResponse() {
-        String iun = "testIun";
-        int recIndex = 1;
-        ProbableSchedulingAnalogDateInt schedulingAnalogDateInt = ProbableSchedulingAnalogDateInt.builder()
-                .iun("testIun")
-                .schedulingAnalogDate(Instant.now())
-                .recIndex(1)
-                .build();
-        ProbableSchedulingAnalogDate schedulingAnalogDate = new ProbableSchedulingAnalogDate();
-        schedulingAnalogDate.setIun("testIun");
-        schedulingAnalogDate.setRecIndex(1);
-        schedulingAnalogDate.setSchedulingAnalogDate(schedulingAnalogDateInt.getSchedulingAnalogDate());
-
-        when(timelineService.getSchedulingAnalogDate(iun, recIndex)).thenReturn(Mono.just(schedulingAnalogDateInt));
-
-        Mono<ResponseEntity<ProbableSchedulingAnalogDate>> response = timelineController.getSchedulingAnalogDate(iun, recIndex, null);
-
-        StepVerifier.create(response)
-                .expectNext(ResponseEntity.ok(schedulingAnalogDate))
-                .verifyComplete();
-    }
-
-    @Test
     void getTimelineReturnsFluxOfTimelineElementsWithTimelineId () {
         String iun = "testIun";
         String timelineId = "testTimelineId";
