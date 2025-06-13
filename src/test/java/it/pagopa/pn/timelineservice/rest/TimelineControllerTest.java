@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
-import it.pagopa.pn.timelineservice.dto.notification.ProbableSchedulingAnalogDateInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;

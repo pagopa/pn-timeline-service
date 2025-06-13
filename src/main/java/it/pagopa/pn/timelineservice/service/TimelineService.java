@@ -2,7 +2,6 @@ package it.pagopa.pn.timelineservice.service;
 
 import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
-import it.pagopa.pn.timelineservice.dto.notification.ProbableSchedulingAnalogDateInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
