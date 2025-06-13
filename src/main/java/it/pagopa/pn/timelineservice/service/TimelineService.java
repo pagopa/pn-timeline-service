@@ -26,8 +26,6 @@ public interface TimelineService {
 
     Mono<TimelineElementInternal> getTimelineElementForSpecificRecipient(String iun, int recIndex, TimelineElementCategoryInt category);
 
-    Mono<ProbableSchedulingAnalogDateInt> getSchedulingAnalogDate(String iun, int recIndex);
-
     Mono<NotificationHistoryInt> getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt);
 
 }

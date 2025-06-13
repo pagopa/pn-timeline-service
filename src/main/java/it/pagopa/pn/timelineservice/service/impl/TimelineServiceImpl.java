@@ -361,26 +361,6 @@ public class TimelineServiceImpl implements TimelineService {
 
     }
 
-    @Override
-    public Mono<ProbableSchedulingAnalogDateInt> getSchedulingAnalogDate(String iun, int recIndex) {
-        return getTimelineElementDetailForSpecificRecipient(
-                iun,
-                recIndex,
-                false,
-                PROBABLE_SCHEDULING_ANALOG_DATE
-        )
-                .map(timelineElementDetailsInt -> (ProbableDateAnalogWorkflowDetailsInt) timelineElementDetailsInt)
-                .map(details -> ProbableSchedulingAnalogDateInt.builder()
-                        .iun(iun)
-                        .recIndex(details.getRecIndex())
-                        .schedulingAnalogDate(details.getSchedulingAnalogDate())
-                        .build())
-                .switchIfEmpty(Mono.error(() -> {
-                    String message = String.format("ProbableSchedulingDateAnalog not found for iun: %s, recIndex: %s", iun, recIndex);
-                    return new PnNotFoundException("Not found", message, ERROR_CODE_TIMELINESERVICE_STATUSNOTFOUND);
-                }));
-    }
-
     private TimelineElementInternal enrichWithStatusInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline,
                                                          StatusService.NotificationStatusUpdate notificationStatuses, Instant notificationSentAt) {
 

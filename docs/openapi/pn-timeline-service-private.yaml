@@ -319,45 +319,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-  /timeline-service-private/scheduling-analog-date/{iun}:
-    get:
-      summary: Recupera la data di scheduling analogica per un destinatario specifico.
-      description: > 
-        Recupera l'elemento di timeline che riporta la data di scheduling della consegna analogica 
-        per un destinatario specifico.
-      tags:
-        - timeline-controller
-      operationId: getSchedulingAnalogDate
-      parameters:
-        - name: iun
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: recIndex
-          in: query
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ProbableSchedulingAnalogDate'
-        '400':
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: 'remote-refs.yaml#/components/schemas/Problem'
-        '500':
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/history/{iun}:
     get:
       summary: Storico eventi notifica
@@ -424,17 +385,6 @@ components:
           format: date-time
         numberOfRecipients:
           type: integer
-    ProbableSchedulingAnalogDate:
-      type: object
-      properties:
-        iun:
-          type: string
-        recIndex:
-          type: integer
-          format: int32
-        schedulingAnalogDate:
-          type: string
-          format: date-time
     NotificationHistoryResponse:
       type: object
       properties:
