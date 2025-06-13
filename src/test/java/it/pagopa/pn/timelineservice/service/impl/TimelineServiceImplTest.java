@@ -10,13 +10,11 @@ import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
-import it.pagopa.pn.timelineservice.dto.notification.ProbableSchedulingAnalogDateInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
-import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatus;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -32,7 +30,6 @@ import net.javacrumbs.shedlock.core.SimpleLock;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
@@ -43,8 +40,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -968,58 +963,6 @@ class TimelineServiceImplTest {
         Mockito.verify(timelineDao).getTimelineStrongly(iun);
         Mockito.verifyNoMoreInteractions(timelineDao);
     }
-
-    @Test
-        void getSchedulingAnalogDateOKTest() {
-            // GIVEN
-            final String iun = "iun1";
-            final int recIndex = 1;
-            final Instant expectedDate = Instant.now();
-
-            ProbableDateAnalogWorkflowDetailsInt details = ProbableDateAnalogWorkflowDetailsInt.builder()
-                    .recIndex(recIndex)
-                    .schedulingAnalogDate(expectedDate)
-                    .build();
-
-            TimelineElementInternal timelineElementExpected = TimelineElementInternal.builder()
-                    .iun(iun)
-                    .details(details)
-                    .category(TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE) // Imposta la categoria
-                    .build();
-
-            Mockito.when(timelineDao.getTimeline(iun))
-                    .thenReturn(Flux.just(timelineElementExpected));
-
-            // WHEN
-            Mono<ProbableSchedulingAnalogDateInt> resultMono = timeLineService.getSchedulingAnalogDate(iun, recIndex);
-
-            // THEN
-            StepVerifier.create(resultMono)
-                    .assertNext(schedulingAnalogDateActual -> {
-                        assertThat(schedulingAnalogDateActual.getSchedulingAnalogDate())
-                                .isEqualTo(expectedDate);
-                        assertThat(schedulingAnalogDateActual.getRecIndex())
-                                .isEqualTo(recIndex);
-                        assertThat(schedulingAnalogDateActual.getIun())
-                                .isEqualTo(iun);
-                    })
-                    .verifyComplete();
-        }
-
-    @Test
-    void getSchedulingAnalogDateNotFoundTest() {
-        // GIVEN
-        final String iun = "iun1";
-        final int recIndex = 0;
-
-        Mockito.when(timelineDao.getTimeline(iun))
-                .thenReturn(Flux.empty());
-
-        // WHEN & THEN
-        Executable executable = () -> timeLineService.getSchedulingAnalogDate(iun, recIndex).block();
-        Assertions.assertThrows(PnNotFoundException.class, executable);
-    }
-
     @Test
     void retrieveAndIncrementCounterForTimelineEventTest() {
         final String timelineid = "iun1";

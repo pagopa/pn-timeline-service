@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
-import it.pagopa.pn.timelineservice.dto.notification.ProbableSchedulingAnalogDateInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
@@ -92,29 +91,6 @@ public class TimelineControllerTest {
         Mono<ResponseEntity<Void>> response = timelineController.addTimelineElement(Mono.just(request), null);
 
         StepVerifier.create(response)
-                .verifyComplete();
-    }
-
-    @Test
-    void getSchedulingAnalogDateReturnsMappedResponse() {
-        String iun = "testIun";
-        int recIndex = 1;
-        ProbableSchedulingAnalogDateInt schedulingAnalogDateInt = ProbableSchedulingAnalogDateInt.builder()
-                .iun("testIun")
-                .schedulingAnalogDate(Instant.now())
-                .recIndex(1)
-                .build();
-        ProbableSchedulingAnalogDate schedulingAnalogDate = new ProbableSchedulingAnalogDate();
-        schedulingAnalogDate.setIun("testIun");
-        schedulingAnalogDate.setRecIndex(1);
-        schedulingAnalogDate.setSchedulingAnalogDate(schedulingAnalogDateInt.getSchedulingAnalogDate());
-
-        when(timelineService.getSchedulingAnalogDate(iun, recIndex)).thenReturn(Mono.just(schedulingAnalogDateInt));
-
-        Mono<ResponseEntity<ProbableSchedulingAnalogDate>> response = timelineController.getSchedulingAnalogDate(iun, recIndex, null);
-
-        StepVerifier.create(response)
-                .expectNext(ResponseEntity.ok(schedulingAnalogDate))
                 .verifyComplete();
     }
 

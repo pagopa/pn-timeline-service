@@ -33,13 +33,6 @@ public class TimelineController implements TimelineControllerApi {
                 .map(ResponseEntity::ok);
     }
 
-    @Override
-    public Mono<ResponseEntity<ProbableSchedulingAnalogDate>> getSchedulingAnalogDate(String iun, Integer recIndex, final ServerWebExchange exchange) {
-        return timelineService.getSchedulingAnalogDate(iun, recIndex)
-                .map(probableSchedulingAnalogDateInt -> SmartMapper.mapToClass(probableSchedulingAnalogDateInt, ProbableSchedulingAnalogDate.class))
-                .map(ResponseEntity::ok);
-    }
-
    @Override
     public Mono<ResponseEntity<Flux<TimelineElement>>> getTimeline(String iun, Boolean confidentialInfoRequired, Boolean strongly, String timelineId, final ServerWebExchange exchange) {
         return Mono.fromSupplier(() -> ResponseEntity.ok(timelineService.getTimeline(iun, timelineId, confidentialInfoRequired, strongly)
