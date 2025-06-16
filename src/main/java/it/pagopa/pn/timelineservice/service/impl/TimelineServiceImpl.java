@@ -17,6 +17,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
@@ -88,13 +89,17 @@ public class TimelineServiceImpl implements TimelineService {
                         new LockConfiguration(Instant.now(), notification.getIun(), pnTimelineServiceConfigs.getTimelineLockDuration(), Duration.ZERO)))
                 .flatMap(optSimpleLock -> {
                     if (optSimpleLock.isEmpty()) {
-                        logEvent.generateFailure("Lock not acquired for iun={} and timelineId={}", notification.getIun(), dto.getElementId()).log();
-                        return Mono.error(new PnInternalException("Lock not acquired for iun " + notification.getIun(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED));
+                        String lockNotAcquiredMessage = "Lock not acquired for iun=" + notification.getIun() + " and timelineId=" + dto.getElementId();
+                        logEvent.generateFailure(lockNotAcquiredMessage).log();
+                        return Mono.error(new PnLockReserved(ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, lockNotAcquiredMessage));
                     }
                     SimpleLock simpleLock = optSimpleLock.get();
                     return processTimelinePersistence(dto, notification, logEvent)
+                            .doOnError(throwable -> logEvent.generateFailure("IdConflictException in addCriticalTimelineElement", throwable).log())
                             .onErrorMap(ex -> {
-                                logEvent.generateFailure("Exception in addCriticalTimelineElement", ex).log();
+                                if( ex instanceof PnIdConflictException) {
+                                    return ex;
+                                }
                                 return new PnInternalException("Exception in addCriticalTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                             })
                             .doFinally(signalType -> simpleLock.unlock());
@@ -122,9 +127,7 @@ public class TimelineServiceImpl implements TimelineService {
                             .thenReturn(enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt()))
                             .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
                             .flatMap(this::persistTimelineElement)
-                            .doOnSuccess(item -> {
-                                logAndCleanMdc(dto, logEvent, false);
-                            })
+                            .doOnSuccess(item -> logAndCleanMdc(dto, logEvent, false))
                             .doOnError(PnIdConflictException.class, ex -> {
                                 logAndCleanMdc(dto, logEvent, true);
                                 log.warn("Exception idconflict is expected for retry, letting flow continue");
@@ -349,11 +352,8 @@ public class TimelineServiceImpl implements TimelineService {
         if (timelineElementInternal.getCategory() == null) {
             return true;
         }
-        String internalCategory = timelineElementInternal.getCategory().name();
-        return Arrays.stream(TimelineElementCategoryInt.values())
-                .map(Enum::name)
-                .anyMatch(category -> category.equalsIgnoreCase(internalCategory));
 
+        return !timelineElementInternal.getCategory().isDiagnostic();
     }
 
     private TimelineElementInternal enrichWithStatusInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline,
