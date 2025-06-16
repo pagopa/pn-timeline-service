@@ -1,6 +1,5 @@
 package it.pagopa.pn.timelineservice.service.mapper;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -60,7 +58,10 @@ public class SmartMapper {
 
     static{
         modelMapper = new ModelMapper();
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+        modelMapper.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.STRICT)
+                .setFieldMatchingEnabled(true)
+                .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE);
         modelMapper.createTypeMap(TimelineElementInternal.class, TimelineElementInternal.class).setPostConverter(timelineElementInternalTimestampConverter);
     }
 
