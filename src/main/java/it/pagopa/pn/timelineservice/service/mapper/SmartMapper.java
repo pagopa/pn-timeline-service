@@ -59,7 +59,7 @@ public class SmartMapper {
     static{
         modelMapper = new ModelMapper();
         modelMapper.getConfiguration()
-                .setMatchingStrategy(MatchingStrategies.STANDARD)
+                .setMatchingStrategy(MatchingStrategies.STRICT)
                 .setFieldMatchingEnabled(true)
                 .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE);
         modelMapper.createTypeMap(TimelineElementInternal.class, TimelineElementInternal.class).setPostConverter(timelineElementInternalTimestampConverter);
