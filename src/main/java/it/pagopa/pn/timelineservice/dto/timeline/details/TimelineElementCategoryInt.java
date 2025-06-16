@@ -84,7 +84,7 @@ public enum TimelineElementCategoryInt {
         this(detailsJavaClass, PRIORITY_BEFORE, version, false);
     }
 
-    TimelineElementCategoryInt(Class<? extends TimelineElementDetailsInt> detailsJavaClass, int version, int priority) {
+    TimelineElementCategoryInt(Class<? extends TimelineElementDetailsInt> detailsJavaClass, int priority, int version) {
         this(detailsJavaClass, priority, version, false);
     }
 
