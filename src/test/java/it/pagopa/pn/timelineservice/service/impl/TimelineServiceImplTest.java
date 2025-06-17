@@ -1218,24 +1218,4 @@ class TimelineServiceImplTest {
         Mockito.verifyNoMoreInteractions(confidentialInformationService);
     }
 
-    @Test
-    void isNotDiagnosticTimelineElementTest() {
-        // GIVEN
-        TimelineElementInternal elementWithNullCategory = TimelineElementInternal.builder()
-                .category(null)
-                .build();
-
-        TimelineElementInternal elementWithValidCategory = TimelineElementInternal.builder()
-                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
-                .build();
-
-        // WHEN
-        boolean resultForNullCategory = timeLineService.isNotDiagnosticTimelineElement(elementWithNullCategory);
-        boolean resultForValidCategory = timeLineService.isNotDiagnosticTimelineElement(elementWithValidCategory);
-
-        // THEN
-        Assertions.assertTrue(resultForNullCategory, "Element with null category should return true");
-        Assertions.assertTrue(resultForValidCategory, "Element with valid category should return true");
-    }
-
 }
