@@ -299,10 +299,15 @@ public class TimelineServiceImpl implements TimelineService {
 
         return getTimeline(iun, null, true, false)
                 .collect(Collectors.toList())
-                .doOnNext(notificationHistoryInt::setTimeline)
-                .map(timelineElements -> getAndSetStatusHistory(timelineElements, numberOfRecipients, createdAt, notificationHistoryInt))
+                .flatMap(timelineElements -> {
+                    if (timelineElements.isEmpty()) {
+                        return Mono.empty();
+                    }
+                    notificationHistoryInt.setTimeline(timelineElements);
+                    return Mono.just(getAndSetStatusHistory(timelineElements, numberOfRecipients, createdAt, notificationHistoryInt));
+                })
                 .map(this::getAndSetCurrentStatus)
-                .map(notificationStatusInt -> remapTimelineElements(notificationHistoryInt));
+                .map(this::remapTimelineElements);
     }
 
     private NotificationHistoryInt getAndSetCurrentStatus(NotificationHistoryInt notificationHistoryInt) {
