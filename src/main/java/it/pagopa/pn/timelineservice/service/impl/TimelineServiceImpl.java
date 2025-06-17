@@ -323,7 +323,6 @@ public class TimelineServiceImpl implements TimelineService {
         notificationHistoryInt.setTimeline(notificationHistoryInt.getTimeline().stream()
                 .map(t -> smartMapper.mapTimelineInternal(t, new HashSet<>(notificationHistoryInt.getTimeline())))
                 .sorted(Comparator.naturalOrder())
-                .filter(this::isNotDiagnosticTimelineElement)
                 .toList());
 
         return notificationHistoryInt;
@@ -346,14 +345,6 @@ public class TimelineServiceImpl implements TimelineService {
                     .findFirst()
                     .ifPresent(el -> el.setActiveFrom(inValidationStatusActiveFrom));
         }
-    }
-
-    public boolean isNotDiagnosticTimelineElement(TimelineElementInternal timelineElementInternal) {
-        if (timelineElementInternal.getCategory() == null) {
-            return true;
-        }
-
-        return !timelineElementInternal.getCategory().isDiagnostic();
     }
 
     private TimelineElementInternal enrichWithStatusInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline,

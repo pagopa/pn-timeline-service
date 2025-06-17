@@ -5,13 +5,13 @@ import lombok.Getter;
 @Getter
 public enum TimelineElementCategoryInt {
     SENDER_ACK_CREATION_REQUEST(SenderAckCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
-    VALIDATE_F24_REQUEST(ValidateF24Int.class, TimelineElementCategoryInt.VERSION_20, TimelineElementCategoryInt.DIAGNOSTIC_ELEMENT),
+    VALIDATE_F24_REQUEST(ValidateF24Int.class, TimelineElementCategoryInt.VERSION_20),
     VALIDATE_NORMALIZE_ADDRESSES_REQUEST(ValidateNormalizeAddressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
-    VALIDATED_F24(ValidatedF24DetailInt.class, TimelineElementCategoryInt.VERSION_20, TimelineElementCategoryInt.DIAGNOSTIC_ELEMENT),
+    VALIDATED_F24(ValidatedF24DetailInt.class, TimelineElementCategoryInt.VERSION_20),
     NORMALIZED_ADDRESS(NormalizedAddressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     REQUEST_ACCEPTED(NotificationRequestAcceptedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
-    GENERATE_F24_REQUEST(ValidateF24Int.class, TimelineElementCategoryInt.VERSION_23, TimelineElementCategoryInt.DIAGNOSTIC_ELEMENT),
-    GENERATED_F24(GeneratedF24DetailsInt.class, TimelineElementCategoryInt.VERSION_23, TimelineElementCategoryInt.DIAGNOSTIC_ELEMENT),
+    GENERATE_F24_REQUEST(ValidateF24Int.class, TimelineElementCategoryInt.VERSION_23),
+    GENERATED_F24(GeneratedF24DetailsInt.class, TimelineElementCategoryInt.VERSION_23),
     SEND_COURTESY_MESSAGE(SendCourtesyMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     GET_ADDRESS(GetAddressInfoDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     PUBLIC_REGISTRY_CALL(PublicRegistryCallDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
@@ -50,7 +50,7 @@ public enum TimelineElementCategoryInt {
     NOTIFICATION_CANCELLATION_REQUEST(NotificationCancellationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_20),
     NOTIFICATION_CANCELLED(NotificationCancelledDetailsInt.class, TimelineElementCategoryInt.VERSION_20),
     NOTIFICATION_RADD_RETRIEVED(NotificationRADDRetrievedDetailsInt.class, TimelineElementCategoryInt.VERSION_23),
-    NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST(NotificationCancelledDocumentCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_25, TimelineElementCategoryInt.DIAGNOSTIC_ELEMENT),
+    NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST(NotificationCancelledDocumentCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_25),
     ANALOG_WORKFLOW_RECIPIENT_DECEASED(AnalogWorfklowRecipientDeceasedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_WORKFLOW_RECIPIENT_DECEASED, TimelineElementCategoryInt.VERSION_26),
     PUBLIC_REGISTRY_VALIDATION_CALL(PublicRegistryValidationCallDetailsInt.class, TimelineElementCategoryInt.VERSION_27),
     PUBLIC_REGISTRY_VALIDATION_RESPONSE(PublicRegistryValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_27);
@@ -58,7 +58,6 @@ public enum TimelineElementCategoryInt {
     private final Class<? extends TimelineElementDetailsInt> detailsJavaClass;
     private final int priority;
     private final int version;
-    private final boolean isDiagnostic;
 
     public static final int PRIORITY_SEND_ANALOG_FEEDBACK = 30;
     public static final int PRIORITY_ANALOG_SUCCESS_WORKFLOW = 40;
@@ -78,25 +77,15 @@ public enum TimelineElementCategoryInt {
     public static final int VERSION_26 = 26;
     public static final int VERSION_27 = 27;
 
-    public static final boolean DIAGNOSTIC_ELEMENT = true;
-
     TimelineElementCategoryInt(Class<? extends TimelineElementDetailsInt> detailsJavaClass, int version) {
-        this(detailsJavaClass, PRIORITY_BEFORE, version, false);
+        this(detailsJavaClass, PRIORITY_BEFORE, version);
     }
+
 
     TimelineElementCategoryInt(Class<? extends TimelineElementDetailsInt> detailsJavaClass, int priority, int version) {
-        this(detailsJavaClass, priority, version, false);
-    }
-
-    TimelineElementCategoryInt(Class<? extends TimelineElementDetailsInt> detailsJavaClass, int version, boolean isDiagnostic) {
-        this(detailsJavaClass, PRIORITY_BEFORE, version, isDiagnostic);
-    }
-
-    TimelineElementCategoryInt(Class<? extends TimelineElementDetailsInt> detailsJavaClass, int priority, int version, boolean isDiagnostic) {
         this.detailsJavaClass = detailsJavaClass;
         this.priority = priority;
         this.version = version;
-        this.isDiagnostic = isDiagnostic;
     }
 
 }
