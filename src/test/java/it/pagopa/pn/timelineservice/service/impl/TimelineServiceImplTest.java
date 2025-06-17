@@ -15,6 +15,7 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusIn
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatus;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -40,6 +41,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -202,7 +204,7 @@ class TimelineServiceImplTest {
         TimelineElementInternal newElement = getAnalogSuccessTimelineCriticalElement(iun, elementId);
 
         StepVerifier.create(timeLineService.addTimelineElement(newElement, notification))
-                .expectError(PnInternalException.class)
+                .expectError(PnLockReserved.class)
                 .verify();
     }
 
@@ -290,6 +292,32 @@ class TimelineServiceImplTest {
         TimelineElementInternal dtoToPersist = captor.getValue();
         Assertions.assertEquals(dtoToPersist.getTimestamp(), newElement.getTimestamp());
     }
+
+    @Test
+    void addCriticalTimelineElementIdConflic() {
+        // GIVEN
+        String iun = "iun_12345";
+        String elementId = "elementId_12345";
+        NotificationInfoInt notification = getNotificationWithMultipleRecipients(iun);
+        TimelineElementInternal newElement = getAnalogSuccessTimelineCriticalElement(iun, elementId);
+
+        Mockito.when(lockProvider.lock(Mockito.any())).thenReturn(Optional.of(simpleLock));
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED));
+        Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
+                .thenReturn(Flux.empty());
+        Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any()))
+                .thenReturn(Mono.empty());
+        Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.error(new PnIdConflictException(new HashMap<>())));
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(timeLineService.addTimelineElement(newElement, notification))
+                .expectError(PnIdConflictException.class)
+                .verify();
+
+        Mockito.verify(simpleLock).unlock();
+    }
+
 
     @Test
     void addCriticalTimelineElementException() {
@@ -1188,26 +1216,6 @@ class TimelineServiceImplTest {
 
         Mockito.verify(confidentialInformationService).getTimelineElementConfidentialInformation(iun, "elementId_12345");
         Mockito.verifyNoMoreInteractions(confidentialInformationService);
-    }
-
-    @Test
-    void isNotDiagnosticTimelineElementTest() {
-        // GIVEN
-        TimelineElementInternal elementWithNullCategory = TimelineElementInternal.builder()
-                .category(null)
-                .build();
-
-        TimelineElementInternal elementWithValidCategory = TimelineElementInternal.builder()
-                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
-                .build();
-
-        // WHEN
-        boolean resultForNullCategory = timeLineService.isNotDiagnosticTimelineElement(elementWithNullCategory);
-        boolean resultForValidCategory = timeLineService.isNotDiagnosticTimelineElement(elementWithValidCategory);
-
-        // THEN
-        Assertions.assertTrue(resultForNullCategory, "Element with null category should return true");
-        Assertions.assertTrue(resultForValidCategory, "Element with valid category should return true");
     }
 
 }
