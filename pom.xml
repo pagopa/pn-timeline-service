@@ -188,6 +188,7 @@
                                 <useJakartaEe>true</useJakartaEe>
                                 <swaggerAnnotations>false</swaggerAnnotations>
                                 <useOneOfInterfaces>true</useOneOfInterfaces>
+                                <containerDefaultToNull>true</containerDefaultToNull>
                                 <basePackage>${project.groupId}.timelineservice.generated.openapi.server.v1</basePackage>
                                 <modelPackage>${project.groupId}.timelineservice.generated.openapi.server.v1.dto</modelPackage>
                                 <apiPackage>${project.groupId}.timelineservice.generated.openapi.server.v1.api</apiPackage>
