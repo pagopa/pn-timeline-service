@@ -1700,6 +1700,7 @@ components:
                 Può assumere i seguenti valori:
                   - ANPR
                   - REGISTRO_IMPRESE
+              maxLength: 128
 
     RecipientType:
       type: string
