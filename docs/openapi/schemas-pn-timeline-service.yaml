@@ -164,7 +164,6 @@ components:
         - "$ref": "#/components/schemas/NotificationCancellationRequestDetails"
         - "$ref": "#/components/schemas/NotificationCancelledDetails"
         - "$ref": "#/components/schemas/PrepareAnalogDomicileFailureDetails"
-        - "$ref": "#/components/schemas/AnalogWorkflowRecipientDeceasedDetails"
         - "$ref": "#/components/schemas/PublicRegistryValidationCallDetails"
         - "$ref": "#/components/schemas/PublicRegistryValidationResponseDetails"
         - "$ref": "#/components/schemas/ValidatedF24Details"
@@ -1644,6 +1643,7 @@ components:
       required:
         - recIndex
         - physicalAddress
+        - categoryType
       properties:
         categoryType:
           type: string
@@ -1669,6 +1669,7 @@ components:
         - recIndexes
         - deliveryMode
         - sendDate
+        - categoryType
       properties:
         categoryType:
           type: string
@@ -1690,6 +1691,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/PublicRegistryResponseDetails'
         - type: object
+          required:
+            - categoryType
           properties:
             categoryType:
               type: string
