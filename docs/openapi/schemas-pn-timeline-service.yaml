@@ -1692,7 +1692,7 @@ components:
         - $ref: '#/components/schemas/PublicRegistryResponseDetails'
         - type: object
           required:
-            -categoryType
+            - categoryType
           properties:
             categoryType:
               type: string
