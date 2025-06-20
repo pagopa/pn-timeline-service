@@ -30,7 +30,6 @@ public class SmartMapper {
     private static ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
     private final FeatureEnabledUtils featureEnabledUtils;
-    private static BiFunction postMappingTransformer;
 
     public static <S,T> T mapToClass(S source, Class<T> destinationClass ){
         T result;
@@ -58,10 +57,7 @@ public class SmartMapper {
 
     static{
         modelMapper = new ModelMapper();
-        modelMapper.getConfiguration()
-                .setMatchingStrategy(MatchingStrategies.STRICT)
-                .setFieldMatchingEnabled(true)
-                .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE);
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         modelMapper.createTypeMap(TimelineElementInternal.class, TimelineElementInternal.class).setPostConverter(timelineElementInternalTimestampConverter);
     }
 
