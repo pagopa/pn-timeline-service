@@ -95,11 +95,12 @@ public class TimelineServiceImpl implements TimelineService {
                     }
                     SimpleLock simpleLock = optSimpleLock.get();
                     return processTimelinePersistence(dto, notification, logEvent)
-                            .doOnError(throwable -> logEvent.generateFailure("IdConflictException in addCriticalTimelineElement", throwable).log())
                             .onErrorMap(ex -> {
                                 if( ex instanceof PnIdConflictException) {
                                     return ex;
                                 }
+
+                                logEvent.generateFailure("Exception in addCriticalTimelineElement", ex).log();
                                 return new PnInternalException("Exception in addCriticalTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                             })
                             .doFinally(signalType -> simpleLock.unlock());
@@ -108,11 +109,12 @@ public class TimelineServiceImpl implements TimelineService {
 
     private Mono<Void> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return processTimelinePersistence(dto, notification, logEvent)
-                .doOnError(throwable -> logEvent.generateFailure("IdConflictException in addTimelineElement", throwable).log())
                 .onErrorMap(ex -> {
-                    if( ex instanceof PnIdConflictException) {
+                    if(ex instanceof PnIdConflictException) {
                         return ex;
                     }
+
+                    logEvent.generateFailure("Exception in addTimelineElement", ex).log();
                     return new PnInternalException("Exception in addTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                 });
     }
@@ -123,8 +125,9 @@ public class TimelineServiceImpl implements TimelineService {
                 .flatMap(list -> {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
                     StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
+                    TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
                     return confidentialInformationService.saveTimelineConfidentialInformation(dto)
-                            .thenReturn(enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt()))
+                            .thenReturn(enrichedDto)
                             .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
                             .flatMap(this::persistTimelineElement)
                             .doOnSuccess(item -> logAndCleanMdc(dto, logEvent, false))
