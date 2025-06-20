@@ -75,6 +75,7 @@ public class CheckInternalExternalDetailsTest {
         testClassPair(AnalogWorfklowRecipientDeceasedDetailsInt.class, AnalogWorkflowRecipientDeceasedDetails.class);
         testClassPair(PublicRegistryValidationCallDetailsInt.class, PublicRegistryValidationCallDetails.class);
         testClassPair(PublicRegistryValidationResponseDetailsInt.class, PublicRegistryValidationResponseDetails.class);
+        testClassPair(SendAnalogTimeoutCreationRequestDetailsInt.class, SendAnalogTimeoutCreationRequestDetails.class);
 
         Assertions.assertEquals(counter, internalImplementations.size());
         Assertions.assertEquals(0, testErrors.size(), "There are errors in the comparison of internal and generated classes: \n" +
