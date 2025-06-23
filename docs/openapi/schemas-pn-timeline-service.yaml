@@ -342,7 +342,6 @@ components:
       type: object
       required:
         - recIndex
-        - digitalAddress
         - categoryType
       properties:
         categoryType:
