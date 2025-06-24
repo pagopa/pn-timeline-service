@@ -893,7 +893,6 @@ components:
       type: object
       required:
         - recIndex
-        - physicalAddress
         - serviceLevel
         - sentAttemptMade
         - categoryType
