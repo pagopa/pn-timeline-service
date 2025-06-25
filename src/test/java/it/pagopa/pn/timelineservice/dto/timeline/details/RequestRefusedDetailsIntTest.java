@@ -32,7 +32,7 @@ class RequestRefusedDetailsIntTest {
     @Test
     void toLog() {
         String log = request.toLog();
-        Assertions.assertEquals("errors=[NotificationRefusedErrorInt(errorCode=FILE_NOTFOUND, detail=details)], notificationRequestId=null, paProtocolNumber=null, idempotenceToken=null", log);
+        Assertions.assertEquals("errors=[NotificationRefusedErrorInt(errorCode=FILE_NOTFOUND, detail=details, recIndex=null)], notificationRequestId=null, paProtocolNumber=null, idempotenceToken=null", log);
     }
 
     @Test
