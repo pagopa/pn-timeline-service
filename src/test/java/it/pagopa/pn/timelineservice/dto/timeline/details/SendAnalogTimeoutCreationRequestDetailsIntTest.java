@@ -8,21 +8,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SendAnalogTimeoutCreationRequestDetailsIntTest {
-    Instant notificationdate = Instant.now();
+    Instant timeoutDate = Instant.now();
 
     @Test
     void testGettersAndSetters() {
         SendAnalogTimeoutCreationRequestDetailsInt details = new SendAnalogTimeoutCreationRequestDetailsInt();
-        details.setNotificationDate(notificationdate);
-        assertEquals(notificationdate, details.getNotificationDate());
+        details.setTimeoutDate(timeoutDate);
+        assertEquals(timeoutDate, details.getTimeoutDate());
     }
 
     @Test
     void testAllArgsConstructor() {
         SendAnalogTimeoutCreationRequestDetailsInt details = SendAnalogTimeoutCreationRequestDetailsInt.builder()
-                .notificationDate(notificationdate)
+                .timeoutDate(timeoutDate)
                 .build();
-        assertEquals(notificationdate, details.getNotificationDate());
+        assertEquals(timeoutDate, details.getTimeoutDate());
     }
 
     @Test
@@ -31,20 +31,20 @@ public class SendAnalogTimeoutCreationRequestDetailsIntTest {
                 .recIndex(1)
                 .sentAttemptMade(2)
                 .relatedRequestId("req123")
-                .notificationDate(notificationdate)
+                .timeoutDate(timeoutDate)
                 .build();
         String log = details.toLog();
         assertTrue(log.contains("recIndex=1"));
         assertTrue(log.contains("sentAttemptMade=2"));
         assertTrue(log.contains("relatedRequestId=req123"));
-        assertTrue(log.contains("notificationDate=" + notificationdate.toString()));
+        assertTrue(log.contains("timeoutDate=" + timeoutDate.toString()));
     }
 
     @Test
     void testGetElementTimestamp() {
         SendAnalogTimeoutCreationRequestDetailsInt details = new SendAnalogTimeoutCreationRequestDetailsInt();
-        details.setNotificationDate(notificationdate);
-        assertEquals(notificationdate, details.getElementTimestamp());
+        details.setTimeoutDate(timeoutDate);
+        assertEquals(timeoutDate, details.getElementTimestamp());
     }
 
 }
