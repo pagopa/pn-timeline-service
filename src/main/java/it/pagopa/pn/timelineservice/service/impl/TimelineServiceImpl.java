@@ -25,6 +25,7 @@ import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.StatusService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
+import it.pagopa.pn.timelineservice.utils.CompletedDeliveryWorkflowCategory;
 import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,6 @@ import java.util.stream.Collectors;
 
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
-import static it.pagopa.pn.timelineservice.utils.StatusUtils.COMPLETED_DELIVERY_WORKFLOW_CATEGORY;
 
 
 @Service
@@ -68,7 +68,7 @@ public class TimelineServiceImpl implements TimelineService {
         logEvent.log();
 
         boolean isMultiRecipient = notification.getNumberOfRecipients() > 1;
-        boolean isCriticalTimelineElement = COMPLETED_DELIVERY_WORKFLOW_CATEGORY.contains(dto.getCategory());
+        boolean isCriticalTimelineElement = CompletedDeliveryWorkflowCategory.isCompletedWorkflowCategory(dto.getCategory());
 
         return Mono.just(isMultiRecipient && isCriticalTimelineElement)
                 .flatMap(aBoolean -> {
@@ -138,7 +138,7 @@ public class TimelineServiceImpl implements TimelineService {
                 });
     }
 
-    private static void logAndCleanMdc(TimelineElementInternal dto, PnAuditLogEvent logEvent, Boolean timelineInsertSkipped) {
+    private static void logAndCleanMdc(TimelineElementInternal dto, PnAuditLogEvent logEvent, boolean timelineInsertSkipped) {
         String alreadyInsertMsg = "Timeline event was already inserted before - timelineId=" + dto.getElementId();
         String successMsg = String.format("Timeline event inserted with: CATEGORY=%s IUN=%s {DETAILS: %s} TIMELINEID=%s paId=%s TIMESTAMP=%s",
                 dto.getCategory(),

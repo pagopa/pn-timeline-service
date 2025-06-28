@@ -40,7 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class TimelineControllerTest {
+class TimelineControllerTest {
 
     private static TimelineService timelineService;
 
@@ -62,21 +62,22 @@ public class TimelineControllerTest {
     @Test
     void addTimelineElementReturnsOkWhenRequestIsValid() throws JsonProcessingException {
         NewTimelineElement request = new NewTimelineElement();
-        String timelineElement = "{\n" +
-                " \"iun\": \"LNWV-GRMV-KPWV-202503-W-1\",\n" +
-                " \"elementId\": \"AAR_CREATION_REQUEST.IUN_LNWV-GRMV-KPWV-202503-W-1.RECINDEX_0\",\n" +
-                " \"category\": \"AAR_CREATION_REQUEST\",\n" +
-                " \"details\": {\n" +
-                "  \"aarKey\": \"safestorage://PN_AAR-e12466f63b8e49a49150383ad3d2a009.pdf\",\n" +
-                "  \"aarTemplateType\": \"AAR_NOTIFICATION\",\n" +
-                " \"categoryType\": \"AAR_CREATION_REQUEST\",\n" +
-                "  \"numberOfPages\": 2,\n" +
-                "  \"recIndex\": 0\n" +
-                " },\n" +
-                " \"legalFactsIds\": [\n" +
-                " ],\n" +
-                " \"notificationSentAt\": \"2025-03-03T17:27:04.443460926Z\",\n" +
-                " \"paId\": \"5b994d4a-0fa8-47ac-9c7b-354f1d44a1ce\" }";
+        String timelineElement = """
+                {
+                 "iun": "LNWV-GRMV-KPWV-202503-W-1",
+                 "elementId": "AAR_CREATION_REQUEST.IUN_LNWV-GRMV-KPWV-202503-W-1.RECINDEX_0",
+                 "category": "AAR_CREATION_REQUEST",
+                 "details": {
+                  "aarKey": "safestorage://PN_AAR-e12466f63b8e49a49150383ad3d2a009.pdf",
+                  "aarTemplateType": "AAR_NOTIFICATION",
+                 "categoryType": "AAR_CREATION_REQUEST",
+                  "numberOfPages": 2,
+                  "recIndex": 0
+                 },
+                 "legalFactsIds": [
+                 ],
+                 "notificationSentAt": "2025-03-03T17:27:04.443460926Z",
+                 "paId": "5b994d4a-0fa8-47ac-9c7b-354f1d44a1ce" }""";
         request.setTimelineElement(objectMapper.readValue(timelineElement, TimelineElement.class));
 
         NotificationInfo info = new NotificationInfo();
@@ -337,10 +338,10 @@ public class TimelineControllerTest {
                 .assertNext(entity -> {
                     var body = entity.getBody();
                     assertNotNull(entity.getBody());
-                    Assertions.assertEquals(body.getIun(), "testIun");
-                    Assertions.assertEquals(body.getElementId(), "testElementId");
-                    Assertions.assertEquals(body.getCategory(), TimelineCategory.AAR_CREATION_REQUEST);
-                    Assertions.assertEquals( body.getDetails().getCategoryType(), "AAR_CREATION_REQUEST");
+                    Assertions.assertEquals("testIun", body.getIun());
+                    Assertions.assertEquals("testElementId", body.getElementId());
+                    Assertions.assertEquals(TimelineCategory.AAR_CREATION_REQUEST, body.getCategory());
+                    Assertions.assertEquals("AAR_CREATION_REQUEST", body.getDetails().getCategoryType());
                     Assertions.assertEquals(body.getTimestamp(), timelineElementInternal.getTimestamp());
                     Assertions.assertEquals(body.getIngestionTimestamp(), timelineElementInternal.getIngestionTimestamp());
                     Assertions.assertEquals(body.getEventTimestamp(), timelineElementInternal.getEventTimestamp());
@@ -447,10 +448,10 @@ public class TimelineControllerTest {
                 .assertNext(entity -> {
                     var body = entity.getBody();
                     assertNotNull(entity.getBody());
-                    Assertions.assertEquals(body.getIun(), "testIun");
-                    Assertions.assertEquals(body.getElementId(), "testElementId");
-                    Assertions.assertEquals(body.getCategory(), TimelineCategory.AAR_CREATION_REQUEST);
-                    Assertions.assertEquals( body.getDetails().getCategoryType(), "AAR_CREATION_REQUEST");
+                    Assertions.assertEquals("testIun", body.getIun());
+                    Assertions.assertEquals("testElementId", body.getElementId());
+                    Assertions.assertEquals(TimelineCategory.AAR_CREATION_REQUEST, body.getCategory());
+                    Assertions.assertEquals("AAR_CREATION_REQUEST", body.getDetails().getCategoryType());
                     Assertions.assertEquals(body.getTimestamp(), timelineElementInternal.getTimestamp());
                     Assertions.assertEquals(body.getIngestionTimestamp(), timelineElementInternal.getIngestionTimestamp());
                     Assertions.assertEquals(body.getEventTimestamp(), timelineElementInternal.getEventTimestamp());

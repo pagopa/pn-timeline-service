@@ -20,9 +20,8 @@ import java.util.List;
 public class TimelineElementMapper {
 
     public TimelineElementInternal externalToInternal(TimelineElement timelineElement ) {
-        TimelineElementCategoryInt category = timelineElement.getCategory() != null ? TimelineElementCategoryInt.valueOf(timelineElement.getCategory().getValue()) : null;
+        TimelineElementCategoryInt category = TimelineElementCategoryInt.valueOf(timelineElement.getCategory().getValue());
 
-        assert category != null;
         return TimelineElementInternal.builder()
                 .iun(timelineElement.getIun())
                 .elementId( timelineElement.getElementId() )

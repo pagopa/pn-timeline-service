@@ -1,6 +1,5 @@
 package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.mapper;
 
-import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
@@ -217,25 +216,6 @@ class DtoToEntityTimelineMapperTest {
                 .build();
     }
 
-    private TimelineElementInternal getSendPaperFeedbackTimelineElement(String iun, String elementId) {
-        SendAnalogFeedbackDetailsInt details = SendAnalogFeedbackDetailsInt.builder()
-                .newAddress(
-                        PhysicalAddressInt.builder()
-                                .province("province")
-                                .municipality("munic")
-                                .at("at")
-                                .build()
-                )
-                .recIndex(0)
-                .sentAttemptMade(0)
-                .build();
-        return TimelineElementInternal.builder()
-                .elementId(elementId)
-                .iun(iun)
-                .details(details)
-                .build();
-    }
-
     private TimelineElementDetailsInt parseDetailsFromEntity(TimelineElementDetailsEntity entity, TimelineElementCategoryInt category) {
         return SmartMapper.mapToClass(entity, category.getDetailsJavaClass());
     }
@@ -245,16 +225,6 @@ class DtoToEntityTimelineMapperTest {
                 .key("001")
                 .category(LegalFactCategoryInt.ANALOG_DELIVERY)
                 .build();
-    }
-
-    private List<LegalFactsIdEntity> convertLegalFactsToEntity(List<LegalFactsIdInt> dto) {
-        List<LegalFactsIdEntity> legalFactsIds = null;
-
-        if (dto != null) {
-            legalFactsIds = dto.stream().map(this::mapOneLegalFact).toList();
-        }
-
-        return legalFactsIds;
     }
 
     private LegalFactsIdEntity mapOneLegalFact(LegalFactsIdInt legalFactsId) {

@@ -1,13 +1,12 @@
 package it.pagopa.pn.timelineservice.utils;
 
-import it.pagopa.pn.commons.exceptions.PnInternalException;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.AnalogWorfklowRecipientDeceasedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationViewedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
-import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
-import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import org.springframework.stereotype.Component;
@@ -15,8 +14,6 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_NOTIFICATIONSTATUSFAILED;
 
 @Component
 public class StatusUtils {
@@ -76,7 +73,7 @@ public class StatusUtils {
             TimelineElementCategoryInt category = timelineElement.getCategory();
 
 
-            if( COMPLETED_DELIVERY_WORKFLOW_CATEGORY.contains( category ) ) {
+            if( CompletedDeliveryWorkflowCategory.isCompletedWorkflowCategory( category ) ) {
                 //Vengono contati il numero di workflow completate per tutti i recipient, sia in caso di successo che di fallimento
                 numberOfCompletedWorkflow += 1;
             }
@@ -131,23 +128,13 @@ public class StatusUtils {
     private NotificationStatusInt getNextState(NotificationStatusInt currentState, List<TimelineElementCategoryInt> relatedCategoryElements, int numberOfRecipient) {
         boolean multiRecipient = numberOfRecipient > 1;
 
-        TimelineElementCategoryInt category = pickCategoryByPriority(relatedCategoryElements);
+        TimelineElementCategoryInt category = CompletedDeliveryWorkflowCategory.pickCategoryByPriority(relatedCategoryElements);
 
         return stateMap.getStateTransition(TransitionRequest.builder()
                 .fromStatus(currentState)
                 .timelineRowType(category)
                 .multiRecipient(multiRecipient)
                 .build());
-    }
-
-    private static TimelineElementCategoryInt pickCategoryByPriority(List<TimelineElementCategoryInt> relatedCategories) {
-        for (TimelineElementCategoryInt orderedCategory : COMPLETED_DELIVERY_WORKFLOW_CATEGORY) {
-            if (relatedCategories.contains(orderedCategory)) {
-                return orderedCategory;
-            }
-        }
-
-        throw new PnInternalException("No end workflow category found", ERROR_CODE_TIMELINESERVICE_NOTIFICATIONSTATUSFAILED);
     }
 
     private NotificationStatusInt computeStateAfterEvent(
@@ -167,7 +154,7 @@ public class StatusUtils {
         // Se sono nello stato ACCEPTED o DELIVERING e l'elemento di timeline preso in considerazione è uno degli stati di successo o fallimento del workflow ...
         if ( ( currentState.equals(NotificationStatusInt.ACCEPTED) || currentState.equals(NotificationStatusInt.DELIVERING) )
                 &&
-                ( COMPLETED_DELIVERY_WORKFLOW_CATEGORY.contains(timelineElementCategory) )
+                ( CompletedDeliveryWorkflowCategory.isCompletedWorkflowCategory(timelineElementCategory) )
         ) {
             //... e il workflow è stato completato per tutti i recipient della notifica
             if( numberOfCompletedWorkflow == numberOfRecipients ){

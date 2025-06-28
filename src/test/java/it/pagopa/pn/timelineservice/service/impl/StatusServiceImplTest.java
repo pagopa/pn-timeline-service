@@ -7,7 +7,6 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusIn
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationRequestAcceptedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogFeedbackDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.service.StatusService;
 import it.pagopa.pn.timelineservice.utils.StatusUtils;
@@ -17,7 +16,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 class StatusServiceImplTest {
     private StatusUtils statusUtils;

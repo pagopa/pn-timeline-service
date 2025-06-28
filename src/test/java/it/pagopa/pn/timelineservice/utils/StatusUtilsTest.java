@@ -34,7 +34,7 @@ class StatusUtilsTest {
 
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         PnTimelineServiceConfigs pnDeliveryPushConfigs = mock(PnTimelineServiceConfigs.class);
         FeatureEnabledUtils featureEnabledUtils = mock(FeatureEnabledUtils.class);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -93,8 +93,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have same length
         Assertions.assertEquals(5, actualStatusHistory.size(), "Check length");
@@ -194,8 +193,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have same length
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -297,8 +295,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have same length
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -384,8 +381,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 5 elements
         Assertions.assertEquals(3, actualStatusHistory.size(), "Check length");
@@ -520,8 +516,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -676,8 +671,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 5 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -828,8 +822,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -975,8 +968,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 5 elements
         Assertions.assertEquals(5, actualStatusHistory.size(), "Check length");
@@ -1133,8 +1125,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -1265,8 +1256,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 3 elements
         Assertions.assertEquals(3, actualStatusHistory.size(), "Check length");
@@ -1323,7 +1313,7 @@ class StatusUtilsTest {
                 .timestamp((Instant.parse("2021-09-16T15:24:00.00Z")))
                 .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
                 .build();
-        TimelineElementInternal timelineElement3_1 = TimelineElementInternal.builder()
+        TimelineElementInternal timelineElement3b = TimelineElementInternal.builder()
                 .elementId("el2")
                 .timestamp((Instant.parse("2021-09-16T15:25:00.00Z")))
                 .category(TimelineElementCategoryInt.AAR_GENERATION)
@@ -1345,12 +1335,12 @@ class StatusUtilsTest {
                 .timestamp((Instant.parse("2021-09-16T15:28:00.00Z")))
                 .category(TimelineElementCategoryInt.GET_ADDRESS)
                 .build();
-        TimelineElementInternal timelineElement4_1 = TimelineElementInternal.builder()
+        TimelineElementInternal timelineElement4b = TimelineElementInternal.builder()
                 .elementId("el6")
                 .timestamp((Instant.parse("2021-09-16T15:30:00.00Z")))
                 .category(TimelineElementCategoryInt.SEND_DIGITAL_FEEDBACK)
                 .build();
-        TimelineElementInternal timelineElement5_1 = TimelineElementInternal.builder()
+        TimelineElementInternal timelineElement5b = TimelineElementInternal.builder()
                 .elementId("el8")
                 .timestamp((Instant.parse("2021-09-16T15:31:00.00Z")))
                 .category(TimelineElementCategoryInt.DIGITAL_DELIVERY_CREATION_REQUEST)
@@ -1363,8 +1353,8 @@ class StatusUtilsTest {
                 .build();
 
         Set<TimelineElementInternal> timelineElementList = Set.of(timelineElement1,
-                timelineElement3, timelineElement4, timelineElement5, timelineElement3_1, timelineElement4_1,
-                timelineElement5_1, timelineElement6);
+                timelineElement3, timelineElement4, timelineElement5, timelineElement3b, timelineElement4b,
+                timelineElement5b, timelineElement6);
 
 
         // creare List<NotificationStatusHistoryElementInt>
@@ -1387,7 +1377,7 @@ class StatusUtilsTest {
                 .activeFrom((Instant.parse("2021-09-16T15:26:00.00Z")))
                 .relatedTimelineElements(Arrays.asList("el3", "el4", "el5", "el6"))
                 .build();
-        NotificationStatusHistoryElementInt historyElement4_1 = NotificationStatusHistoryElementInt.builder()
+        NotificationStatusHistoryElementInt historyElement4b = NotificationStatusHistoryElementInt.builder()
                 .status(NotificationStatusInt.DELIVERED)
                 .activeFrom((Instant.parse("2021-09-16T15:31:00.00Z")))
                 .relatedTimelineElements(List.of("el8"))
@@ -1399,7 +1389,7 @@ class StatusUtilsTest {
                 .build();
 
         List<NotificationStatusHistoryElementInt> historyElementList = Arrays.asList(historyElement, historyElement1,
-                historyElement2, historyElement4_1, historyElement5);
+                historyElement2, historyElement4b, historyElement5);
 
         // chiamare metodo di test
         List<NotificationStatusHistoryElementInt> resHistoryElementList = statusUtils.getStatusHistory(
@@ -1485,7 +1475,9 @@ class StatusUtilsTest {
     }
 
 
-    private void printStatus(List<NotificationStatusHistoryElementInt> notificationHistoryElements, String methodName) {
+    private void printStatus(List<NotificationStatusHistoryElementInt> notificationHistoryElements) {
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+
         System.out.print(methodName + " - ");
         notificationHistoryElements.stream()
                 .map(NotificationStatusHistoryElementInt::getStatus)
@@ -1569,8 +1561,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -1684,8 +1675,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(5, actualStatusHistory.size(), "Check length");
@@ -1807,8 +1797,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 5 elements
         Assertions.assertEquals(5, actualStatusHistory.size(), "Check length");
@@ -1931,8 +1920,7 @@ class StatusUtilsTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
