@@ -7,7 +7,7 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class SendAnalogTimeoutCreationRequestDetailsIntTest {
+class SendAnalogTimeoutCreationRequestDetailsIntTest {
     Instant timeoutDate = Instant.now();
 
     @Test

@@ -17,6 +17,7 @@ public class SendAnalogTimeoutCreationRequestDetailsInt extends BaseAnalogDetail
 
     private Instant timeoutDate;
 
+    @Override
     public String toLog() {
         return String.format(
                 "recIndex=%d sentAttemptMade=%d relatedRequestId=%s physicalAddress=%s timeoutDate=%s",
