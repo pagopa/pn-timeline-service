@@ -26,20 +26,10 @@ public class StatusUtils {
     }
     
     private static final NotificationStatusInt INITIAL_STATUS = NotificationStatusInt.IN_VALIDATION;
-    // Attenzione: L'ordine in cui sono stati inseriti gli stati è importante per la logica di priorità
-
-    public static final List<TimelineElementCategoryInt> COMPLETED_DELIVERY_WORKFLOW_CATEGORY = new ArrayList<>(Arrays.asList(
-            //Completato con successo
-            TimelineElementCategoryInt.DIGITAL_DELIVERY_CREATION_REQUEST, //Anche in caso di fallimento del digital workflow, la notifica si può considerare consegnata
-            TimelineElementCategoryInt.ANALOG_SUCCESS_WORKFLOW,
-            //Fallimento
-            TimelineElementCategoryInt.COMPLETELY_UNREACHABLE,
-            TimelineElementCategoryInt.ANALOG_WORKFLOW_RECIPIENT_DECEASED
-    ));
 
     public NotificationStatusInt getCurrentStatus(List<NotificationStatusHistoryElementInt> statusHistory) {
         if (!statusHistory.isEmpty()) {
-            return statusHistory.get(statusHistory.size() - 1).getStatus();
+            return statusHistory.getLast().getStatus();
         } else {
             return INITIAL_STATUS;
         }
