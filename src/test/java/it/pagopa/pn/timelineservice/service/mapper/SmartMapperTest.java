@@ -15,8 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -122,8 +120,6 @@ class SmartMapperTest {
     void testTimelineElementInternalMappingTransformerNo1(){
         Instant elementTimestamp = Instant.EPOCH.plusMillis(100);
 
-        Instant eventTimestamp = Instant.EPOCH.plusMillis(10);
-
         TimelineElementInternal source = TimelineElementInternal.builder()
                 .elementId("elementid")
                 .iun("iun")
@@ -142,8 +138,6 @@ class SmartMapperTest {
     @Test
     void testTimelineElementInternalMappingTransformerNo2(){
         Instant elementTimestamp = Instant.EPOCH.plusMillis(100);
-
-        Instant eventTimestamp = Instant.EPOCH.plusMillis(10);
 
         TimelineElementInternal source = TimelineElementInternal.builder()
                 .elementId("elementid")

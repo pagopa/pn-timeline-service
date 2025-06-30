@@ -25,6 +25,7 @@ import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.StatusService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
+import it.pagopa.pn.timelineservice.utils.CompletedDeliveryWorkflowCategory;
 import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,6 @@ import java.util.stream.Collectors;
 
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
-import static it.pagopa.pn.timelineservice.utils.StatusUtils.COMPLETED_DELIVERY_WORKFLOW_CATEGORY;
 
 
 @Service
@@ -68,7 +68,7 @@ public class TimelineServiceImpl implements TimelineService {
         logEvent.log();
 
         boolean isMultiRecipient = notification.getNumberOfRecipients() > 1;
-        boolean isCriticalTimelineElement = COMPLETED_DELIVERY_WORKFLOW_CATEGORY.contains(dto.getCategory());
+        boolean isCriticalTimelineElement = CompletedDeliveryWorkflowCategory.isCompletedWorkflowCategory(dto.getCategory());
 
         return Mono.just(isMultiRecipient && isCriticalTimelineElement)
                 .flatMap(aBoolean -> {
@@ -95,11 +95,12 @@ public class TimelineServiceImpl implements TimelineService {
                     }
                     SimpleLock simpleLock = optSimpleLock.get();
                     return processTimelinePersistence(dto, notification, logEvent)
-                            .doOnError(throwable -> logEvent.generateFailure("IdConflictException in addCriticalTimelineElement", throwable).log())
                             .onErrorMap(ex -> {
                                 if( ex instanceof PnIdConflictException) {
                                     return ex;
                                 }
+
+                                logEvent.generateFailure("Exception in addCriticalTimelineElement", ex).log();
                                 return new PnInternalException("Exception in addCriticalTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                             })
                             .doFinally(signalType -> simpleLock.unlock());
@@ -108,11 +109,12 @@ public class TimelineServiceImpl implements TimelineService {
 
     private Mono<Void> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return processTimelinePersistence(dto, notification, logEvent)
-                .doOnError(throwable -> logEvent.generateFailure("IdConflictException in addTimelineElement", throwable).log())
                 .onErrorMap(ex -> {
-                    if( ex instanceof PnIdConflictException) {
+                    if(ex instanceof PnIdConflictException) {
                         return ex;
                     }
+
+                    logEvent.generateFailure("Exception in addTimelineElement", ex).log();
                     return new PnInternalException("Exception in addTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
                 });
     }
@@ -123,8 +125,9 @@ public class TimelineServiceImpl implements TimelineService {
                 .flatMap(list -> {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
                     StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
+                    TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
                     return confidentialInformationService.saveTimelineConfidentialInformation(dto)
-                            .thenReturn(enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt()))
+                            .thenReturn(enrichedDto)
                             .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
                             .flatMap(this::persistTimelineElement)
                             .doOnSuccess(item -> logAndCleanMdc(dto, logEvent, false))
@@ -135,7 +138,7 @@ public class TimelineServiceImpl implements TimelineService {
                 });
     }
 
-    private static void logAndCleanMdc(TimelineElementInternal dto, PnAuditLogEvent logEvent, Boolean timelineInsertSkipped) {
+    private static void logAndCleanMdc(TimelineElementInternal dto, PnAuditLogEvent logEvent, boolean timelineInsertSkipped) {
         String alreadyInsertMsg = "Timeline event was already inserted before - timelineId=" + dto.getElementId();
         String successMsg = String.format("Timeline event inserted with: CATEGORY=%s IUN=%s {DETAILS: %s} TIMELINEID=%s paId=%s TIMESTAMP=%s",
                 dto.getCategory(),

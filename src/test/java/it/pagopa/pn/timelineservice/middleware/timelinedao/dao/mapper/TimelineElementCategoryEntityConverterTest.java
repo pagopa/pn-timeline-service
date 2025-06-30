@@ -14,7 +14,7 @@ class TimelineElementCategoryEntityConverterTest {
     private TimelineElementCategoryEntityConverter converter;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         converter = new TimelineElementCategoryEntityConverter();
     }
 

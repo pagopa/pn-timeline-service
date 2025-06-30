@@ -9,7 +9,7 @@ class AnalogSuccessWorkflowDetailsIntTest {
     private AnalogSuccessWorkflowDetailsInt analogSuccessWorkflowDetailsInt;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         analogSuccessWorkflowDetailsInt = new AnalogSuccessWorkflowDetailsInt();
     }
 

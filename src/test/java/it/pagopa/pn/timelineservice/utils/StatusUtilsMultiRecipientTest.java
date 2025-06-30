@@ -29,7 +29,7 @@ class StatusUtilsMultiRecipientTest {
     private static final String PEC_ADDRESS = "test@pec.it";
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         PnTimelineServiceConfigs pnDeliveryPushConfigs = mock(PnTimelineServiceConfigs.class);
         FeatureEnabledUtils featureEnabledUtils = mock(FeatureEnabledUtils.class);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -141,11 +141,11 @@ class StatusUtilsMultiRecipientTest {
                 .build();
 
         //La businessDate di COMPLETELY_UNREACHABLE è il notificationDate dell'ultimo SEND_ANALOG_FEEDBACK
-        Instant CompleteUnreachableBusinessDate = sendAnalogFeedbackRec2.getTimestamp();
+        Instant completeUnreachableBusinessDate = sendAnalogFeedbackRec2.getTimestamp();
 
         NotificationStatusHistoryElementInt historyDelivered = NotificationStatusHistoryElementInt.builder()
                 .status(NotificationStatusInt.DELIVERED)
-                .activeFrom(CompleteUnreachableBusinessDate)
+                .activeFrom(completeUnreachableBusinessDate)
                 .relatedTimelineElements(List.of(completelyUnreachableRec2.getElementId()))
                 .build();
 
@@ -522,8 +522,7 @@ class StatusUtilsMultiRecipientTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -653,8 +652,7 @@ class StatusUtilsMultiRecipientTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -781,8 +779,7 @@ class StatusUtilsMultiRecipientTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -919,8 +916,7 @@ class StatusUtilsMultiRecipientTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(5, actualStatusHistory.size(), "Check length");
@@ -1076,8 +1072,7 @@ class StatusUtilsMultiRecipientTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -1223,8 +1218,7 @@ class StatusUtilsMultiRecipientTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(5, actualStatusHistory.size(), "Check length");
@@ -1385,8 +1379,7 @@ class StatusUtilsMultiRecipientTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -1543,8 +1536,7 @@ class StatusUtilsMultiRecipientTest {
                 notificationCreatedAt
         );
 
-        printStatus(actualStatusHistory, new Object() {
-        }.getClass().getEnclosingMethod().getName());
+        printStatus(actualStatusHistory);
 
         // THEN status histories have 4 elements
         Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
@@ -1594,7 +1586,9 @@ class StatusUtilsMultiRecipientTest {
         );
     }
 
-    private void printStatus(List<NotificationStatusHistoryElementInt> notificationHistoryElements, String methodName) {
+    private void printStatus(List<NotificationStatusHistoryElementInt> notificationHistoryElements) {
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+
         System.out.print(methodName + " - ");
         notificationHistoryElements.stream()
                 .map(NotificationStatusHistoryElementInt::getStatus)

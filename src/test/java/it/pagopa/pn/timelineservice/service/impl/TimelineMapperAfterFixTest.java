@@ -309,7 +309,8 @@ class TimelineMapperAfterFixTest {
                         .build())
                 .build();
 
-        Assertions.assertThrows(PnInternalException.class, () -> timelineMapperAfterFix.remapSpecificTimelineElementData(Set.of(analogWorkflowRecipientDeceased), analogWorkflowRecipientDeceased, deceasedSourceIngestionTimestamp, false));
+        Set<TimelineElementInternal> timelineSet = Set.of(analogWorkflowRecipientDeceased);
+        Assertions.assertThrows(PnInternalException.class, () -> timelineMapperAfterFix.remapSpecificTimelineElementData(timelineSet, analogWorkflowRecipientDeceased, deceasedSourceIngestionTimestamp, false));
 
     }
 

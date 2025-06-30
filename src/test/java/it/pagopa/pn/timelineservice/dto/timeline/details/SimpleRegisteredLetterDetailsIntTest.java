@@ -14,7 +14,7 @@ class SimpleRegisteredLetterDetailsIntTest {
     private SimpleRegisteredLetterDetailsInt detailsInt;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         detailsInt = SimpleRegisteredLetterDetailsInt.builder()
                 .recIndex(0)
                 .foreignState("001")

@@ -344,7 +344,6 @@ components:
       type: object
       required:
         - recIndex
-        - digitalAddress
         - categoryType
       properties:
         categoryType:
@@ -650,7 +649,6 @@ components:
         - recIndex
         - digitalAddressSource
         - sentAttemptMade
-        - lastAttemptDate
         - categoryType
       properties:
         categoryType:
@@ -897,7 +895,6 @@ components:
       type: object
       required:
         - recIndex
-        - physicalAddress
         - serviceLevel
         - sentAttemptMade
         - categoryType
@@ -986,7 +983,6 @@ components:
       type: object
       required:
         - recIndex
-        - physicalAddress
         - serviceLevel
         - sentAttemptMade
         - responseStatus

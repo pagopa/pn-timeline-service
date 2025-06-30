@@ -8,7 +8,7 @@ class NotificationRequestAcceptedDetailsIntTest {
     private NotificationRequestAcceptedDetailsInt detailsInt;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         detailsInt = NotificationRequestAcceptedDetailsInt.builder()
                 .paProtocolNumber("paProtocolNumber")
                 .idempotenceToken("idempotenceToken")

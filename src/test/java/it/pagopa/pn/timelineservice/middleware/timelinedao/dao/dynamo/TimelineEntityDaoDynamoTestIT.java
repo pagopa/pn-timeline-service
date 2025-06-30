@@ -4,7 +4,6 @@ import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.BaseTest;
 import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
-import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
@@ -14,8 +13,8 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.NotificationRef
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 
@@ -88,7 +87,8 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 .build();
 
         assertDoesNotThrow(() -> timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block());
-        assertThrows(PnIdConflictException.class, () -> timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block());
+        Mono<Void> putIfAbsentMono = timelineEntityDao.addTimelineElementIfAbsent(elementToInsert);
+        assertThrows(PnIdConflictException.class, putIfAbsentMono::block);
 
 
         TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();

@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Set;
 
-public class TimelineMapperBeforeFixTest {
+class TimelineMapperBeforeFixTest {
 
     private TimelineMapperBeforeFix timelineMapperBeforeFix;
 

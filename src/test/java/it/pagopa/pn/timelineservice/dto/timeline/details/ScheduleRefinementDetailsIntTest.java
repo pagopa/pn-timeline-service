@@ -9,7 +9,7 @@ class ScheduleRefinementDetailsIntTest {
     private ScheduleRefinementDetailsInt detailsInt;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         detailsInt = ScheduleRefinementDetailsInt.builder()
                 .recIndex(1)
                 .build();

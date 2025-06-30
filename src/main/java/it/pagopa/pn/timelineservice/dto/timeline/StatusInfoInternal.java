@@ -1,13 +1,11 @@
 package it.pagopa.pn.timelineservice.dto.timeline;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.Instant;
 
 @Getter
+@Setter
 @Builder(toBuilder = true)
 @EqualsAndHashCode
 @ToString
