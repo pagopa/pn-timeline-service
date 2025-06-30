@@ -11,9 +11,8 @@ class RefinementDetailsIntTest {
     private RefinementDetailsInt detailsInt;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         detailsInt = new RefinementDetailsInt();
-
     }
 
     @Test

@@ -9,7 +9,7 @@ class CompletelyUnreachableDetailsIntTest {
     private CompletelyUnreachableDetailsInt detailsInt;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         detailsInt = CompletelyUnreachableDetailsInt.builder()
                 .recIndex(0)
                 .build();

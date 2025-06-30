@@ -73,7 +73,7 @@ public class SmartMapper {
             }
             return obj;
         } catch (IOException e) {
-            throw new PnInternalException("Errore durante il mapping del dettaglio", e);
+            throw new PnInternalException("Errore durante il mapping del dettaglio", "MAPPING_ERROR", e);
         }
     }
 

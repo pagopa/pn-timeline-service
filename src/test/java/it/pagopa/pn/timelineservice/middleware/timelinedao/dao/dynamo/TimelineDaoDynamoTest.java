@@ -22,6 +22,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactor.test.StepVerifier;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
@@ -391,8 +392,8 @@ class TimelineDaoDynamoTest {
         mockPutItem(table);
 
         // WHEN
-        dao.addTimelineElementIfAbsent(row1).block();
-        dao.addTimelineElementIfAbsent(row2).block();
+        StepVerifier.create(dao.addTimelineElementIfAbsent(row1)).expectComplete();
+        StepVerifier.create(dao.addTimelineElementIfAbsent(row2)).expectComplete();
     }
 
     @Test
@@ -441,7 +442,9 @@ class TimelineDaoDynamoTest {
                 }
 
                 @Override
-                public void cancel() { }
+                public void cancel() {
+                    // No action needed for cancel in this mock
+                }
             });
             return null;
         }).when(sdkPublisher).subscribe((Subscriber<? super Page<T>>) any());
@@ -466,7 +469,9 @@ class TimelineDaoDynamoTest {
                 }
 
                 @Override
-                public void cancel() { }
+                public void cancel() {
+                    // No action needed for cancel in this mock
+                }
             });
             return null;
         }).when(sdkPublisher).subscribe((Subscriber<? super Page<T>>) any());

@@ -13,10 +13,7 @@ class RequestRefusedDetailsIntTest {
     private RequestRefusedDetailsInt request;
 
     @BeforeEach
-    public void setup() {
-        //List<String> errors = new ArrayList<>();
-        //errors.add(PnDeliveryPushExceptionCodes.NotificationRefusedErrorCodeInt.FILE_NOTFOUND.getValue());
-
+    void setup() {
         List<NotificationRefusedErrorInt> errors = new ArrayList<>();
         NotificationRefusedErrorInt notificationRefusedError = NotificationRefusedErrorInt.builder()
                 .errorCode("FILE_NOTFOUND")
@@ -37,7 +34,6 @@ class RequestRefusedDetailsIntTest {
 
     @Test
     void getErrors() {
-        //List<String> actualErrors = request.getErrors();
         List<NotificationRefusedErrorInt> actualErrors = request.getRefusalReasons();
         Assertions.assertEquals(1, actualErrors.size());
     }
