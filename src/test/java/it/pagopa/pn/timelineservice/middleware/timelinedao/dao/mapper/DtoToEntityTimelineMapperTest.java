@@ -5,8 +5,6 @@ import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.LegalFactCategoryEntity;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.LegalFactsIdEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementDetailsEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
@@ -225,12 +223,5 @@ class DtoToEntityTimelineMapperTest {
                 .key("001")
                 .category(LegalFactCategoryInt.ANALOG_DELIVERY)
                 .build();
-    }
-
-    private LegalFactsIdEntity mapOneLegalFact(LegalFactsIdInt legalFactsId) {
-        LegalFactsIdEntity entity = new LegalFactsIdEntity();
-        entity.setKey(legalFactsId.getKey());
-        entity.setCategory(LegalFactCategoryEntity.valueOf(legalFactsId.getCategory().getValue()));
-        return entity;
     }
 }
