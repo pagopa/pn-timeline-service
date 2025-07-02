@@ -8,6 +8,8 @@
     "PnDeliveryPushShedLockDynamoTableName": "pn-PnDeliveryPushShedLock",
     "PnCronAnalyzer": "* */1 * * * *",
     "WireTapLogActivation": "false",
-    "MountEfs": "false"
+    "MountEfs": "false",
+    "CpuValue": "2048",
+    "MemoryAmount": "4GB"
   }
 }
