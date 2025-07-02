@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.ElementTimestampTimelineElementDetails;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.TimelineElement;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -64,14 +61,7 @@ public class SmartMapper {
     public  <S,T> T mapToClassWithObjectMapper(S source, Class<T> destinationClass ){
         try {
             objectMapper.addMixIn(Object.class, IgnoreFieldsMixin.class);
-            var obj = objectMapper.readValue(objectMapper.writeValueAsBytes(source), destinationClass);
-            if(TimelineElement.class.isAssignableFrom(destinationClass)){
-                TimelineElement timelineElement = (TimelineElement) obj;
-                if(Objects.isNull(timelineElement.getLegalFactsIds())) {
-                    timelineElement.legalFactsIds(new ArrayList<>());
-                }
-            }
-            return obj;
+            return objectMapper.readValue(objectMapper.writeValueAsBytes(source), destinationClass);
         } catch (IOException e) {
             throw new PnInternalException("Errore durante il mapping del dettaglio", "MAPPING_ERROR", e);
         }
