@@ -692,7 +692,6 @@ components:
       type: object
       required:
         - recIndex
-        - digitalAddress
         - sendDate
         - categoryType
       properties:
