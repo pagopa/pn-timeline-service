@@ -694,6 +694,7 @@ components:
         - recIndex
         - sendDate
         - categoryType
+        - digitalAddress
       properties:
         categoryType:
           type: string
@@ -702,7 +703,7 @@ components:
           description: Index destinatario notifica digitale
           format: int32
         digitalAddress:
-          $ref: "./schemas-addresses.yaml#/components/schemas/DigitalAddress"
+          $ref: "./schemas-addresses.yaml#/components/schemas/DigitalAddressCourtesy"
         sendDate:
           type: string
           description: data invio messaggio di cortesia

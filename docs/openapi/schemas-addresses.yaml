@@ -1,11 +1,8 @@
 components:
   schemas:
 
-    DigitalAddress:
+    DigitalAddressBase:
       description: Indirizzo di invio della notifica
-      required:
-      - address
-      - type
       type: object
       properties:
         type:
@@ -16,6 +13,21 @@ components:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
           description: account@domain
+
+    DigitalAddress:
+      allOf:
+        - $ref: '#/components/schemas/DigitalAddressBase'
+      description: Indirizzo di invio della notifica
+      required:
+        - type
+        - address
+
+    DigitalAddressCourtesy:
+      allOf:
+        - $ref: '#/components/schemas/DigitalAddressBase'
+      description: Indirizzo di invio della notifica senza address obbligatorio
+      required:
+        - type
       
 
     PhysicalAddress:
