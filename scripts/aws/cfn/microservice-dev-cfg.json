@@ -10,6 +10,9 @@
     "WireTapLogActivation": "false",
     "MountEfs": "false",
     "CpuValue": "2048",
-    "MemoryAmount": "4GB"
+    "MemoryAmount": "4GB",
+    "AutoscalingThreshold": "21000",
+    "MinTasksNumber": "2",
+    "MaxTasksNumber": "4"
   }
 }
