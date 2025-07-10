@@ -144,6 +144,14 @@ Parameters:
       - "true"
       - "false"
 
+  AutoscalingThreshold:
+    Default: 70
+    Type: String
+
+  AutoscalingCheckPeriod:
+    Default: 60
+    Type: Number
+
 
 Resources:
 
@@ -160,6 +168,9 @@ Resources:
         MappedPaths: '/timeline-service-private/*'
         ECSClusterName: !Ref ECSClusterName
         Subnets: !Ref SubnetsIds
+        AutoscalingStrategy: REST-API
+        AutoscalingThreshold: !Ref AutoscalingThreshold
+        AutoscalingCheckPeriod: !Ref AutoscalingCheckPeriod
         VpcId: !Ref VpcId
         HealthCheckPath: /actuator/health
         EcsDefaultSecurityGroup: !Ref EcsDefaultSecurityGroup
