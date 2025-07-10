@@ -11,6 +11,8 @@
     "MountEfs": "false",
     "CpuValue": "2048",
     "MemoryAmount": "4GB",
-    "AutoscalingThreshold": "21000"
+    "AutoscalingThreshold": "21000",
+    "MinTasksNumber": "2",
+    "MaxTasksNumber": "4"
   }
 }
