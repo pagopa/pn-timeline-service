@@ -18,6 +18,7 @@ components:
             - PEC_RECEIPT
             - ANALOG_DELIVERY
             - NOTIFICATION_CANCELLED
+            - ANALOG_DELIVERY_TIMEOUT
     TimelineCategory:
       type: string
       enum:
@@ -71,6 +72,9 @@ components:
         - ANALOG_WORKFLOW_RECIPIENT_DECEASED
         - PUBLIC_REGISTRY_VALIDATION_CALL
         - PUBLIC_REGISTRY_VALIDATION_RESPONSE
+        - SEND_ANALOG_TIMEOUT_CREATION_REQUEST
+        - SEND_ANALOG_TIMEOUT
+        - ANALOG_FAILURE_WORKFLOW_TIMEOUT
     StatusInfo:
       type: object
       properties:
@@ -173,6 +177,9 @@ components:
         - "$ref": "#/components/schemas/ValidateF24RequestDetails"
         - "$ref": "#/components/schemas/GenerateF24RequestDetails"
         - "$ref": "#/components/schemas/ValidateNormalizeAddressDetails"
+        - "$ref": "#/components/schemas/SendAnalogTimeoutCreationRequestDetails"
+        - "$ref": "#/components/schemas/SendAnalogTimeoutDetails"
+        - "$ref": "#/components/schemas/AnalogFailureWorkflowTimeoutDetails"
       discriminator:
         propertyName: "categoryType"
 
@@ -1700,6 +1707,102 @@ components:
                   - ANPR
                   - REGISTRO_IMPRESE
               maxLength: 128
+
+    SendAnalogTimeoutCreationRequestDetails:
+      x-discriminator-value: "SEND_ANALOG_TIMEOUT_CREATION_REQUEST"
+      type: object
+      required:
+        - recIndex
+        - sentAttemptMade
+        - relatedRequestId
+        - timeoutDate
+        - legalFactId
+        - categoryType
+      properties:
+        recIndex:
+          type: integer
+          description: Index destinatario notifica digitale
+          format: int32
+        sentAttemptMade:
+          type: integer
+          description: numero dei tentativi effettuati
+          format: int32
+        relatedRequestId:
+          description: Id della richiesta di invio cartaceo
+          type: string
+        timeoutDate:
+          type: string
+          description: Data in cui si è chiusa la finestra di ricezione esiti per il flusso analogico
+          format: date-time
+        categoryType:
+          type: string
+        legalFactId:
+          type: string
+          maxLength: 128
+          description: Identificativo dell'atto opponibile a terzi del quale è stata richiesta la creazione
+
+    SendAnalogTimeoutDetails:
+      x-discriminator-value: "SEND_ANALOG_TIMEOUT"
+      type: object
+      required:
+        - recIndex
+        - physicalAddress
+        - serviceLevel
+        - sentAttemptMade
+        - relatedRequestId
+        - timeoutDate
+        - categoryType
+      properties:
+        recIndex:
+          type: integer
+          description: Index destinatario notifica digitale
+          format: int32
+        physicalAddress:
+          $ref: "./schemas-addresses.yaml#/components/schemas/PhysicalAddress"
+        serviceLevel:
+          "$ref": "#/components/schemas/ServiceLevel"
+        sentAttemptMade:
+          type: integer
+          description: numero dei tentativi effettuati
+          format: int32
+        relatedRequestId:
+          type: string
+          description: Id relativo alla eventuale precedente richiesta di invio cartaceo
+          maxLength: 512
+        timeoutDate:
+          type: string
+          description: Data in cui si è chiusa la finestra di ricezione esiti per il flusso analogico
+          format: date-time
+        categoryType:
+          type: string
+
+    AnalogFailureWorkflowTimeoutDetails:
+      x-discriminator-value: "ANALOG_FAILURE_WORKFLOW_TIMEOUT"
+      type: object
+      required:
+        - recIndex
+        - generatedAarUrl
+        - timeoutDate
+        - categoryType
+      properties:
+        recIndex:
+          type: integer
+          description: Index destinatario notifica digitale
+          format: int32
+        generatedAarUrl:
+          type: string
+          maxLength: 128
+          description: Chiave per recupero da safe-storage del documento aar
+        notificationCost:
+          type: integer
+          description: Costo notifica digitale
+          format: int32
+        timeoutDate:
+          type: string
+          description: Data in cui si è chiusa la finestra di ricezione esiti per il flusso analogico
+          format: date-time
+        categoryType:
+          type: string
 
     RecipientType:
       type: string
