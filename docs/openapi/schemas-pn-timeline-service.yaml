@@ -1796,7 +1796,7 @@ components:
         notificationCost:
           type: integer
           description: Costo notifica digitale
-          format: int32
+          format: int64
         timeoutDate:
           type: string
           description: Data in cui si è chiusa la finestra di ricezione esiti per il flusso analogico
