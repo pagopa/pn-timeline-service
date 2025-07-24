@@ -86,7 +86,7 @@ class EntityToDtoTimelineMapperTest {
 
         RequestRefusedDetailsInt requestRefusedDetailsInt = (RequestRefusedDetailsInt) actual.getDetails();
 
-        Assertions.assertEquals( entity.getDetails().getRefusalReasons().get( 0 ).getErrorCode(), requestRefusedDetailsInt.getRefusalReasons().get( 0 ).getErrorCode() );
+        Assertions.assertEquals( entity.getDetails().getRefusalReasons().getFirst().getErrorCode(), requestRefusedDetailsInt.getRefusalReasons().getFirst().getErrorCode() );
     }
     
     @Test
@@ -118,6 +118,23 @@ class EntityToDtoTimelineMapperTest {
         Assertions.assertEquals(entity.getDetails().getRecIndex(), details.getRecIndex());
         Assertions.assertEquals(entity.getDetails().getSentAttemptMade(), details.getSentAttemptMade());
         Assertions.assertEquals(entity.getDetails().getDeliveryMode().getValue(), details.getDeliveryMode().getValue());
+    }
+
+    @Test
+    void entityToDtoWithoutDetails() {
+
+        TimelineElementEntity entity = TimelineElementEntity.builder()
+                .timelineElementId("PUBLIC_REGISTRY_CALL.IUN_AAAA-WLRL-YUKX-202405-Z-1.RECINDEX_0")
+                .paId("PaId")
+                .iun("iun")
+                .category(TimelineElementCategoryEntity.PUBLIC_REGISTRY_CALL)
+                .build();
+
+        TimelineElementInternal internal = mapper.entityToDto(entity);
+
+        Assertions.assertNull(internal.getDetails());
+        Assertions.assertEquals(entity.getIun(), internal.getIun());
+        Assertions.assertEquals(entity.getTimelineElementId(), internal.getElementId());
     }
 
     @Test

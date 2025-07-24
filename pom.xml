@@ -196,7 +196,7 @@
                         </goals>
                         <configuration>
                             <inputSpec>
-                                https://raw.githubusercontent.com/pagopa/pn-data-vault/49b6943f95dfac51c2c8fd1aa381e9200ff7f97c/docs/openapi/pn-datavault-api-v1.yaml
+                                https://raw.githubusercontent.com/pagopa/pn-data-vault/9dc0d751d4b63679379a1857645a285645482d72/docs/openapi/pn-datavault-api-v1.yaml
                             </inputSpec>
                             <generatorName>java</generatorName>
                             <library>webclient</library>

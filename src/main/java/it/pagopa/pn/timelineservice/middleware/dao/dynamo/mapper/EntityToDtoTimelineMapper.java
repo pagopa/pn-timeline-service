@@ -56,6 +56,9 @@ public class EntityToDtoTimelineMapper {
 
     private TimelineElementDetailsInt parseDetailsFromEntity(TimelineElementDetailsEntity entity, TimelineElementCategoryInt category) {
         TimelineElementDetailsInt timelineElementDetailsInt = SmartMapper.mapToClass(entity, category.getDetailsJavaClass());
+        if(timelineElementDetailsInt == null) {
+            return null;
+        }
         timelineElementDetailsInt.setCategoryType(category.name());
         return timelineElementDetailsInt;
     }
