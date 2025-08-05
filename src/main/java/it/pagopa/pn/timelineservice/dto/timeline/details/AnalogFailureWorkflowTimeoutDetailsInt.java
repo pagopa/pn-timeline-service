@@ -10,7 +10,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @SuperBuilder(toBuilder = true)
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @ToString
 public class AnalogFailureWorkflowTimeoutDetailsInt extends CategoryTypeTimelineElementDetailsInt implements ElementTimestampTimelineElementDetails, RecipientRelatedTimelineElementDetails {
     private int recIndex;
