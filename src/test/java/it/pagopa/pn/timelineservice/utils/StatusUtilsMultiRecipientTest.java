@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -1580,6 +1581,887 @@ class StatusUtilsMultiRecipientTest {
                         .relatedTimelineElements(List.of(
                                 "firstRecRefinementTimelineElement", "feedbackAnalogSecondRecipientTimelineElement",
                                 "deceasedWorkflowSecondRecipientTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(3),
+                "5th status wrong"
+        );
+    }
+
+    /*
+        IN_VALIDATION - ACCEPTED - DELIVERING - DELIVERED
+        un destinatario è raggiungibile via domicilio digitale e per l'altro la spedizione analogica termina in timeout.
+        NOTA: E' uno scenario molto inverosimile, poichè la macchina a stati prevede il passaggio in DELIVERED solo
+        se riesce a registrare eventi che terminano le consegne per entrambi i destinatari.
+        Nella realtà il flusso digitale si conclude in tempi molto più rapidi rispetto a quello di timeout analogico e
+        scatena un perfezionamento per decorrenza termini (saltando di conseguenza lo stato DELIVERED).
+        Però per verificare il corretto funzionamento della macchina a stati, in questo test faremo in modo che le date
+        degli eventi di consegna digitale siano vicine a quelle di timeout analogico, in modo da poter far terminare
+        entrambi i workflow prima di un ipotetico REFINEMENT e verificare la transizione in DELIVERED.
+        Stato finale: DELIVERED
+    */
+    @Test
+    void getTimelineHistoryMultiRecipientWithOneDeliveryViaPecWithOneAnalogTimeoutWorkflowTest() {
+        final int NUMBER_OF_RECIPIENTS = 2;
+
+        SendDigitalDetailsInt sendDigitalDetailsIntPec = getSendDigitalDetails(LegalDigitalAddressInt.LEGAL_DIGITAL_ADDRESS_TYPE.PEC);
+
+        // GIVEN a timeline
+        TimelineElementInternal requestAcceptedTimelineElement = TimelineElementInternal.builder()
+                .elementId("requestAcceptedTimelineElement")
+                .timestamp(Instant.parse("2021-09-10T15:24:00.00Z"))
+                .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
+                .build();
+        TimelineElementInternal sendPecFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendPecFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2021-09-11T15:26:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
+                .details(sendDigitalDetailsIntPec)
+                .build();
+        Instant sendAnalogTimestamp = Instant.parse("2021-09-16T15:30:00.00Z");
+        TimelineElementInternal sendAnalogSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendAnalogSecondRecipientTimelineElement")
+                .timestamp(sendAnalogTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        // Scade il timeout sul primo tentativo di consegna analogica per il secondo destinatario
+        Instant timeoutDate = sendAnalogTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal analogTimeoutCreationRequestSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutCreationRequestSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:01:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(timeoutDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:02:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(timeoutDate).build())
+                .build();
+
+        // 2° Tentativo di consegna analogica secondo destinatario
+        Instant secondSendAnalogTimestamp = Instant.parse("2022-01-14T18:07:00.00Z");
+        TimelineElementInternal secondSendAnalogFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondSendAnalogFirstRecipientTimelineElement")
+                .timestamp(secondSendAnalogTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        //PN riceve feedback positivo da External Channels per il primo destinatario
+        TimelineElementInternal feedbackOKFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("feedbackOKFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T11:00:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_FEEDBACK)
+                .build();
+        TimelineElementInternal digitalDeliveryRequestFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("digitalDeliveryRequestFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T11:05:00.00Z")))
+                .category(TimelineElementCategoryInt.DIGITAL_DELIVERY_CREATION_REQUEST)
+                .build();
+        TimelineElementInternal pecReceivedFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("pecReceivedFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T11:20:00.00Z")))
+                .category(TimelineElementCategoryInt.DIGITAL_SUCCESS_WORKFLOW)
+                .build();
+
+        // Scatta il timeout sul secondo tentativo di consegna analogica per il secondo destinatario
+        Instant secondTimeoutDate = secondSendAnalogTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:10:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondTimeoutDate).build())
+                .build();
+        TimelineElementInternal secondAnalogTimeoutFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:11:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondTimeoutDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutFailureSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutFailureSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:12:00.00Z")))
+                .category(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondTimeoutDate).build())
+                .build();
+
+        Set<TimelineElementInternal> timelineElementList = Set.of(requestAcceptedTimelineElement,
+                sendPecFirstRecipientTimelineElement, feedbackOKFirstRecipientTimelineElement,
+                digitalDeliveryRequestFirstRecipientTimelineElement, pecReceivedFirstRecipientTimelineElement,
+                sendAnalogSecondRecipientTimelineElement, analogTimeoutCreationRequestSecondRecipientTimelineElement,
+                analogTimeoutSecondRecipientTimelineElement, secondSendAnalogFirstRecipientTimelineElement,
+                secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement, secondAnalogTimeoutFirstRecipientTimelineElement,
+                analogTimeoutFailureSecondRecipientTimelineElement
+                );
+
+
+        // WHEN ask for status history
+        Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
+
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+                timelineElementList,
+                NUMBER_OF_RECIPIENTS,
+                notificationCreatedAt
+        );
+
+        printStatus(actualStatusHistory);
+
+        // THEN status histories have 4 elements
+        Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
+
+        //  ... 1st initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.IN_VALIDATION)
+                        .activeFrom(notificationCreatedAt)
+                        .relatedTimelineElements(List.of())
+                        .build(),
+                actualStatusHistory.get(0),
+                "1st status wrong"
+        );
+
+        //  ... 2nd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.ACCEPTED)
+                        .activeFrom(requestAcceptedTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("requestAcceptedTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(1),
+                "2nd status wrong"
+        );
+
+        //  ... 3rd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.DELIVERING)
+                        .activeFrom(sendPecFirstRecipientTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("sendPecFirstRecipientTimelineElement", "sendAnalogSecondRecipientTimelineElement",
+                                "analogTimeoutCreationRequestSecondRecipientTimelineElement", "analogTimeoutSecondRecipientTimelineElement",
+                                "secondSendAnalogFirstRecipientTimelineElement", "feedbackOKFirstRecipientTimelineElement",
+                                "digitalDeliveryRequestFirstRecipientTimelineElement", "pecReceivedFirstRecipientTimelineElement",
+                                "secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement", "secondAnalogTimeoutFirstRecipientTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(2),
+                "3rd status wrong"
+        );
+
+        //  ... 4th initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.DELIVERED)
+                        .activeFrom(secondTimeoutDate)
+                        .relatedTimelineElements(List.of(
+                                "analogTimeoutFailureSecondRecipientTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(3),
+                "4th status wrong"
+        );
+
+    }
+
+    /*
+        IN_VALIDATION - ACCEPTED - DELIVERING - UNREACHABLE
+        un destinatario è irreperibile e per l'altro la spedizione analogica termina in timeout.
+        NOTA: Anche questo è uno scenario molto inverosimile, poichè la macchina a stati prevede il passaggio in UNREACHABLE solo
+        se riesce a registrare eventi che terminano le consegne per entrambi i destinatari.
+        Nella realtà il flusso irreperibile si conclude in tempi molto più rapidi rispetto a quello di timeout analogico e
+        scatena un perfezionamento per decorrenza termini (saltando di conseguenza lo stato UNREACHABLE).
+        Però per verificare il corretto funzionamento della macchina a stati, in questo test faremo in modo che le date
+        degli eventi di irreperibile isano vicine a quelle di timeout analogico, in modo da poter far terminare
+        entrambi i workflow prima di un ipotetico REFINEMENT e verificare la transizione in UNREACHABLE.
+        Stato finale: UNREACHABLE
+    */
+    @Test
+    void getTimelineHistoryMultiRecipientWithOneUnreachableRecipientAndWithOneAnalogTimeoutWorkflowTest() {
+        final int NUMBER_OF_RECIPIENTS = 2;
+
+        // GIVEN a timeline
+        TimelineElementInternal requestAcceptedTimelineElement = TimelineElementInternal.builder()
+                .elementId("requestAcceptedTimelineElement")
+                .timestamp(Instant.parse("2021-09-10T15:24:00.00Z"))
+                .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
+                .build();
+        TimelineElementInternal sendAnalogFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendAnalogFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2021-09-11T15:26:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+        Instant sendAnalogTimestamp = Instant.parse("2021-09-16T15:30:00.00Z");
+        TimelineElementInternal sendAnalogSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendAnalogSecondRecipientTimelineElement")
+                .timestamp(sendAnalogTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        // Scade il timeout sul primo tentativo di consegna analogica per il secondo destinatario
+        Instant timeoutDate = sendAnalogTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal analogTimeoutCreationRequestSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutCreationRequestSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:01:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(timeoutDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:02:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(timeoutDate).build())
+                .build();
+
+        // 2° Tentativo di consegna analogica secondo destinatario
+        Instant secondSendAnalogTimestamp = Instant.parse("2022-01-14T18:07:00.00Z");
+        TimelineElementInternal secondSendAnalogSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondSendAnalogSecondRecipientTimelineElement")
+                .timestamp(secondSendAnalogTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        //PN riceve feedback di mancata consegna per irreperibilità per il primo destinatario
+        TimelineElementInternal feedbackKOFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("feedbackKOFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-15T11:06:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK)
+                .details(SendAnalogFeedbackDetailsInt.builder().recIndex(0).notificationDate(Instant.parse("2022-01-15T11:05:00.00Z")).build())
+                .build();
+        // Per semplicità del test non aggiungiamo gli altri elementi che di solito sono presenti in un workflow di irreperibilità
+        TimelineElementInternal unreachableFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("unreachableFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-15T13:06:00.00Z")))
+                .iun("iun1")
+                .category(TimelineElementCategoryInt.COMPLETELY_UNREACHABLE)
+                .details(CompletelyUnreachableDetailsInt.builder().recIndex(0).build())
+                .build();
+
+        // Scatta il timeout sul secondo tentativo di consegna analogica per il secondo destinatario
+        Instant secondTimeoutDate = secondSendAnalogTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:10:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondTimeoutDate).build())
+                .build();
+        TimelineElementInternal secondAnalogTimeoutFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:11:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondTimeoutDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutFailureSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutFailureSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:12:00.00Z")))
+                .category(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondTimeoutDate).build())
+                .build();
+
+        Set<TimelineElementInternal> timelineElementList = Set.of(requestAcceptedTimelineElement,
+                sendAnalogFirstRecipientTimelineElement, feedbackKOFirstRecipientTimelineElement,
+                unreachableFirstRecipientTimelineElement, sendAnalogSecondRecipientTimelineElement,
+                analogTimeoutCreationRequestSecondRecipientTimelineElement, analogTimeoutSecondRecipientTimelineElement,
+                secondSendAnalogSecondRecipientTimelineElement, secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement,
+                secondAnalogTimeoutFirstRecipientTimelineElement, analogTimeoutFailureSecondRecipientTimelineElement
+        );
+
+
+        // WHEN ask for status history
+        Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
+
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+                timelineElementList,
+                NUMBER_OF_RECIPIENTS,
+                notificationCreatedAt
+        );
+
+        printStatus(actualStatusHistory);
+
+        // THEN status histories have 4 elements
+        Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
+
+        //  ... 1st initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.IN_VALIDATION)
+                        .activeFrom(notificationCreatedAt)
+                        .relatedTimelineElements(List.of())
+                        .build(),
+                actualStatusHistory.get(0),
+                "1st status wrong"
+        );
+
+        //  ... 2nd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.ACCEPTED)
+                        .activeFrom(requestAcceptedTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("requestAcceptedTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(1),
+                "2nd status wrong"
+        );
+
+        //  ... 3rd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.DELIVERING)
+                        .activeFrom(sendAnalogFirstRecipientTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("sendAnalogFirstRecipientTimelineElement", "sendAnalogSecondRecipientTimelineElement",
+                                "analogTimeoutCreationRequestSecondRecipientTimelineElement", "analogTimeoutSecondRecipientTimelineElement",
+                                "secondSendAnalogSecondRecipientTimelineElement", "feedbackKOFirstRecipientTimelineElement",
+                                "unreachableFirstRecipientTimelineElement", "secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement",
+                                "secondAnalogTimeoutFirstRecipientTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(2),
+                "3rd status wrong"
+        );
+
+        //  ... 4th initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.UNREACHABLE)
+                        .activeFrom(secondTimeoutDate)
+                        .relatedTimelineElements(List.of(
+                                "analogTimeoutFailureSecondRecipientTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(3),
+                "4th status wrong"
+        );
+
+    }
+
+    /*
+        IN_VALIDATION - ACCEPTED - DELIVERING - DELIVERY_TIMEOUT
+        Per entrambi i destinatari la spedizione analogica termina in timeout.
+        Stato finale: DELIVERY_TIMEOUT
+    */
+    @Test
+    void getTimelineHistoryMultiRecipientWithTwoAnalogTimeoutWorkflowTest() {
+        final int NUMBER_OF_RECIPIENTS = 2;
+
+        // GIVEN a timeline
+        TimelineElementInternal requestAcceptedTimelineElement = TimelineElementInternal.builder()
+                .elementId("requestAcceptedTimelineElement")
+                .timestamp(Instant.parse("2021-09-10T15:24:00.00Z"))
+                .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
+                .build();
+        Instant sendAnalogFirstRecipientTimestamp = Instant.parse("2021-09-16T15:30:00.00Z");
+        TimelineElementInternal sendAnalogFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendAnalogFirstRecipientTimelineElement")
+                .timestamp(sendAnalogFirstRecipientTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+        Instant sendAnalogSecondRecipientTimestamp = Instant.parse("2021-09-16T15:30:00.00Z");
+        TimelineElementInternal sendAnalogSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendAnalogSecondRecipientTimelineElement")
+                .timestamp(sendAnalogSecondRecipientTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        // Scade il timeout sul primo tentativo di consegna analogica per il primo destinatario
+        Instant firstRecipientFirstAttemptTimeoutDate = sendAnalogFirstRecipientTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal analogTimeoutCreationRequestFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutCreationRequestFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:01:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(firstRecipientFirstAttemptTimeoutDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:02:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(firstRecipientFirstAttemptTimeoutDate).build())
+                .build();
+
+        // Scade il timeout sul primo tentativo di consegna analogica per il secondo destinatario
+        Instant secondRecipientFirstAttemptTimeoutDate = sendAnalogSecondRecipientTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal analogTimeoutCreationRequestSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutCreationRequestSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:01:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondRecipientFirstAttemptTimeoutDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:02:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondRecipientFirstAttemptTimeoutDate).build())
+                .build();
+
+        // 2° Tentativo di consegna analogica
+        Instant secondSendAnalogFirstRecipientTimestamp = Instant.parse("2022-01-14T18:07:00.00Z");
+        TimelineElementInternal secondSendAnalogFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondSendAnalogFirstRecipientTimelineElement")
+                .timestamp(secondSendAnalogFirstRecipientTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+        Instant secondSendAnalogSecondRecipientTimestamp = Instant.parse("2022-01-14T18:07:00.00Z");
+        TimelineElementInternal secondSendAnalogSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondSendAnalogSecondRecipientTimelineElement")
+                .timestamp(secondSendAnalogSecondRecipientTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        // Scatta il timeout sui secondi tentativi di consegna analogica per entrambi i destinatari
+        Instant secondTimeoutFirstRecipientDate = secondSendAnalogFirstRecipientTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:10:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(secondTimeoutFirstRecipientDate).build())
+                .build();
+        TimelineElementInternal secondAnalogTimeoutFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:11:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(secondTimeoutFirstRecipientDate).build())
+                .build();
+        Instant secondTimeoutSecondRecipientDate = secondSendAnalogFirstRecipientTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal secondAnalogTimeoutCreationRequestSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutCreationRequestSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:10:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondTimeoutSecondRecipientDate).build())
+                .build();
+        TimelineElementInternal secondAnalogTimeoutSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:11:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondTimeoutSecondRecipientDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutFailureFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutFailureFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:12:00.00Z")))
+                .category(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(secondTimeoutFirstRecipientDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutFailureSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutFailureSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:12:00.00Z")))
+                .category(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(1).timeoutDate(secondTimeoutSecondRecipientDate).build())
+                .build();
+
+        Set<TimelineElementInternal> timelineElementList = Set.of(requestAcceptedTimelineElement,
+                sendAnalogFirstRecipientTimelineElement, sendAnalogSecondRecipientTimelineElement,
+                analogTimeoutCreationRequestFirstRecipientTimelineElement, analogTimeoutFirstRecipientTimelineElement,
+                analogTimeoutCreationRequestSecondRecipientTimelineElement, analogTimeoutSecondRecipientTimelineElement,
+                secondSendAnalogFirstRecipientTimelineElement, secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement,
+                secondAnalogTimeoutFirstRecipientTimelineElement, secondSendAnalogSecondRecipientTimelineElement,
+                secondAnalogTimeoutCreationRequestSecondRecipientTimelineElement, secondAnalogTimeoutSecondRecipientTimelineElement,
+                analogTimeoutFailureFirstRecipientTimelineElement, analogTimeoutFailureSecondRecipientTimelineElement
+        );
+
+
+        // WHEN ask for status history
+        Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
+
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+                timelineElementList,
+                NUMBER_OF_RECIPIENTS,
+                notificationCreatedAt
+        );
+
+        printStatus(actualStatusHistory);
+
+        // THEN status histories have 4 elements
+        Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
+
+        //  ... 1st initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.IN_VALIDATION)
+                        .activeFrom(notificationCreatedAt)
+                        .relatedTimelineElements(List.of())
+                        .build(),
+                actualStatusHistory.get(0),
+                "1st status wrong"
+        );
+
+        //  ... 2nd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.ACCEPTED)
+                        .activeFrom(requestAcceptedTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("requestAcceptedTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(1),
+                "2nd status wrong"
+        );
+
+        //  ... 3rd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.DELIVERING)
+                        .activeFrom(sendAnalogFirstRecipientTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("sendAnalogFirstRecipientTimelineElement", "sendAnalogSecondRecipientTimelineElement",
+                                "analogTimeoutCreationRequestFirstRecipientTimelineElement", "analogTimeoutCreationRequestSecondRecipientTimelineElement",
+                                "analogTimeoutFirstRecipientTimelineElement", "analogTimeoutSecondRecipientTimelineElement",
+                                "secondSendAnalogFirstRecipientTimelineElement", "secondSendAnalogSecondRecipientTimelineElement",
+                                "secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement", "secondAnalogTimeoutCreationRequestSecondRecipientTimelineElement",
+                                "secondAnalogTimeoutFirstRecipientTimelineElement", "secondAnalogTimeoutSecondRecipientTimelineElement",
+                                "analogTimeoutFailureFirstRecipientTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(2),
+                "3rd status wrong"
+        );
+
+        //  ... 4th initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.DELIVERY_TIMEOUT)
+                        .activeFrom(secondTimeoutSecondRecipientDate)
+                        .relatedTimelineElements(List.of(
+                                "analogTimeoutFailureSecondRecipientTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(3),
+                "4th status wrong"
+        );
+
+    }
+
+    /*
+        IN_VALIDATION - ACCEPTED - DELIVERING - DELIVERY_TIMEOUT - VIEWED
+        Per il primo destinatario spedizione analogica termina in timeout, mentre per il secondo si riceve la comunicazione di decesso.
+        In seguito il primo destinatario visualizza la notifica.
+        Stato finale: VIEWED
+    */
+    @Test
+    void getTimelineHistoryMultiRecipientWithOneDeceasedRecipientAndOneAnalogTimeoutWorkflowTest() {
+        final int NUMBER_OF_RECIPIENTS = 2;
+
+        // GIVEN a timeline
+        TimelineElementInternal requestAcceptedTimelineElement = TimelineElementInternal.builder()
+                .elementId("requestAcceptedTimelineElement")
+                .timestamp(Instant.parse("2021-09-10T15:24:00.00Z"))
+                .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
+                .build();
+        Instant sendAnalogFirstRecipientTimestamp = Instant.parse("2021-09-16T15:30:00.00Z");
+        TimelineElementInternal sendAnalogFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendAnalogFirstRecipientTimelineElement")
+                .timestamp(sendAnalogFirstRecipientTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+        Instant sendAnalogSecondRecipientTimestamp = Instant.parse("2021-09-16T15:30:00.00Z");
+        TimelineElementInternal sendAnalogSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendAnalogSecondRecipientTimelineElement")
+                .timestamp(sendAnalogSecondRecipientTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        // Riceviamo un esito con la comunicazione di decesso per il secondo destinatario
+        Instant deacesedSendAnalogFeedbackBusinessDate = Instant.parse("2021-09-17T06:40:00.00Z");
+        TimelineElementInternal feedbackAnalogSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("feedbackAnalogSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2021-09-17T15:40:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK)
+                .details(SendAnalogFeedbackDetailsInt.builder().recIndex(1).notificationDate(deacesedSendAnalogFeedbackBusinessDate).deliveryFailureCause("M02").build())
+                .build();
+        TimelineElementInternal deceasedWorkflowSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("deceasedWorkflowSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2021-09-18T15:41:00.00Z")))
+                .category(TimelineElementCategoryInt.ANALOG_WORKFLOW_RECIPIENT_DECEASED)
+                .details(AnalogWorfklowRecipientDeceasedDetailsInt.builder().recIndex(1).notificationDate(deacesedSendAnalogFeedbackBusinessDate).build())
+                .build();
+
+
+        // Scade il timeout sul primo tentativo di consegna analogica per il primo destinatario
+        Instant firstRecipientFirstAttemptTimeoutDate = sendAnalogFirstRecipientTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal analogTimeoutCreationRequestFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutCreationRequestFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:01:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(firstRecipientFirstAttemptTimeoutDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-14T18:02:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(firstRecipientFirstAttemptTimeoutDate).build())
+                .build();
+
+
+        // 2° Tentativo di consegna analogica
+        Instant secondSendAnalogFirstRecipientTimestamp = Instant.parse("2022-01-14T18:07:00.00Z");
+        TimelineElementInternal secondSendAnalogFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondSendAnalogFirstRecipientTimelineElement")
+                .timestamp(secondSendAnalogFirstRecipientTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        // Scatta il timeout sui secondi tentativi di consegna analogica per il primo destinatario
+        Instant secondTimeoutFirstRecipientDate = secondSendAnalogFirstRecipientTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:10:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(secondTimeoutFirstRecipientDate).build())
+                .build();
+        TimelineElementInternal secondAnalogTimeoutFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:11:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(secondTimeoutFirstRecipientDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutFailureFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutFailureFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:12:00.00Z")))
+                .category(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(secondTimeoutFirstRecipientDate).build())
+                .build();
+
+        // Il destinatario visualizza la notifica
+        Instant businessViewDate = Instant.parse("2022-05-16T09:49:00.00Z");
+        TimelineElementInternal firstRecViewedTimelineElement = TimelineElementInternal.builder()
+                .elementId("firstRecViewedTimelineElement")
+                .timestamp((Instant.parse("2022-05-16T09:50:00.00Z")))
+                .category(TimelineElementCategoryInt.NOTIFICATION_VIEWED)
+                .details(NotificationViewedDetailsInt.builder()
+                        .recIndex(0)
+                        .eventTimestamp(businessViewDate)
+                        .build())
+                .build();
+
+
+        Set<TimelineElementInternal> timelineElementList = Set.of(requestAcceptedTimelineElement,
+                sendAnalogFirstRecipientTimelineElement, sendAnalogSecondRecipientTimelineElement,
+                feedbackAnalogSecondRecipientTimelineElement, deceasedWorkflowSecondRecipientTimelineElement,
+                analogTimeoutCreationRequestFirstRecipientTimelineElement, analogTimeoutFirstRecipientTimelineElement,
+                secondSendAnalogFirstRecipientTimelineElement, secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement,
+                secondAnalogTimeoutFirstRecipientTimelineElement, analogTimeoutFailureFirstRecipientTimelineElement,
+                firstRecViewedTimelineElement
+        );
+
+
+        // WHEN ask for status history
+        Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
+
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+                timelineElementList,
+                NUMBER_OF_RECIPIENTS,
+                notificationCreatedAt
+        );
+
+        printStatus(actualStatusHistory);
+
+        // THEN status histories have 5 elements
+        Assertions.assertEquals(5, actualStatusHistory.size(), "Check length");
+
+        //  ... 1st initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.IN_VALIDATION)
+                        .activeFrom(notificationCreatedAt)
+                        .relatedTimelineElements(List.of())
+                        .build(),
+                actualStatusHistory.get(0),
+                "1st status wrong"
+        );
+
+        //  ... 2nd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.ACCEPTED)
+                        .activeFrom(requestAcceptedTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("requestAcceptedTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(1),
+                "2nd status wrong"
+        );
+
+        //  ... 3rd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.DELIVERING)
+                        .activeFrom(sendAnalogFirstRecipientTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("sendAnalogFirstRecipientTimelineElement", "sendAnalogSecondRecipientTimelineElement",
+                                "feedbackAnalogSecondRecipientTimelineElement", "deceasedWorkflowSecondRecipientTimelineElement",
+                                "analogTimeoutCreationRequestFirstRecipientTimelineElement", "analogTimeoutFirstRecipientTimelineElement",
+                                "secondSendAnalogFirstRecipientTimelineElement", "secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement",
+                                "secondAnalogTimeoutFirstRecipientTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(2),
+                "3rd status wrong"
+        );
+
+        //  ... 4th initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.DELIVERY_TIMEOUT)
+                        .activeFrom(secondTimeoutFirstRecipientDate)
+                        .relatedTimelineElements(List.of(
+                                "analogTimeoutFailureFirstRecipientTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(3),
+                "4th status wrong"
+        );
+
+        //  ... 5th initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.VIEWED)
+                        .activeFrom(businessViewDate)
+                        .relatedTimelineElements(List.of(
+                                "firstRecViewedTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(4),
+                "5th status wrong"
+        );
+    }
+
+    /*
+       IN_VALIDATION - ACCEPTED - DELIVERING - EFFECTIVE_DATE
+       un destinatario è raggiungibile via domicilio analogico e la notifica viene perfezionata per decorrenza termini.
+       Per l'altro successivamente la consegna viene dichiarata in timeout.
+       Ci aspettiamo che il perfezionamento avvenuto in precedenza
+       non permetta il passaggio in DELIVERED, poichè EFFECTIVE_DATE è uno stato più avanzato.
+       Stato finale: EFFECTIVE_DATE
+    */
+    @Test
+    void getTimelineHistoryMultiRecipientWithOneDigitalWorkflowAndARefinementBeforeAnalogTimeoutWorkflowTest() {
+        final int NUMBER_OF_RECIPIENTS = 2;
+
+        // GIVEN a timeline
+        TimelineElementInternal requestAcceptedTimelineElement = TimelineElementInternal.builder()
+                .elementId("requestAcceptedTimelineElement")
+                .timestamp(Instant.parse("2021-09-10T15:24:00.00Z"))
+                .category(TimelineElementCategoryInt.REQUEST_ACCEPTED)
+                .build();
+        TimelineElementInternal sendAnalogFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendAnalogFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2021-09-11T15:26:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+        Instant sendAnalogTimestamp = Instant.parse("2021-09-12T15:26:00.00Z");
+        TimelineElementInternal sendAnalogSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("sendAnalogSecondRecipientTimelineElement")
+                .timestamp(sendAnalogTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        //PN riceve feedback positivo da External Channels per il primo destinatario
+        TimelineElementInternal feedbackOKFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("feedbackOKFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2021-09-13T15:30:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK)
+                .details(SendAnalogFeedbackDetailsInt.builder().recIndex(0).notificationDate(Instant.parse("2021-09-13T15:00:00.00Z")).build())
+                .build();
+        TimelineElementInternal analogSuccessWorkflowFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogSuccessWorkflowFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2021-09-13T17:30:00.00Z")))
+                .category(TimelineElementCategoryInt.ANALOG_SUCCESS_WORKFLOW)
+                .details(AnalogSuccessWorkflowDetailsInt.builder().recIndex(0).build())
+                .build();
+
+        // Viene effettuato il perfezionamento per decorrenza termini del primo destinatario.
+        Instant firstRecScheduleRefinementBusinessDate = Instant.parse("2021-09-15T18:00:00.00Z");
+        TimelineElementInternal firstRecScheduleRefinementTimelineElement = TimelineElementInternal.builder()
+                .elementId("firstRecScheduleRefinementTimelineElement")
+                .timestamp((Instant.parse("2021-09-15T18:00:00.00Z")))
+                .category(TimelineElementCategoryInt.SCHEDULE_REFINEMENT)
+                .details(ScheduleRefinementDetailsInt.builder()
+                        .recIndex(0)
+                        .schedulingDate(firstRecScheduleRefinementBusinessDate)
+                        .build())
+                .build();
+
+        TimelineElementInternal firstRecRefinementTimelineElement = TimelineElementInternal.builder()
+                .elementId("firstRecRefinementTimelineElement")
+                .timestamp((Instant.parse("2021-09-20T18:02:00.00Z")))
+                .category(TimelineElementCategoryInt.REFINEMENT)
+                .details(RefinementDetailsInt.builder()
+                        .recIndex(0)
+                        .eventTimestamp(Instant.parse("2021-09-20T18:02:00.00Z"))
+                        .build())
+                .build();
+
+
+        // Scade il timeout sul primo tentativo di consegna analogica per il secondo destinatario
+        Instant timeoutDate = sendAnalogTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal analogTimeoutCreationRequestSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutCreationRequestSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-12T18:01:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(timeoutDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutSecondRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutSecondRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-01-12T18:02:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(timeoutDate).build())
+                .build();
+        // 2° Tentativo di consegna analogica
+        Instant secondSendAnalogTimestamp = Instant.parse("2022-01-12T18:07:00.00Z");
+        TimelineElementInternal secondSendAnalogFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondSendAnalogFirstRecipientTimelineElement")
+                .timestamp(secondSendAnalogTimestamp)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        Instant secondTimeoutDate = secondSendAnalogTimestamp.plus(Duration.ofDays(120));
+        TimelineElementInternal secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:10:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT_CREATION_REQUEST)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(secondTimeoutDate).build())
+                .build();
+        TimelineElementInternal secondAnalogTimeoutFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("secondAnalogTimeoutFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:11:00.00Z")))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(secondTimeoutDate).build())
+                .build();
+        TimelineElementInternal analogTimeoutFailureFirstRecipientTimelineElement = TimelineElementInternal.builder()
+                .elementId("analogTimeoutFailureFirstRecipientTimelineElement")
+                .timestamp((Instant.parse("2022-05-12T13:12:00.00Z")))
+                .category(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT)
+                .details(SendAnalogTimeoutCreationRequestDetailsInt.builder().recIndex(0).timeoutDate(secondTimeoutDate).build())
+                .build();
+
+        Set<TimelineElementInternal> timelineElementList = Set.of(requestAcceptedTimelineElement,
+                sendAnalogFirstRecipientTimelineElement, feedbackOKFirstRecipientTimelineElement,
+                analogSuccessWorkflowFirstRecipientTimelineElement, sendAnalogSecondRecipientTimelineElement,
+                firstRecScheduleRefinementTimelineElement, firstRecRefinementTimelineElement,
+                analogTimeoutCreationRequestSecondRecipientTimelineElement, analogTimeoutSecondRecipientTimelineElement,
+                secondSendAnalogFirstRecipientTimelineElement, secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement,
+                secondAnalogTimeoutFirstRecipientTimelineElement, analogTimeoutFailureFirstRecipientTimelineElement
+                );
+
+
+        // WHEN ask for status history
+        Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
+
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+                timelineElementList,
+                NUMBER_OF_RECIPIENTS,
+                notificationCreatedAt
+        );
+
+        printStatus(actualStatusHistory);
+
+        // THEN status histories have 4 elements
+        Assertions.assertEquals(4, actualStatusHistory.size(), "Check length");
+
+        //  ... 1st initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.IN_VALIDATION)
+                        .activeFrom(notificationCreatedAt)
+                        .relatedTimelineElements(List.of())
+                        .build(),
+                actualStatusHistory.get(0),
+                "1st status wrong"
+        );
+
+        //  ... 2nd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.ACCEPTED)
+                        .activeFrom(requestAcceptedTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("requestAcceptedTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(1),
+                "2nd status wrong"
+        );
+
+        //  ... 3rd initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.DELIVERING)
+                        .activeFrom(sendAnalogFirstRecipientTimelineElement.getTimestamp())
+                        .relatedTimelineElements(List.of("sendAnalogFirstRecipientTimelineElement", "sendAnalogSecondRecipientTimelineElement",
+                                "feedbackOKFirstRecipientTimelineElement", "analogSuccessWorkflowFirstRecipientTimelineElement", "firstRecScheduleRefinementTimelineElement"))
+                        .build(),
+                actualStatusHistory.get(2),
+                "3rd status wrong"
+        );
+
+        //  ... 4th initial status
+        Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
+                        .status(NotificationStatusInt.EFFECTIVE_DATE)
+                        .activeFrom(firstRecScheduleRefinementBusinessDate) // Per il perfezionamento viene presa la data di scheduling
+                        .relatedTimelineElements(List.of(
+                                "firstRecRefinementTimelineElement", "analogTimeoutCreationRequestSecondRecipientTimelineElement", "analogTimeoutSecondRecipientTimelineElement",
+                                "secondSendAnalogFirstRecipientTimelineElement", "secondAnalogTimeoutCreationRequestFirstRecipientTimelineElement",
+                                "secondAnalogTimeoutFirstRecipientTimelineElement", "analogTimeoutFailureFirstRecipientTimelineElement"))
                         .build(),
                 actualStatusHistory.get(3),
                 "5th status wrong"
