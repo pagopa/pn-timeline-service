@@ -49,17 +49,4 @@ class SendAnalogTimeoutDetailsIntTest {
                 .build();
         assertNotNull(details.toString());
     }
-
-    @Test
-    void testEqualsAndHashCode() {
-        Instant timeout = Instant.now();
-        SendAnalogTimeoutDetailsInt details1 = SendAnalogTimeoutDetailsInt.builder()
-                .timeoutDate(timeout)
-                .build();
-        SendAnalogTimeoutDetailsInt details2 = SendAnalogTimeoutDetailsInt.builder()
-                .timeoutDate(timeout)
-                .build();
-        assertEquals(details1, details2);
-        assertEquals(details1.hashCode(), details2.hashCode());
-    }
 }

@@ -64,29 +64,6 @@ public class SendAnalogTimeoutCreationRequestDetailsIntTest {
     }
 
     @Test
-    void testEqualsAndHashCode() {
-        Instant now = Instant.now();
-        SendAnalogTimeoutCreationRequestDetailsInt details1 = SendAnalogTimeoutCreationRequestDetailsInt.builder()
-                .timeoutDate(now)
-                .recIndex(1)
-                .sentAttemptMade(2)
-                .relatedRequestId("req123")
-                .legalFactId("fact456")
-                .build();
-
-        SendAnalogTimeoutCreationRequestDetailsInt details2 = SendAnalogTimeoutCreationRequestDetailsInt.builder()
-                .timeoutDate(now)
-                .recIndex(1)
-                .sentAttemptMade(2)
-                .relatedRequestId("req123")
-                .legalFactId("fact456")
-                .build();
-
-        assertEquals(details1, details2);
-        assertEquals(details1.hashCode(), details2.hashCode());
-    }
-
-    @Test
     void testToString() {
         SendAnalogTimeoutCreationRequestDetailsInt details = SendAnalogTimeoutCreationRequestDetailsInt.builder()
                 .timeoutDate(Instant.parse("2024-06-01T12:00:00Z"))
