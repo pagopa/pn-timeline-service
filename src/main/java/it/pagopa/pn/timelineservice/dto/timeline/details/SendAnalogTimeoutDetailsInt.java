@@ -11,7 +11,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @SuperBuilder(toBuilder = true)
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @ToString
 public class SendAnalogTimeoutDetailsInt extends BaseAnalogDetailsInt implements ElementTimestampTimelineElementDetails {
 
