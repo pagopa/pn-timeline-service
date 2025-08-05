@@ -6,7 +6,7 @@
     "TimelinesDynamoTableName": "pn-Timelines",
     "TimelinesCounterTableName": "pn-TimelinesCounters",
     "PnDeliveryPushShedLockDynamoTableName": "pn-PnDeliveryPushShedLock",
-    "PnCronAnalyzer": "* */1 * * * *",
+    "PnCronAnalyzer": "-",
     "WireTapLogActivation": "false",
     "MountEfs": "false",
     "CpuValue": "2048",
