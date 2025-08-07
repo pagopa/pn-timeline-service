@@ -172,6 +172,10 @@ Parameters:
     Type: Number
     Description: maximum autoscaling number of tasks
 
+  LogAlarmStrategy:
+    Type: String
+    Default: 'FATAL'
+
 Resources:
 
   # PN-timeline-service microservice
@@ -212,6 +216,7 @@ Resources:
         MountEfs: !Ref MountEfs
         WireTapLogActivation: !Ref WireTapLogActivation
         TaskRoleManagedPolicyArn: !Ref TimelineServiceMicroserviceTaskManagedPolicy
+        LogAlarmStrategyV1: !Ref LogAlarmStrategy
 
   TimelineServiceMicroserviceTaskManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
