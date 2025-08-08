@@ -8,12 +8,10 @@ components:
         type:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: tipo di indirizzo PEC, REM, SERCQ, SMS, EMAIL, APPIO ...
         address:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: account@domain
 
     DigitalAddress:
@@ -41,46 +39,37 @@ components:
         fullname:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
         at:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: Campo "presso" dell'indirizzo
         address:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: Indirizzo del domicilio fisico
         addressDetails:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: Seconda riga dell'indirizzo fisico
         zip:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: Codice di avviamento postale. In caso di invio estero diventa facoltativo
         municipality:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: Comune in cui l'indirizzo si trova
         municipalityDetails:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: Frazione o località
         province:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: Provincia in cui si trova l'indirizzo
         foreignState:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          format: password  # NO EXTERNAL
           description: Denominazione paese estero
       description: Indirizzo fisico scoperto durante fase di consegna
     
