@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
     <artifactId>pn-timeline-service</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1-RC.1</version>
     <name>pn-template-service</name>
     <description>A template for timeline Microservice</description>
     <scm>
