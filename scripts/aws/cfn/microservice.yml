@@ -172,6 +172,11 @@ Parameters:
     Type: Number
     Description: maximum autoscaling number of tasks
 
+  # Log group parameters
+  EcsLogGroup:
+    Type: String
+    Description: 'Ecs log group name'
+
   LogAlarmStrategy:
     Type: String
     Default: 'FATAL'
@@ -217,6 +222,7 @@ Resources:
         WireTapLogActivation: !Ref WireTapLogActivation
         TaskRoleManagedPolicyArn: !Ref TimelineServiceMicroserviceTaskManagedPolicy
         LogAlarmStrategyV1: !Ref LogAlarmStrategy
+        EcsLogGroup: !Ref EcsLogGroup
 
   TimelineServiceMicroserviceTaskManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
