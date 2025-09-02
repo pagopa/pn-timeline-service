@@ -45,6 +45,5 @@ Resources:
         LogGroupRetention: !Ref LogRetention
 
 Outputs:
-    SampleOutput:
-      Description: A Sample Output
-      Value: 'na'
+  EcsLogGroup:
+    Value: !GetAtt PnTimelineServiceLogGroup.Outputs.LogGroupName
