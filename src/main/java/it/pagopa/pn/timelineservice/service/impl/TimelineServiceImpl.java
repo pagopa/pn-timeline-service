@@ -314,6 +314,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     @Override
     public Mono<DeliveryInformationResponse> getDeliveryInformation(String iun, Integer recIndex) {
+        log.debug("getDeliveryInformation Start - iun={} recIndex={} ", iun, recIndex);
         return getTimeline(iun, null, false, true)
                 .collectList()
                 .doOnNext(this::checkTimelineForCurrentIun)
