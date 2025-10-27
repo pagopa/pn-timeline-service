@@ -460,4 +460,31 @@ class TimelineControllerTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void getDeliveryInformationReturnsMappedResponse() {
+        String iun = "testIun";
+        Integer recIndex = 0;
+
+        DeliveryInformationResponse expectedResponse = new DeliveryInformationResponse();
+        expectedResponse.setDeliveryMode(DeliveryMode.ANALOG);
+        expectedResponse.setIsNotificationCancelled(true);
+        expectedResponse.setRefinementOrViewedDate(Instant.now());
+        expectedResponse.setSchedulingAnalogDate(Instant.now().plus(1, ChronoUnit.DAYS));
+
+        when(timelineService.getDeliveryInformation(iun, recIndex)).thenReturn(Mono.just(expectedResponse));
+
+        var response = timelineController.getDeliveryInformation(iun, recIndex, null);
+
+        StepVerifier.create(response)
+                .assertNext(entity -> {
+                    var body = entity.getBody();
+                    assertNotNull(body);
+                    Assertions.assertEquals(expectedResponse.getDeliveryMode(), body.getDeliveryMode());
+                    Assertions.assertEquals(expectedResponse.getIsNotificationCancelled(), body.getIsNotificationCancelled());
+                    Assertions.assertEquals(expectedResponse.getRefinementOrViewedDate(), body.getRefinementOrViewedDate());
+                    Assertions.assertEquals(expectedResponse.getSchedulingAnalogDate(), body.getSchedulingAnalogDate());
+                })
+                .verifyComplete();
+    }
 }

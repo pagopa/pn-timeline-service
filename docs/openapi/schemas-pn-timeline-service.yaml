@@ -1523,6 +1523,7 @@ components:
       enum:
         - DIGITAL
         - ANALOG
+        - UNKNOWN
 
     EndWorkflowStatus:
       type: string

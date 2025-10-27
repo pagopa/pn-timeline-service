@@ -8,7 +8,7 @@ class DeliveryModeIntTest {
     @ParameterizedTest
     @EnumSource(DeliveryModeInt.class)
     void test(DeliveryModeInt data) {
-        EnumSet<DeliveryModeInt> datas = EnumSet.of(DeliveryModeInt.DIGITAL, DeliveryModeInt.ANALOG);
+        EnumSet<DeliveryModeInt> datas = EnumSet.of(DeliveryModeInt.DIGITAL, DeliveryModeInt.ANALOG, DeliveryModeInt.UNKNOWN);
         Assertions.assertTrue(datas.contains(data));
     }
 }

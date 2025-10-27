@@ -80,4 +80,10 @@ public class TimelineController implements TimelineControllerApi {
         return timelineService.retrieveAndIncrementCounterForTimelineEvent(timelineId)
                 .map(ResponseEntity::ok);
     }
+
+    @Override
+    public Mono<ResponseEntity<DeliveryInformationResponse>> getDeliveryInformation(String iun, Integer recIndex, final ServerWebExchange exchange) {
+        return timelineService.getDeliveryInformation(iun, recIndex)
+                .map(ResponseEntity::ok);
+    }
 }

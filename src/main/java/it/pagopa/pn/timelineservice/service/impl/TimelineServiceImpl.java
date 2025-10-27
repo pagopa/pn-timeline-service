@@ -18,6 +18,8 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelin
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
+import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
@@ -27,6 +29,8 @@ import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.utils.CompletedDeliveryWorkflowCategory;
 import it.pagopa.pn.timelineservice.utils.StatusUtils;
+import it.pagopa.pn.timelineservice.utils.extraction.TimelineDataExtractionEngine;
+import it.pagopa.pn.timelineservice.utils.extraction.mapper.DeliveryInfoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockConfiguration;
@@ -42,7 +46,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.*;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
 
 
@@ -306,6 +310,21 @@ public class TimelineServiceImpl implements TimelineService {
                 .map(timelineElements -> getAndSetStatusHistory(timelineElements, numberOfRecipients, createdAt, notificationHistoryInt))
                 .map(this::getAndSetCurrentStatus)
                 .map(notificationStatusInt -> remapTimelineElements(notificationHistoryInt));
+    }
+
+    @Override
+    public Mono<DeliveryInformationResponse> getDeliveryInformation(String iun, Integer recIndex) {
+        return getTimeline(iun, null, false, true)
+                .collectList()
+                .doOnNext(this::checkTimelineForCurrentIun)
+                .map(timelineElements -> new TimelineDataExtractionEngine.EngineBuilder()
+                        .executeAndMap(timelineElements, new DeliveryInfoMapper(recIndex)));
+    }
+
+    private void checkTimelineForCurrentIun(List<TimelineElementInternal> timelineList) {
+        if (timelineList.isEmpty()) {
+            throw new PnNotFoundException("IUN not found", "No timeline elements found for the given IUN", ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN);
+        }
     }
 
     private NotificationHistoryInt getAndSetCurrentStatus(NotificationHistoryInt notificationHistoryInt) {
