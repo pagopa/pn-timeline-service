@@ -11,7 +11,7 @@ import static it.pagopa.pn.timelineservice.utils.extraction.extractor.ExtractorU
 
 @Slf4j
 public class SchedulingAnalogDateExtractor implements TimelineDataExtractor<Instant> {
-    public final static ExtractorKey<Instant> KEY = ExtractorKey.of("schedulingAnalogDate", Instant.class);
+    public static final ExtractorKey<Instant> KEY = ExtractorKey.of("schedulingAnalogDate", Instant.class);
     private Instant result;
     private final int recIndex;
     public SchedulingAnalogDateExtractor(int recIndex) {

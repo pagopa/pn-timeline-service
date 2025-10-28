@@ -24,12 +24,12 @@ public class ExtractionResult {
      */
     @SuppressWarnings("unchecked")
     public <T> Optional<T> get(ExtractorKey<T> key) {
-        Optional<?> result = results.get(key);
-        if (result == null) {
+        if(!results.containsKey(key)) {
             throw new PnInternalException(
                     "Nessun estrattore registrato per la chiave: " + key.getName(), INVALID_EXTRACTOR_ERROR_CODE
             );
         }
+        Optional<?> result = results.get(key);
         return (Optional<T>) result;
     }
 

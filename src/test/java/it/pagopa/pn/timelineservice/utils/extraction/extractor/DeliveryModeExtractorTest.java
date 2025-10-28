@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-public class DeliveryModeExtractorTest {
+class DeliveryModeExtractorTest {
 
     @Test
     void returnsDigitalWhenSendDigitalDetailsIntIsPresentAndRelatedToRecipient() {

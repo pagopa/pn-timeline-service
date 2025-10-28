@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Optional;
 
-public class SchedulingAnalogDateExtractorTest {
+class SchedulingAnalogDateExtractorTest {
 
     @Test
     void returnsSchedulingDateFromScheduleAnalogWorkflowDetailsInt() {

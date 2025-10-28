@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Optional;
 
-public class TimelineDataExtractorTest {
+class TimelineDataExtractorTest {
 
     @Test
     void extractsDigitalDeliveryModeForRecipient() {

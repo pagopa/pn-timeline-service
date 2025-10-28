@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class IsCancelledExtractor implements  TimelineDataExtractor<Boolean> {
-    public final static ExtractorKey<Boolean> KEY = ExtractorKey.of("isCancelled", Boolean.class);
+    public static final ExtractorKey<Boolean> KEY = ExtractorKey.of("isCancelled", Boolean.class);
     private Boolean result = false;
 
     @Override

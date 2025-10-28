@@ -3,7 +3,7 @@ package it.pagopa.pn.timelineservice.utils.extraction.extractor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class ExtractorKeyTest {
+class ExtractorKeyTest {
 
     @Test
     void createsExtractorKeyWithCorrectNameAndType() {

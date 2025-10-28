@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ExtractorUtilsTest {
+class ExtractorUtilsTest {
 
     private TimelineElementDetailsInt details;
     private RecipientRelatedTimelineElementDetails recipientRelatedTimelineElementDetails;

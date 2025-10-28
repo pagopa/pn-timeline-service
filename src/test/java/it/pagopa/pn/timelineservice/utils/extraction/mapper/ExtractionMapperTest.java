@@ -13,7 +13,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
-public class ExtractionMapperTest {
+class ExtractionMapperTest {
 
     private TimelineDataExtractor extractor;
 
@@ -36,6 +36,6 @@ public class ExtractionMapperTest {
         assertEquals("mappedValue", mapper.map(result));
         List<TimelineDataExtractor<?>> extractors = mapper.extractors();
         assertEquals(1, extractors.size());
-        assertEquals(extractor, extractors.get(0));
+        assertEquals(extractor, extractors.getFirst());
     }
 }

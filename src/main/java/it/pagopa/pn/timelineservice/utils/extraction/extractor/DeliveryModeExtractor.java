@@ -5,8 +5,6 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 
 import java.util.Optional;
 
-import static it.pagopa.pn.timelineservice.utils.extraction.extractor.ExtractorUtils.isRelatedToRecipient;
-
 public class DeliveryModeExtractor implements TimelineDataExtractor<DeliveryModeInt> {
     public static final ExtractorKey<DeliveryModeInt> KEY = ExtractorKey.of("deliveryMode", DeliveryModeInt.class);
     private final int recIndex;
@@ -26,21 +24,19 @@ public class DeliveryModeExtractor implements TimelineDataExtractor<DeliveryMode
 
     @Override
     public boolean process(TimelineElementInternal element) {
-        if (!isRelatedToRecipient(element, this.recIndex)) {
-            return false;
+        if(ExtractorUtils.isRelatedToRecipient(element, recIndex)) {
+            TimelineElementDetailsInt detailsInt = element.getDetails();
+
+            if (detailsInt instanceof SendDigitalDetailsInt) {
+                isSendDigitalPresent = true;
+            } else if (detailsInt instanceof ScheduleAnalogWorkflowDetailsInt) {
+                isScheduleAnalogWorkflowPresent = true;
+            } else if (detailsInt instanceof ProbableDateAnalogWorkflowDetailsInt) {
+                isProbableDateAnalogWorkflowPresent = true;
+            }
         }
 
-        TimelineElementDetailsInt detailsInt = element.getDetails();
-
-        if (detailsInt instanceof SendDigitalDetailsInt) {
-            isSendDigitalPresent = true;
-        } else if (detailsInt instanceof ScheduleAnalogWorkflowDetailsInt) {
-            isScheduleAnalogWorkflowPresent = true;
-        } else if (detailsInt instanceof ProbableDateAnalogWorkflowDetailsInt) {
-            isProbableDateAnalogWorkflowPresent = true;
-        }
-
-    return false;
+        return false;
     }
 
     @Override

@@ -13,7 +13,7 @@ import static it.pagopa.pn.timelineservice.utils.extraction.extractor.ExtractorU
 
 @Slf4j
 public class RefinementOrViewDateExtractor implements TimelineDataExtractor<Instant> {
-    public final static ExtractorKey<Instant> KEY = ExtractorKey.of("refinementOrViewDate", Instant.class);
+    public static final ExtractorKey<Instant> KEY = ExtractorKey.of("refinementOrViewDate", Instant.class);
     private final int recIndex;
     private Instant result;
     private Instant refinementDate;

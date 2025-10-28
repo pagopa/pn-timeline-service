@@ -13,6 +13,7 @@ public class ExtractorUtils {
 
     public static boolean isRelatedToRecipient(TimelineElementInternal timelineElement, int recIndex) {
         TimelineElementDetailsInt detailsInt = timelineElement.getDetails();
-        return detailsInt instanceof RecipientRelatedTimelineElementDetails && ((RecipientRelatedTimelineElementDetails) detailsInt).getRecIndex() == recIndex;
+        return detailsInt instanceof RecipientRelatedTimelineElementDetails recipientRelatedTimelineElementDetails &&
+                recipientRelatedTimelineElementDetails.getRecIndex() == recIndex;
     }
 }

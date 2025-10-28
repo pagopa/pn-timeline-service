@@ -14,15 +14,13 @@ import java.util.Optional;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class RefinementOrViewDateExtractorTest {
+class RefinementOrViewDateExtractorTest {
 
     private TimelineElementDetailsInt timelineElementDetailsInt;
-    private ExtractorUtils extractorUtils;
 
     @BeforeEach
     void setUp() {
         timelineElementDetailsInt = mock(TimelineElementDetailsInt.class);
-        extractorUtils = mock(ExtractorUtils.class);
     }
 
     @Test

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class DeliveryInfoMapperTest {
+class DeliveryInfoMapperTest {
 
     @Test
     void mapShouldReturnCorrectDeliveryInformationResponse() {
