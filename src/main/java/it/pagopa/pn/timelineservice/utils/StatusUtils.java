@@ -3,10 +3,7 @@ package it.pagopa.pn.timelineservice.utils;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.AnalogWorfklowRecipientDeceasedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationViewedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import org.springframework.stereotype.Component;
@@ -58,7 +55,7 @@ public class StatusUtils {
         NotificationStatusInt currentState = INITIAL_STATUS;
         int numberOfCompletedWorkflow = 0;
 
-        for (TimelineElementInternal timelineElement : timelineByTimestampSorted) {
+        for (TimelineElementInternal timelineElement : getNotInvalidatedTimelineElements(timelineByTimestampSorted)) {
 
             TimelineElementCategoryInt category = timelineElement.getCategory();
 
@@ -113,6 +110,19 @@ public class StatusUtils {
         timelineHistory.add(statusHistoryElement);
 
         return timelineHistory;
+    }
+
+    private List<TimelineElementInternal> getNotInvalidatedTimelineElements(List<TimelineElementInternal> timelineByTimestampSorted) {
+        List<String> invalidatedTimelineElements = timelineByTimestampSorted.stream()
+                .filter(e -> e.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED))
+                .flatMap(e -> ((NotificationTimelineReworkedDetailsInt) e.getDetails())
+                        .getInvalidatedTimelineAndStatusHistory().stream())
+                .flatMap(timelineElem -> timelineElem.getRelatedTimelineElements().stream())
+                .toList();
+
+        return timelineByTimestampSorted.stream()
+                .filter(elem -> !invalidatedTimelineElements.contains(elem.getElementId()))
+                .toList();
     }
 
     private NotificationStatusInt getNextState(NotificationStatusInt currentState, List<TimelineElementCategoryInt> relatedCategoryElements, int numberOfRecipient) {

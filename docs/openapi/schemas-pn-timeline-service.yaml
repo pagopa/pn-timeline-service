@@ -75,6 +75,7 @@ components:
         - SEND_ANALOG_TIMEOUT_CREATION_REQUEST
         - SEND_ANALOG_TIMEOUT
         - ANALOG_FAILURE_WORKFLOW_TIMEOUT
+        - NOTIFICATION_TIMELINE_REWORKED
     StatusInfo:
       type: object
       properties:
@@ -180,6 +181,7 @@ components:
         - "$ref": "#/components/schemas/SendAnalogTimeoutCreationRequestDetails"
         - "$ref": "#/components/schemas/SendAnalogTimeoutDetails"
         - "$ref": "#/components/schemas/AnalogFailureWorkflowTimeoutDetails"
+        - "$ref": "#/components/schemas/NotificationTimelineReworkedDetails"
       discriminator:
         propertyName: "categoryType"
 
@@ -1803,6 +1805,84 @@ components:
           format: date-time
         categoryType:
           type: string
+
+    NotificationTimelineReworkedDetails:
+      x-discriminator-value: "NOTIFICATION_TIMELINE_REWORKED"
+      type: object
+      required:
+        - recIndex
+        - sentAttemptMade
+        - InvalidatedTimelineElementsIds
+        - reason
+        - categoryType
+      properties:
+        recIndex:
+          type: integer
+          description: Index destinatario notifica digitale
+          format: int32
+        sentAttemptMade:
+          type: integer
+          description: numero dei tentativi effettuati
+          format: int32
+        InvalidatedTimelineAndStatusHistory:
+          description: elenco degli avanzamenti effettuati dal processo di notifica prima dell'invalidazione
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationStatusHistoryElementV26'
+        reason:
+          type: string
+          description: motivo dell'invalidazione in formato testuale
+        categoryType:
+          type: string
+
+    NotificationStatusV26:
+      type: string
+      description: |
+        stato di avanzamento del processo di notifica:
+          * `IN_VALIDATION` - notifica depositata in attesa di validazione
+          * `ACCEPTED` - L'ente ha depositato la notifica con successo
+          * `REFUSED` - Notifica rifiutata a seguito della validazione
+          * `DELIVERING` - L'invio della notifica è in corso
+          * `DELIVERED` - La notifica è stata consegnata a tutti i destinatari
+          * `VIEWED` - Il destinatario ha letto la notifica entro il termine stabilito
+          * `EFFECTIVE_DATE` - Il destinatario non ha letto la notifica entro il termine stabilito
+          * `UNREACHABLE` - Il destinatario non è reperibile
+          * `CANCELLED` - L'ente ha annullato l'invio della notifica
+          * `PAID` - [DEPRECATO] Uno dei destinatari ha pagato la notifica
+          * `RETURNED_TO_SENDER` - La notifica è stata restituita al mittente
+      enum:
+        - IN_VALIDATION
+        - ACCEPTED
+        - REFUSED
+        - DELIVERING
+        - DELIVERED
+        - VIEWED
+        - EFFECTIVE_DATE
+        - PAID
+        - UNREACHABLE
+        - CANCELLED
+        - RETURNED_TO_SENDER
+
+
+    NotificationStatusHistoryElementV26:
+      description: elenco degli avanzamenti effettuati dal processo di notifica
+      type: object
+      required:
+        - status
+        - activeFrom
+        - relatedTimelineElements
+      properties:
+        status:
+          $ref: '#/components/schemas/NotificationStatusV26'
+        activeFrom:
+          type: string
+          description: data e ora di raggiungimento dello stato di avanzamento
+          format: date-time
+        relatedTimelineElements:
+          type: array
+          description: Eventi avvenuti nello stato
+          items:
+            $ref: '#/components/schemas/TimelineElementId'
 
     RecipientType:
       type: string
