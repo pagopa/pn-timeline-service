@@ -7,7 +7,7 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHi
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatusHistoryElementV26;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatusHistoryElement;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
@@ -2015,7 +2015,7 @@ class StatusUtilsTest {
                 .details(AnalogWorfklowRecipientDeceasedDetailsInt.builder().recIndex(0).notificationDate(feedbackFirstRecipientBusinessDate).build())
                 .build();
 
-        NotificationStatusHistoryElementV26 notificationStatusHistory = new NotificationStatusHistoryElementV26();
+        NotificationStatusHistoryElement notificationStatusHistory = new NotificationStatusHistoryElement();
         notificationStatusHistory.setRelatedTimelineElements(List.of("deceasedWorkflowFirstRecipientTimelineElement", "feedbackFirstRecipientTimelineElement"));
 
         TimelineElementInternal notificationReworkTimelineElement = TimelineElementInternal.builder()
