@@ -56,12 +56,17 @@ public enum TimelineElementCategoryInt {
     PUBLIC_REGISTRY_VALIDATION_RESPONSE(PublicRegistryValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_27),
     SEND_ANALOG_TIMEOUT_CREATION_REQUEST(SendAnalogTimeoutCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
     SEND_ANALOG_TIMEOUT(SendAnalogTimeoutDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
-    ANALOG_FAILURE_WORKFLOW_TIMEOUT(AnalogFailureWorkflowTimeoutDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_FAILURE_WORKFLOW_TIMEOUT, TimelineElementCategoryInt.VERSION_28);
+    ANALOG_FAILURE_WORKFLOW_TIMEOUT(AnalogFailureWorkflowTimeoutDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_FAILURE_WORKFLOW_TIMEOUT, TimelineElementCategoryInt.VERSION_28),
+    NOTIFICATION_TIMELINE_REWORKED(NotificationTimelineReworkedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_NOTIFICATION_TIMELINE_REWORKED, TimelineElementCategoryInt.VERSION_27);
 
     private final Class<? extends TimelineElementDetailsInt> detailsJavaClass;
     private final int priority;
     private final int version;
 
+    public static final int PRIORITY_BEFORE = 10;
+    public static final int PRIORITY_AFTER = 20;
+
+    public static final int PRIORITY_NOTIFICATION_TIMELINE_REWORKED = PRIORITY_AFTER;
     public static final int PRIORITY_SEND_ANALOG_FEEDBACK = 30;
     public static final int PRIORITY_ANALOG_SUCCESS_WORKFLOW = 40;
     public static final int PRIORITY_ANALOG_FAILURE_WORKFLOW = 40;
@@ -70,9 +75,6 @@ public enum TimelineElementCategoryInt {
     public static final int PRIORITY_COMPLETELY_UNREACHABLET = 60;
     public static final int PRIORITY_SCHEDULE_REFINEMENT = 70;
     public static final int PRIORITY_ANALOG_FAILURE_WORKFLOW_TIMEOUT = 70;
-
-    public static final int PRIORITY_BEFORE = 10;
-    public static final int PRIORITY_AFTER = 20;
 
     public static final int VERSION_10 = 10;
     public static final int VERSION_20 = 20;
