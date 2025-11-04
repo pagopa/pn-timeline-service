@@ -1830,7 +1830,7 @@ components:
           description: elenco degli avanzamenti effettuati dal processo di notifica prima dell'invalidazione
           type: array
           items:
-            $ref: '#/components/schemas/NotificationStatusHistoryElementV26'
+            $ref: "./pn-timeline-service-private.yaml#/components/schemas/NotificationStatusHistoryElement"
         reason:
           type: string
           description: motivo dell'invalidazione in formato testuale
