@@ -2,9 +2,10 @@ package it.pagopa.pn.timelineservice.utils.extraction;
 
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.DeliveryModeInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.ExtendedDeliveryModeInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.ScheduleAnalogWorkflowDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendDigitalDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.utils.extraction.extractor.DeliveryModeExtractor;
 import it.pagopa.pn.timelineservice.utils.extraction.mapper.ExtractionMapper;
 import it.pagopa.pn.timelineservice.utils.extraction.model.ExtractionResult;
@@ -26,7 +27,7 @@ class TimelineDataExtractionEngineTest {
     void setUp() {
         mapper = mock(ExtractionMapper.class);
         Mockito.when(mapper.extractors()).thenReturn(List.of(new DeliveryModeExtractor(0)));
-        Mockito.when(mapper.map(Mockito.any())).thenReturn(DeliveryModeInt.DIGITAL.getValue());
+        Mockito.when(mapper.map(Mockito.any())).thenReturn(ExtendedDeliveryModeInt.DIGITAL.getValue());
     }
 
     @Test
@@ -45,10 +46,11 @@ class TimelineDataExtractionEngineTest {
         details.setRecIndex(recIndex);
         TimelineElementInternal element = TimelineElementInternal.builder()
                 .details(details)
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
                 .build();
         DeliveryModeExtractor extractor = new DeliveryModeExtractor(recIndex);
         ExtractionResult result = engine.extract(List.of(element), List.of(extractor));
-        assertEquals(Optional.of(it.pagopa.pn.timelineservice.dto.timeline.details.DeliveryModeInt.DIGITAL), result.get(DeliveryModeExtractor.KEY));
+        assertEquals(Optional.of(it.pagopa.pn.timelineservice.dto.timeline.details.ExtendedDeliveryModeInt.DIGITAL), result.get(DeliveryModeExtractor.KEY));
     }
 
     @Test
@@ -59,10 +61,11 @@ class TimelineDataExtractionEngineTest {
         details.setRecIndex(recIndex);
         TimelineElementInternal element = TimelineElementInternal.builder()
                 .details(details)
+                .category(TimelineElementCategoryInt.SCHEDULE_ANALOG_WORKFLOW)
                 .build();
         DeliveryModeExtractor extractor = new DeliveryModeExtractor(recIndex);
         ExtractionResult result = engine.extract(List.of(element), List.of(extractor));
-        assertEquals(Optional.of(it.pagopa.pn.timelineservice.dto.timeline.details.DeliveryModeInt.ANALOG), result.get(DeliveryModeExtractor.KEY));
+        assertEquals(Optional.of(it.pagopa.pn.timelineservice.dto.timeline.details.ExtendedDeliveryModeInt.ANALOG), result.get(DeliveryModeExtractor.KEY));
     }
 
     @Test
@@ -74,7 +77,7 @@ class TimelineDataExtractionEngineTest {
                 .build();
         DeliveryModeExtractor extractor = new DeliveryModeExtractor(recIndex);
         ExtractionResult result = engine.extract(List.of(element), List.of(extractor));
-        assertEquals(Optional.of(it.pagopa.pn.timelineservice.dto.timeline.details.DeliveryModeInt.UNKNOWN), result.get(DeliveryModeExtractor.KEY));
+        assertEquals(Optional.of(it.pagopa.pn.timelineservice.dto.timeline.details.ExtendedDeliveryModeInt.UNKNOWN), result.get(DeliveryModeExtractor.KEY));
     }
 
     @Test
@@ -95,11 +98,12 @@ class TimelineDataExtractionEngineTest {
         details.setRecIndex(recIndex);
         TimelineElementInternal element = TimelineElementInternal.builder()
                 .details(details)
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
                 .build();
         DeliveryModeExtractor extractor = new DeliveryModeExtractor(recIndex);
         builder.add(extractor);
         ExtractionResult result = builder.execute(List.of(element));
-        assertEquals(Optional.of(it.pagopa.pn.timelineservice.dto.timeline.details.DeliveryModeInt.DIGITAL), result.get(DeliveryModeExtractor.KEY));
+        assertEquals(Optional.of(it.pagopa.pn.timelineservice.dto.timeline.details.ExtendedDeliveryModeInt.DIGITAL), result.get(DeliveryModeExtractor.KEY));
     }
 
     @Test
@@ -113,7 +117,7 @@ class TimelineDataExtractionEngineTest {
                 .build();
 
         String mappedValue = builder.executeAndMap(List.of(element), mapper);
-        assertEquals(DeliveryModeInt.DIGITAL.getValue(), mappedValue);
+        assertEquals(ExtendedDeliveryModeInt.DIGITAL.getValue(), mappedValue);
     }
 
 }

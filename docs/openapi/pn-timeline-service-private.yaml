@@ -442,7 +442,7 @@ components:
         - isNotificationCancelled
       properties:
         deliveryMode:
-          $ref: './schemas-pn-timeline-service.yaml#/components/schemas/DeliveryMode'
+          $ref: './schemas-pn-timeline-service.yaml#/components/schemas/ExtendedDeliveryMode'
         refinementOrViewedDate:
           type: string
           description: Data e ora di perfezionamento per decorrenza termini o per presa visione della notifica

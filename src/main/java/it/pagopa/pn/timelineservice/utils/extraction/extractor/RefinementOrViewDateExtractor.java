@@ -3,6 +3,7 @@ package it.pagopa.pn.timelineservice.utils.extraction.extractor;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationViewedCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RefinementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,12 +37,13 @@ public class RefinementOrViewDateExtractor implements TimelineDataExtractor<Inst
         }
 
         TimelineElementDetailsInt detailsInt = element.getDetails();
-        if(detailsInt instanceof NotificationViewedCreationRequestDetailsInt viewedCreationRequestDetailsInt) {
+        TimelineElementCategoryInt category = element.getCategory();
+        if(category == TimelineElementCategoryInt.NOTIFICATION_VIEWED_CREATION_REQUEST && detailsInt instanceof NotificationViewedCreationRequestDetailsInt viewedCreationRequestDetailsInt) {
             log.debug("RefinementOrViewDateExtractor - found NotificationViewedCreationRequestDetailsInt for iun={}", element.getIun());
             this.viewDate = viewedCreationRequestDetailsInt.getEventTimestamp();
         }
 
-        if(detailsInt instanceof RefinementDetailsInt refinementDetailsInt) {
+        if(category == TimelineElementCategoryInt.REFINEMENT && detailsInt instanceof RefinementDetailsInt refinementDetailsInt) {
             log.debug("RefinementOrViewDateExtractor - found RefinementDetailsInt for iun={}", element.getIun());
             this.refinementDate = refinementDetailsInt.getEventTimestamp();
         }

@@ -1,9 +1,12 @@
 package it.pagopa.pn.timelineservice.utils.extraction.mapper;
 
-import it.pagopa.pn.timelineservice.dto.timeline.details.DeliveryModeInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.ExtendedDeliveryModeInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryMode;
-import it.pagopa.pn.timelineservice.utils.extraction.extractor.*;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.ExtendedDeliveryMode;
+import it.pagopa.pn.timelineservice.utils.extraction.extractor.DeliveryModeExtractor;
+import it.pagopa.pn.timelineservice.utils.extraction.extractor.IsCancelledExtractor;
+import it.pagopa.pn.timelineservice.utils.extraction.extractor.RefinementOrViewDateExtractor;
+import it.pagopa.pn.timelineservice.utils.extraction.extractor.SchedulingAnalogDateExtractor;
 import it.pagopa.pn.timelineservice.utils.extraction.model.ExtractionResult;
 import org.junit.jupiter.api.Test;
 
@@ -12,8 +15,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DeliveryInfoMapperTest {
 
@@ -29,7 +30,7 @@ class DeliveryInfoMapperTest {
                 SchedulingAnalogDateExtractor.KEY, Optional.of(schedulingAnalogDate.toInstant()),
                 IsCancelledExtractor.KEY, Optional.of(true),
                 RefinementOrViewDateExtractor.KEY, Optional.of(refinementOrViewedDate.toInstant()),
-                DeliveryModeExtractor.KEY, Optional.of(DeliveryModeInt.DIGITAL)
+                DeliveryModeExtractor.KEY, Optional.of(ExtendedDeliveryModeInt.DIGITAL)
         ));
 
         DeliveryInformationResponse response = mapper.map(result);
@@ -37,7 +38,7 @@ class DeliveryInfoMapperTest {
         assertEquals(schedulingAnalogDate.toInstant(), response.getSchedulingAnalogDate());
         assertTrue(response.getIsNotificationCancelled());
         assertEquals(refinementOrViewedDate.toInstant(), response.getRefinementOrViewedDate());
-        assertEquals(DeliveryMode.DIGITAL, response.getDeliveryMode());
+        assertEquals(ExtendedDeliveryMode.DIGITAL, response.getDeliveryMode());
     }
 
     @Test

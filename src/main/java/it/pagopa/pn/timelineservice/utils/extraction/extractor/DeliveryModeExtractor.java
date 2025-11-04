@@ -5,10 +5,10 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 
 import java.util.Optional;
 
-public class DeliveryModeExtractor implements TimelineDataExtractor<DeliveryModeInt> {
-    public static final ExtractorKey<DeliveryModeInt> KEY = ExtractorKey.of("deliveryMode", DeliveryModeInt.class);
+public class DeliveryModeExtractor implements TimelineDataExtractor<ExtendedDeliveryModeInt> {
+    public static final ExtractorKey<ExtendedDeliveryModeInt> KEY = ExtractorKey.of("deliveryMode", ExtendedDeliveryModeInt.class);
     private final int recIndex;
-    private DeliveryModeInt result = DeliveryModeInt.UNKNOWN;
+    private ExtendedDeliveryModeInt result = ExtendedDeliveryModeInt.UNKNOWN;
     private boolean isSendDigitalPresent = false;
     private boolean isProbableDateAnalogWorkflowPresent = false;
     private boolean isScheduleAnalogWorkflowPresent = false;
@@ -18,20 +18,20 @@ public class DeliveryModeExtractor implements TimelineDataExtractor<DeliveryMode
     }
 
     @Override
-    public ExtractorKey<DeliveryModeInt> getKey() {
+    public ExtractorKey<ExtendedDeliveryModeInt> getKey() {
         return KEY;
     }
 
     @Override
     public boolean process(TimelineElementInternal element) {
         if(ExtractorUtils.isRelatedToRecipient(element, recIndex)) {
-            TimelineElementDetailsInt detailsInt = element.getDetails();
+            TimelineElementCategoryInt categoryInt = element.getCategory();
 
-            if (detailsInt instanceof SendDigitalDetailsInt) {
+            if (categoryInt == TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE) {
                 isSendDigitalPresent = true;
-            } else if (detailsInt instanceof ScheduleAnalogWorkflowDetailsInt) {
+            } else if (categoryInt == TimelineElementCategoryInt.SCHEDULE_ANALOG_WORKFLOW) {
                 isScheduleAnalogWorkflowPresent = true;
-            } else if (detailsInt instanceof ProbableDateAnalogWorkflowDetailsInt) {
+            } else if (categoryInt == TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE) {
                 isProbableDateAnalogWorkflowPresent = true;
             }
         }
@@ -42,16 +42,16 @@ public class DeliveryModeExtractor implements TimelineDataExtractor<DeliveryMode
     @Override
     public void postProcess() {
         if(isSendDigitalPresent) {
-            this.result = DeliveryModeInt.DIGITAL;
-        } else if((isScheduleAnalogWorkflowPresent || isProbableDateAnalogWorkflowPresent)) {
-            this.result = DeliveryModeInt.ANALOG;
+            this.result = ExtendedDeliveryModeInt.DIGITAL;
+        } else if(isScheduleAnalogWorkflowPresent || isProbableDateAnalogWorkflowPresent) {
+            this.result = ExtendedDeliveryModeInt.ANALOG;
         } else {
-            this.result = DeliveryModeInt.UNKNOWN;
+            this.result = ExtendedDeliveryModeInt.UNKNOWN;
         }
     }
 
     @Override
-    public Optional<DeliveryModeInt> getResult() {
+    public Optional<ExtendedDeliveryModeInt> getResult() {
         return Optional.ofNullable(this.result);
     }
 }

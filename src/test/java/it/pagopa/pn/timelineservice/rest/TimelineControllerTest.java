@@ -467,7 +467,7 @@ class TimelineControllerTest {
         Integer recIndex = 0;
 
         DeliveryInformationResponse expectedResponse = new DeliveryInformationResponse();
-        expectedResponse.setDeliveryMode(DeliveryMode.ANALOG);
+        expectedResponse.setDeliveryMode(ExtendedDeliveryMode.ANALOG);
         expectedResponse.setIsNotificationCancelled(true);
         expectedResponse.setRefinementOrViewedDate(Instant.now());
         expectedResponse.setSchedulingAnalogDate(Instant.now().plus(1, ChronoUnit.DAYS));

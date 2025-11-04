@@ -7,9 +7,7 @@ public enum DeliveryModeInt {
   
   DIGITAL("DIGITAL"),
   
-  ANALOG("ANALOG"),
-
-  UNKNOWN("UNKNOWN");
+  ANALOG("ANALOG");
 
   private final String value;
 

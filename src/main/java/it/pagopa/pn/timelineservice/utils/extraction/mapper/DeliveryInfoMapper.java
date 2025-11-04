@@ -1,8 +1,8 @@
 package it.pagopa.pn.timelineservice.utils.extraction.mapper;
 
-import it.pagopa.pn.timelineservice.dto.timeline.details.DeliveryModeInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.ExtendedDeliveryModeInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryMode;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.ExtendedDeliveryMode;
 import it.pagopa.pn.timelineservice.utils.extraction.extractor.*;
 import it.pagopa.pn.timelineservice.utils.extraction.model.ExtractionResult;
 
@@ -21,7 +21,7 @@ public class DeliveryInfoMapper implements ExtractionMapper<DeliveryInformationR
         deliveryInformationResponse.schedulingAnalogDate(result.get(SchedulingAnalogDateExtractor.KEY).orElse(null));
         deliveryInformationResponse.isNotificationCancelled(result.get(IsCancelledExtractor.KEY).orElse(false));
         deliveryInformationResponse.refinementOrViewedDate(result.get(RefinementOrViewDateExtractor.KEY).orElse(null));
-        deliveryInformationResponse.deliveryMode(maptoDeliveryMode(result.get(DeliveryModeExtractor.KEY).orElse(null)));
+        deliveryInformationResponse.deliveryMode(mapToExtendedDeliveryMode(result.get(DeliveryModeExtractor.KEY).orElse(null)));
         return deliveryInformationResponse;
     }
 
@@ -35,7 +35,7 @@ public class DeliveryInfoMapper implements ExtractionMapper<DeliveryInformationR
         );
     }
 
-    private DeliveryMode maptoDeliveryMode(DeliveryModeInt deliveryModeInt) {
-        return deliveryModeInt != null ? DeliveryMode.valueOf(deliveryModeInt.name()) : null;
+    private ExtendedDeliveryMode mapToExtendedDeliveryMode(ExtendedDeliveryModeInt deliveryModeInt) {
+        return deliveryModeInt != null ? ExtendedDeliveryMode.valueOf(deliveryModeInt.name()) : null;
     }
 }

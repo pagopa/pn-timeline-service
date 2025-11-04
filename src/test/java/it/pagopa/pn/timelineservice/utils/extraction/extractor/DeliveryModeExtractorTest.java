@@ -10,55 +10,71 @@ import java.util.Optional;
 class DeliveryModeExtractorTest {
 
     @Test
-    void returnsDigitalWhenSendDigitalDetailsIntIsPresentAndRelatedToRecipient() {
+    void returnsDigitalWhenSendDigitalDomicileIsPresentAndRelatedToRecipient() {
         int recIndex = 0;
+        var details = new SendDigitalDetailsInt();
+        details.setRecIndex(recIndex);
         TimelineElementInternal element = TimelineElementInternal.builder()
-                .details(new SendDigitalDetailsInt())
+                .details(details)
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
                 .build();
 
         DeliveryModeExtractor extractor = new DeliveryModeExtractor(recIndex);
         extractor.process(element);
         extractor.postProcess();
 
-        Assertions.assertEquals(Optional.of(DeliveryModeInt.DIGITAL), extractor.getResult());
+        Assertions.assertEquals(Optional.of(ExtendedDeliveryModeInt.DIGITAL), extractor.getResult());
     }
 
     @Test
-    void returnsAnalogWhenScheduleAnalogWorkflowDetailsIntIsPresentAndRelatedToRecipient() {
+    void returnsAnalogWhenScheduleAnalogWorkflowIsPresentAndRelatedToRecipient() {
         int recIndex = 0;
+        var details = new ScheduleAnalogWorkflowDetailsInt();
+        details.setRecIndex(recIndex);
         TimelineElementInternal element = TimelineElementInternal.builder()
-                .details(new ScheduleAnalogWorkflowDetailsInt())
+                .details(details)
+                .category(TimelineElementCategoryInt.SCHEDULE_ANALOG_WORKFLOW)
                 .build();
 
         DeliveryModeExtractor extractor = new DeliveryModeExtractor(recIndex);
         extractor.process(element);
         extractor.postProcess();
 
-        Assertions.assertEquals(Optional.of(DeliveryModeInt.ANALOG), extractor.getResult());
+        Assertions.assertEquals(Optional.of(ExtendedDeliveryModeInt.ANALOG), extractor.getResult());
     }
 
     @Test
-    void returnsAnalogWhenProbableDateAnalogWorkflowDetailsIntIsPresentAndRelatedToRecipient() {
+    void returnsAnalogWhenProbableDateAnalogWorkflowIsPresentAndRelatedToRecipient() {
         int recIndex = 0;
+        var details = new ProbableDateAnalogWorkflowDetailsInt();
+        details.setRecIndex(recIndex);
         TimelineElementInternal element = TimelineElementInternal.builder()
-                .details(new ProbableDateAnalogWorkflowDetailsInt())
+                .details(details)
+                .category(TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE)
                 .build();
 
         DeliveryModeExtractor extractor = new DeliveryModeExtractor(recIndex);
         extractor.process(element);
         extractor.postProcess();
 
-        Assertions.assertEquals(Optional.of(DeliveryModeInt.ANALOG), extractor.getResult());
+        Assertions.assertEquals(Optional.of(ExtendedDeliveryModeInt.ANALOG), extractor.getResult());
     }
 
     @Test
-    void returnsDigitalWhenBothDigitalAndAnalogDetailsArePresentAndRelatedToRecipient() {
+    void returnsDigitalWhenBothDigitalAndAnalogArePresentAndRelatedToRecipient() {
         int recIndex = 0;
+        var sendDigitalDetailsInt = new SendDigitalDetailsInt();
+        sendDigitalDetailsInt.setRecIndex(recIndex);
+
+        var scheduleAnalogDetailsInt = new ScheduleAnalogWorkflowDetailsInt();
+        scheduleAnalogDetailsInt.setRecIndex(recIndex);
         TimelineElementInternal digitalElement = TimelineElementInternal.builder()
-                .details(new SendDigitalDetailsInt())
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_DOMICILE)
+                .details(sendDigitalDetailsInt)
                 .build();
         TimelineElementInternal analogElement = TimelineElementInternal.builder()
-                .details(new ProbableDateAnalogWorkflowDetailsInt())
+                .category(TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE)
+                .details(scheduleAnalogDetailsInt)
                 .build();
 
         DeliveryModeExtractor extractor = new DeliveryModeExtractor(recIndex);
@@ -66,7 +82,7 @@ class DeliveryModeExtractorTest {
         extractor.process(digitalElement);
         extractor.postProcess();
 
-        Assertions.assertEquals(Optional.of(DeliveryModeInt.DIGITAL), extractor.getResult());
+        Assertions.assertEquals(Optional.of(ExtendedDeliveryModeInt.DIGITAL), extractor.getResult());
     }
 
     @Test
@@ -80,20 +96,6 @@ class DeliveryModeExtractorTest {
         extractor.process(element);
         extractor.postProcess();
 
-        Assertions.assertEquals(Optional.of(DeliveryModeInt.UNKNOWN), extractor.getResult());
-    }
-
-    @Test
-    void returnsUnknownWhenDetailsTypeIsNotRecognized() {
-        int recIndex = 0;
-        TimelineElementInternal element = TimelineElementInternal.builder()
-                .details(new AarCreationRequestDetailsInt())
-                .build();
-
-        DeliveryModeExtractor extractor = new DeliveryModeExtractor(recIndex);
-        extractor.process(element);
-        extractor.postProcess();
-
-        Assertions.assertEquals(Optional.of(DeliveryModeInt.UNKNOWN), extractor.getResult());
+        Assertions.assertEquals(Optional.of(ExtendedDeliveryModeInt.UNKNOWN), extractor.getResult());
     }
 }

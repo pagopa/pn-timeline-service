@@ -1,8 +1,7 @@
 package it.pagopa.pn.timelineservice.utils.extraction.extractor;
 
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationCancellationRequestDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -17,9 +16,9 @@ public class IsCancelledExtractor implements  TimelineDataExtractor<Boolean> {
 
     @Override
     public boolean process(TimelineElementInternal element) {
-        TimelineElementDetailsInt detailsInt = element.getDetails();
+        TimelineElementCategoryInt category = element.getCategory();
 
-        if (detailsInt instanceof NotificationCancellationRequestDetailsInt) {
+        if (category == TimelineElementCategoryInt.NOTIFICATION_CANCELLATION_REQUEST) {
             log.debug("IsCancelledExtractor - NotificationCancellationRequestDetailsInt found for iun: {}", element.getIun());
             this.result = true;
             return true;

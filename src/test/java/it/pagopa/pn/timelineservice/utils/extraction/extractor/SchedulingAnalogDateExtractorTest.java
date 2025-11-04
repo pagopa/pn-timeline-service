@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.AarCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.ProbableDateAnalogWorkflowDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.ScheduleAnalogWorkflowDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +22,7 @@ class SchedulingAnalogDateExtractorTest {
 
         TimelineElementInternal element = TimelineElementInternal.builder()
                 .details(details)
+                .category(TimelineElementCategoryInt.SCHEDULE_ANALOG_WORKFLOW)
                 .build();
 
         SchedulingAnalogDateExtractor extractor = new SchedulingAnalogDateExtractor(recIndex);
@@ -39,6 +41,7 @@ class SchedulingAnalogDateExtractorTest {
 
         TimelineElementInternal element = TimelineElementInternal.builder()
                 .details(details)
+                .category(TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE)
                 .build();
 
         SchedulingAnalogDateExtractor extractor = new SchedulingAnalogDateExtractor(recIndex);

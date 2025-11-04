@@ -315,7 +315,7 @@ public class TimelineServiceImpl implements TimelineService {
     @Override
     public Mono<DeliveryInformationResponse> getDeliveryInformation(String iun, Integer recIndex) {
         log.debug("getDeliveryInformation Start - iun={} recIndex={} ", iun, recIndex);
-        return getTimeline(iun, null, false, true)
+        return getTimeline(iun, null, false, false)
                 .collectList()
                 .doOnNext(this::checkTimelineForCurrentIun)
                 .map(timelineElements -> new TimelineDataExtractionEngine.EngineBuilder()

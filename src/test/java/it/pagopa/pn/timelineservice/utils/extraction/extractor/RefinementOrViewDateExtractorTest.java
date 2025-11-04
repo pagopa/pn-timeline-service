@@ -3,6 +3,7 @@ package it.pagopa.pn.timelineservice.utils.extraction.extractor;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationViewedCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RefinementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ class RefinementOrViewDateExtractorTest {
 
         TimelineElementInternal element = TimelineElementInternal.builder()
                 .details(details)
+                .category(TimelineElementCategoryInt.NOTIFICATION_VIEWED_CREATION_REQUEST)
                 .build();
 
         RefinementOrViewDateExtractor extractor = new RefinementOrViewDateExtractor(recIndex);
@@ -55,6 +57,7 @@ class RefinementOrViewDateExtractorTest {
         when(details.getRecIndex()).thenReturn(recIndex);
 
         TimelineElementInternal element = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.REFINEMENT)
                 .details(details)
                 .build();
 
@@ -82,9 +85,11 @@ class RefinementOrViewDateExtractorTest {
 
         TimelineElementInternal viewElement = TimelineElementInternal.builder()
                 .details(viewDetails)
+                .category(TimelineElementCategoryInt.NOTIFICATION_VIEWED_CREATION_REQUEST)
                 .build();
         TimelineElementInternal refinementElement = TimelineElementInternal.builder()
                 .details(refinementDetails)
+                .category(TimelineElementCategoryInt.REFINEMENT)
                 .build();
 
         RefinementOrViewDateExtractor extractor = new RefinementOrViewDateExtractor(recIndex);

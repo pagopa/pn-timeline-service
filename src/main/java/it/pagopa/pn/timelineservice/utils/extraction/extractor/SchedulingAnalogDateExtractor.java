@@ -31,15 +31,16 @@ public class SchedulingAnalogDateExtractor implements TimelineDataExtractor<Inst
         }
 
         TimelineElementDetailsInt detailsInt = element.getDetails();
+        TimelineElementCategoryInt category = element.getCategory();
 
 
-        if (detailsInt instanceof ScheduleAnalogWorkflowDetailsInt scheduleAnalogDetails) {
+        if (category == TimelineElementCategoryInt.SCHEDULE_ANALOG_WORKFLOW && detailsInt instanceof ScheduleAnalogWorkflowDetailsInt scheduleAnalogDetails) {
             log.debug("SchedulingAnalogDateExtractor - found ScheduleAnalogWorkflowDetailsInt for iun={}", element.getIun());
             this.result = scheduleAnalogDetails.getSchedulingDate();
             return true;
         }
 
-        if(detailsInt instanceof ProbableDateAnalogWorkflowDetailsInt probableAnalogDetails) {
+        if(category == TimelineElementCategoryInt.PROBABLE_SCHEDULING_ANALOG_DATE && detailsInt instanceof ProbableDateAnalogWorkflowDetailsInt probableAnalogDetails) {
             log.debug("SchedulingAnalogDateExtractor - found ProbableDateAnalogWorkflowDetailsInt for iun={}", element.getIun());
             this.result = probableAnalogDetails.getSchedulingAnalogDate();
             return true;

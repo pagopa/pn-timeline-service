@@ -18,7 +18,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryMode;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.ExtendedDeliveryMode;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatus;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -1226,29 +1226,23 @@ class TimelineServiceImplTest {
         String iun = "testIun";
         Integer recIndex = 0;
         String elementId = "elementId123";
-        Instant date = Instant.now();
 
         DeliveryInformationResponse expectedResponse = new DeliveryInformationResponse();
-        expectedResponse.setDeliveryMode(DeliveryMode.ANALOG);
-        expectedResponse.setSchedulingAnalogDate(date);
-        expectedResponse.setRefinementOrViewedDate(date);
+        expectedResponse.setDeliveryMode(ExtendedDeliveryMode.UNKNOWN);
+        expectedResponse.setSchedulingAnalogDate(null);
+        expectedResponse.setRefinementOrViewedDate(null);
         expectedResponse.setIsNotificationCancelled(false);
 
         Set<TimelineElementInternal> timelineElements = getSendPaperDetailsList(iun, elementId);
 
-        Mockito.when(timeLineService.getTimeline(iun, null, false, true))
+        Mockito.when(timeLineService.getTimeline(iun, null, false, false))
                 .thenReturn(Flux.fromIterable(timelineElements));
 
-        Mono<DeliveryInformationResponse> resultMono = timeLineService.getDeliveryInformation(iun, recIndex)
-                .thenReturn(expectedResponse);
+        Mono<DeliveryInformationResponse> resultMono = timeLineService.getDeliveryInformation(iun, recIndex);
 
         StepVerifier.create(resultMono)
                 .assertNext(result -> {
                     Assertions.assertEquals(expectedResponse, result);
-                    Assertions.assertEquals(DeliveryMode.ANALOG, result.getDeliveryMode());
-                    Assertions.assertFalse(result.getIsNotificationCancelled());
-                    Assertions.assertEquals(date, result.getSchedulingAnalogDate());
-                    Assertions.assertEquals(date, result.getRefinementOrViewedDate());
                 })
                 .verifyComplete();
     }
@@ -1258,7 +1252,7 @@ class TimelineServiceImplTest {
         String iun = "testIun";
         Integer recIndex = 0;
 
-        Mockito.when(timeLineService.getTimeline(iun, null, false, true))
+        Mockito.when(timeLineService.getTimeline(iun, null, false, false))
                 .thenReturn(Flux.empty());
 
         Mono<DeliveryInformationResponse> result = timeLineService.getDeliveryInformation(iun, recIndex);
