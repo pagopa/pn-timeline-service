@@ -75,6 +75,7 @@ components:
         - SEND_ANALOG_TIMEOUT_CREATION_REQUEST
         - SEND_ANALOG_TIMEOUT
         - ANALOG_FAILURE_WORKFLOW_TIMEOUT
+        - NOTIFICATION_TIMELINE_REWORKED
     StatusInfo:
       type: object
       properties:
@@ -180,6 +181,7 @@ components:
         - "$ref": "#/components/schemas/SendAnalogTimeoutCreationRequestDetails"
         - "$ref": "#/components/schemas/SendAnalogTimeoutDetails"
         - "$ref": "#/components/schemas/AnalogFailureWorkflowTimeoutDetails"
+        - "$ref": "#/components/schemas/NotificationTimelineReworkedDetails"
       discriminator:
         propertyName: "categoryType"
 
@@ -1801,6 +1803,35 @@ components:
           type: string
           description: Data in cui si è chiusa la finestra di ricezione esiti per il flusso analogico
           format: date-time
+        categoryType:
+          type: string
+
+    NotificationTimelineReworkedDetails:
+      x-discriminator-value: "NOTIFICATION_TIMELINE_REWORKED"
+      type: object
+      required:
+        - recIndex
+        - sentAttemptMade
+        - invalidatedTimelineAndStatusHistory
+        - reason
+        - categoryType
+      properties:
+        recIndex:
+          type: integer
+          description: Index destinatario notifica digitale
+          format: int32
+        sentAttemptMade:
+          type: integer
+          description: numero dei tentativi effettuati
+          format: int32
+        invalidatedTimelineAndStatusHistory:
+          description: elenco degli avanzamenti effettuati dal processo di notifica prima dell'invalidazione
+          type: array
+          items:
+            $ref: "./pn-timeline-service-private.yaml#/components/schemas/NotificationStatusHistoryElement"
+        reason:
+          type: string
+          description: motivo dell'invalidazione in formato testuale
         categoryType:
           type: string
 
