@@ -1524,6 +1524,14 @@ components:
         - DIGITAL
         - ANALOG
 
+    ExtendedDeliveryMode:
+      type: string
+      description: Tipologia Domiciliazione (estesa con il caso di unknown in caso di ricerca prematura)
+      enum:
+        - DIGITAL
+        - ANALOG
+        - UNKNOWN
+
     EndWorkflowStatus:
       type: string
       description: Stato chiusura workflow

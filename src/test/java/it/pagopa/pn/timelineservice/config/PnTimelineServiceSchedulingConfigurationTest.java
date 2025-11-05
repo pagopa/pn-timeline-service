@@ -4,6 +4,7 @@ import net.javacrumbs.shedlock.core.LockProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 class PnTimelineServiceSchedulingConfigurationTest {
@@ -17,7 +18,9 @@ class PnTimelineServiceSchedulingConfigurationTest {
 
     @Test
     void lockProvider() {
-        DynamoDbClient dynamoDB = DynamoDbClient.builder().build();
+        DynamoDbClient dynamoDB = DynamoDbClient.builder()
+                .region(Region.US_EAST_1) // or your desired region
+                .build();
         PnTimelineServiceConfigs cfg = new PnTimelineServiceConfigs();
         PnTimelineServiceConfigs.LastPollForFutureActionDao dao = new PnTimelineServiceConfigs.LastPollForFutureActionDao();
         dao.setLockTableName("Lock");
