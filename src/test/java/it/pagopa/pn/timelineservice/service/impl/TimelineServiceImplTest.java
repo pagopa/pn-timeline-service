@@ -1220,6 +1220,7 @@ class TimelineServiceImplTest {
         if (withSendAnalogFeedback) detailsBuilder.sentAttemptMade(null);
         NotificationTimelineReworkedDetailsInt details = detailsBuilder.build();
         return TimelineElementInternal.builder()
+                .timestamp(Instant.now())
                 .elementId(timelineId)
                 .iun(iun)
                 .reworkId("REWORK_0")

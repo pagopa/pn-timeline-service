@@ -367,7 +367,12 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     private TimelineElementInternal enrichWithReworkInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
-        Optional<TimelineElementInternal> reworkTimelineElement = getReworkElementIfTimelineElementToBeReworked(dto, currentTimeline);
+        List<TimelineElementInternal> sortedTimeline = new ArrayList<>(currentTimeline);
+
+        //Ordino la lista in base al timestamp e poi la inverto per avere al primo posto l'evento con requestTimestamp più recente
+        sortedTimeline.sort(Comparator.comparing(TimelineElementInternal::getTimestamp).reversed());
+
+        Optional<TimelineElementInternal> reworkTimelineElement = getReworkElementIfTimelineElementToBeReworked(dto, sortedTimeline);
 
         if (reworkTimelineElement.isPresent()) {
             int notificationReworkIndex = Integer.parseInt(reworkTimelineElement.get().getElementId().substring((reworkTimelineElement.get().getElementId().lastIndexOf(REWORK) + REWORK.length()), (reworkTimelineElement.get().getElementId().lastIndexOf(REWORK) + REWORK.length() + 1)));
@@ -376,8 +381,8 @@ public class TimelineServiceImpl implements TimelineService {
         return dto;
     }
 
-    private Optional<TimelineElementInternal> getReworkElementIfTimelineElementToBeReworked(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
-        Optional<TimelineElementInternal> reworkTimelineElement = getLastReworkElement(currentTimeline);
+    private Optional<TimelineElementInternal> getReworkElementIfTimelineElementToBeReworked(TimelineElementInternal dto, List<TimelineElementInternal> sortedTimeline) {
+        Optional<TimelineElementInternal> reworkTimelineElement = getLastReworkElement(sortedTimeline);
 
         if (reworkTimelineElement.isEmpty()) {
             log.debug("No rework timeline element found for elementId={}", dto.getElementId());
@@ -395,7 +400,7 @@ public class TimelineServiceImpl implements TimelineService {
         int attemptDto = Integer.parseInt(dto.getElementId().substring(dto.getElementId().lastIndexOf(ATTEMPT) + ATTEMPT.length(), dto.getElementId().lastIndexOf(ATTEMPT) + ATTEMPT.length() + 1));
 
         if (reworkDetail.getSentAttemptMade() == null) {
-            Optional<TimelineElementInternal> sendAnalogFeedbackElement = getLastSendAnalogFeedbackElement(currentTimeline, REC_INDEX + recIndexDto);
+            Optional<TimelineElementInternal> sendAnalogFeedbackElement = getLastSendAnalogFeedbackElement(sortedTimeline, REC_INDEX + recIndexDto);
             if (sendAnalogFeedbackElement.isPresent() && StringUtils.hasText(sendAnalogFeedbackElement.get().getReworkId())) {
                 log.debug("ReworkId found in analog feedback for elementId={}", dto.getElementId());
                 return reworkTimelineElement;
@@ -413,11 +418,11 @@ public class TimelineServiceImpl implements TimelineService {
         return Optional.empty();
     }
 
-    private Optional<TimelineElementInternal> getLastReworkElement(Set<TimelineElementInternal> currentTimeline) {
+    private Optional<TimelineElementInternal> getLastReworkElement(List<TimelineElementInternal> currentTimeline) {
         return currentTimeline.stream().filter(elem -> TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED.equals(elem.getCategory())).findFirst();
     }
 
-    private Optional<TimelineElementInternal> getLastSendAnalogFeedbackElement(Set<TimelineElementInternal> currentTimeline, String recIndex) {
+    private Optional<TimelineElementInternal> getLastSendAnalogFeedbackElement(List<TimelineElementInternal> currentTimeline, String recIndex) {
         return currentTimeline.stream()
                 .filter(elem -> elem.getElementId().contains(recIndex))
                 .filter(elem -> TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK.equals(elem.getCategory())).findFirst();
