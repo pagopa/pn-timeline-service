@@ -14,6 +14,7 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHi
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
@@ -50,6 +51,9 @@ import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnri
 @Slf4j
 @RequiredArgsConstructor
 public class TimelineServiceImpl implements TimelineService {
+    public static final String REC_INDEX = "RECINDEX_";
+    public static final String ATTEMPT = "ATTEMPT_";
+
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
     private final StatusUtils statusUtils;
@@ -126,6 +130,7 @@ public class TimelineServiceImpl implements TimelineService {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
                     StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
                     TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
+                    enrichedDto = updateTimestampIfReworkElement(enrichedDto, currentTimeline.stream().toList());
                     return confidentialInformationService.saveTimelineConfidentialInformation(dto)
                             .thenReturn(enrichedDto)
                             .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
@@ -355,7 +360,29 @@ public class TimelineServiceImpl implements TimelineService {
 
         Instant timestampLastTimelineElement = getTimestampLastUpdateStatus(currentTimeline, notificationSentAt);
         StatusInfoInternal statusInfo = buildStatusInfo(notificationStatuses, timestampLastTimelineElement);
+
         return dto.toBuilder().statusInfo(statusInfo).build();
+    }
+
+    private TimelineElementInternal updateTimestampIfReworkElement(TimelineElementInternal enrichedDto, List<TimelineElementInternal> timeline) {
+        if (!enrichedDto.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)) {
+            return enrichedDto;
+        }
+        NotificationTimelineReworkedDetailsInt reworkDetail = (NotificationTimelineReworkedDetailsInt) enrichedDto.getDetails();
+        return getElementByCategoryAndRecIndexFromTimeline(
+                timeline,
+                TimelineElementCategoryInt.SEND_ANALOG_DOMICILE,
+                reworkDetail.getRecIndex(),
+                reworkDetail.getSentAttemptMade()
+        ).map(elem -> enrichedDto.toBuilder().eventTimestamp(elem.getEventTimestamp()).build())
+                .orElse(enrichedDto);
+    }
+
+    private Optional<TimelineElementInternal> getElementByCategoryAndRecIndexFromTimeline(List<TimelineElementInternal> currentTimeline, TimelineElementCategoryInt category, Integer recIndex, Integer attemptId) {
+        return currentTimeline.stream()
+                .filter(elem -> elem.getElementId().contains(REC_INDEX + recIndex))
+                .filter(elem -> elem.getElementId().contains(ATTEMPT + attemptId))
+                .filter(elem -> category.equals(elem.getCategory())).findFirst();
     }
 
     private Instant getTimestampLastUpdateStatus(Set<TimelineElementInternal> currentTimeline, Instant notificationSentAt) {

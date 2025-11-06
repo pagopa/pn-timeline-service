@@ -116,6 +116,8 @@ components:
           $ref: '#/components/schemas/TimelineElementDetails'
         statusInfo:
           $ref: '#/components/schemas/StatusInfo'
+        reworkId:
+          type: string
         notificationSentAt:
           type: string
           format: date-time
