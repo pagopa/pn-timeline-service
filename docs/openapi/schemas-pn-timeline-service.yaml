@@ -1815,7 +1815,6 @@ components:
         - recIndex
         - sentAttemptMade
         - invalidatedTimelineAndStatusHistory
-        - reason
         - categoryType
       properties:
         recIndex:
@@ -1831,9 +1830,6 @@ components:
           type: array
           items:
             $ref: "./pn-timeline-service-private.yaml#/components/schemas/NotificationStatusHistoryElement"
-        reason:
-          type: string
-          description: motivo dell'invalidazione in formato testuale
         categoryType:
           type: string
 

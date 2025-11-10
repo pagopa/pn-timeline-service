@@ -16,16 +16,14 @@ public class NotificationTimelineReworkedDetailsInt implements RecipientRelatedT
     private int recIndex;
     private Integer sentAttemptMade;
     private List<NotificationStatusHistoryElement> invalidatedTimelineAndStatusHistory;
-    private String reason;
     private String categoryType;
 
     @Override
     public String toLog() {
         return String.format(
-                "NotificationTimelineReworkedDetailsInt{recIndex=%d, sentAttemptMade=%d, reason='%s', categoryType='%s'}",
+                "NotificationTimelineReworkedDetailsInt{recIndex=%d, sentAttemptMade=%d, categoryType='%s'}",
                 recIndex,
                 sentAttemptMade,
-                reason,
                 categoryType
         );
     }
