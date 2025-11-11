@@ -51,8 +51,9 @@ public class TimelineDaoDynamo implements TimelineDao {
     @Override
     public Mono<TimelineElementInternal> getTimelineElement(String iun, String elementId, boolean strongly) {
         return retrieveCorrectElementIdIfReworked(iun, elementId)
-                .map(s -> GetItemEnhancedRequest.builder()
-                        .key(key -> key.partitionValue(iun).sortValue(elementId))
+                .switchIfEmpty(Mono.just(elementId))
+                .map(updatedElementId -> GetItemEnhancedRequest.builder()
+                        .key(key -> key.partitionValue(iun).sortValue(updatedElementId))
                         .consistentRead(strongly)
                         .build())
                 .flatMap(getItemEnhancedRequest -> Mono.fromFuture(table.getItem(getItemEnhancedRequest)))

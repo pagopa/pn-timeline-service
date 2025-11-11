@@ -59,6 +59,7 @@ class TimelineDaoDynamoTest {
         PnTimelineServiceConfigs.TimelineDao timelineDao = new PnTimelineServiceConfigs.TimelineDao();
         timelineDao.setTableName("timeline");
         pnTimelineServiceConfigs.setTimelineDao(timelineDao);
+        pnTimelineServiceConfigs.setInvalidableCategories(List.of("PREPARE_ANALOG_DOMICILE","PREPARE_ANALOG_DOMICILE_FAILURE","SEND_ANALOG_DOMICILE","SEND_ANALOG_PROGRESS","SEND_ANALOG_FEEDBACK","ANALOG_SUCCESS_WORKFLOW","ANALOG_FAILURE_WORKFLOW","SCHEDULE_REFINEMENT","REFINEMENT","COMPLETELY_UNREACHABLE_CREATION_REQUEST","COMPLETELY_UNREACHABLE","ANALOG_WORKFLOW_RECIPIENT_DECEASED"));
         dao = new TimelineDaoDynamo(dynamoDbEnhancedAsyncClient, pnTimelineServiceConfigs, dtoToEntityTimelineMapper, entityToDtoTimelineMapper);
     }
 
@@ -192,8 +193,9 @@ class TimelineDaoDynamoTest {
                 .build();
 
         mockQueryConditional(table, List.of(row1, row2));
+        mockQueryEnahncedRequest(table, List.of());
 
-        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, "element_").collectList().block();
+        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, "IUN_iun-di-prova").collectList().block();
         Assertions.assertNotNull(result);
 
         Assertions.assertEquals(row1.getIun(), result.getFirst().getIun());
@@ -221,6 +223,7 @@ class TimelineDaoDynamoTest {
     void getTimelineFilteredByElementIdNotFound() {
 
         mockQueryConditional(table, List.of());
+        mockQueryEnahncedRequest(table, List.of());
 
         List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId("iun", "element_")
                 .collectList()
@@ -419,6 +422,138 @@ class TimelineDaoDynamoTest {
         when(table.putItem(any(PutItemEnhancedRequest.class)))
                 .thenThrow(PnIdConflictException.class);
         Assertions.assertThrows(PnIdConflictException.class, () -> dao.addTimelineElementIfAbsent(row1));
+    }
+
+    @Test
+    void getTimelineFilteredByElementIdWithReworkItemTest() {
+        String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
+
+        String id1 = "DIGITAL_PROG.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.SOURCE_SPECIAL.REPEAT_false.ATTEMPT_0.IDX_1.REWORK_0";
+        TimelineElementEntity row1 = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId(id1)
+                .category(TimelineElementCategoryEntity.REQUEST_ACCEPTED)
+                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .timestamp(Instant.now())
+                .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
+                .statusInfo(StatusInfoEntity.builder().build())
+                .build();
+        String id2 = "DIGITAL_PROG.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.SOURCE_SPECIAL.REPEAT_false.ATTEMPT_0.IDX_1";
+        TimelineElementEntity row2 = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId(id2)
+                .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
+                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .timestamp(Instant.now())
+                .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
+                .statusInfo(StatusInfoEntity.builder().build())
+                .build();
+
+        String id3 = "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.REWORK_0";
+        TimelineElementEntity rework = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId(id3)
+                .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
+                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .timestamp(Instant.now())
+                .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
+                .statusInfo(StatusInfoEntity.builder().build())
+                .build();
+
+        mockQueryConditional(table, List.of(row1, row2));
+        mockQueryEnahncedRequest(table, List.of(rework));
+
+        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.REWORK_0").collectList().block();
+        Assertions.assertNotNull(result);
+
+        Assertions.assertEquals(row1.getIun(), result.getFirst().getIun());
+        Assertions.assertEquals(row1.getTimelineElementId(), result.getFirst().getElementId());
+        Assertions.assertEquals(row1.getCategory().name(), result.getFirst().getCategory().name());
+        Assertions.assertEquals(row1.getStatusInfo().isStatusChanged(), result.getFirst().getStatusInfo().isStatusChanged());
+        Assertions.assertEquals(row1.getNotificationSentAt(), result.getFirst().getNotificationSentAt());
+        Assertions.assertEquals(row1.getPaId(), result.getFirst().getPaId());
+        Assertions.assertEquals(row1.getTimestamp(), result.getFirst().getTimestamp());
+        Assertions.assertEquals(row1.getBusinessTimestamp(), result.getFirst().getEventTimestamp());
+        Assertions.assertInstanceOf(NotificationRequestAcceptedDetailsInt.class, result.getFirst().getDetails());
+
+        Assertions.assertTrue(result.stream().allMatch(elem -> elem.getElementId().contains(".REWORK_")));
+    }
+
+    @Test
+    void getTimelineElementCategoryReworkable_NoReworkEntityTest() {
+        String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
+
+        String id1 = "PREPARE_ANALOG_DOMICILE.IUN_prepare_analog_domicile";
+        TimelineElementEntity row1 = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId(id1)
+                .category(TimelineElementCategoryEntity.PREPARE_ANALOG_DOMICILE)
+                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .timestamp(Instant.now())
+                .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
+                .statusInfo(StatusInfoEntity.builder().build())
+                .build();
+
+        when(table.getItem(any(GetItemEnhancedRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(row1));
+
+        mockQueryEnahncedRequest(table, List.of());
+
+        TimelineElementInternal retrievedRow1 = dao.getTimelineElement(iun, id1, false).block();
+        Assertions.assertNotNull(retrievedRow1);
+        Assertions.assertEquals(row1.getIun(), retrievedRow1.getIun());
+        Assertions.assertEquals(row1.getTimelineElementId(), retrievedRow1.getElementId());
+        Assertions.assertEquals(row1.getCategory().name(), retrievedRow1.getCategory().name());
+        Assertions.assertEquals(row1.getStatusInfo().isStatusChanged(), retrievedRow1.getStatusInfo().isStatusChanged());
+        Assertions.assertEquals(row1.getNotificationSentAt(), retrievedRow1.getNotificationSentAt());
+        Assertions.assertEquals(row1.getPaId(), retrievedRow1.getPaId());
+        Assertions.assertEquals(row1.getTimestamp(), retrievedRow1.getTimestamp());
+        Assertions.assertEquals(row1.getBusinessTimestamp(), retrievedRow1.getEventTimestamp());
+        Assertions.assertInstanceOf(BaseAnalogDetailsInt.class, retrievedRow1.getDetails());
+    }
+
+    @Test
+    void getTimelineElementCategoryReworkable_ReworkEntityFoundTest() {
+        String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
+
+        String id1 = "PREPARE_ANALOG_DOMICILE.IUN_prepare_analog_domicile";
+        TimelineElementEntity row1 = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId(id1)
+                .category(TimelineElementCategoryEntity.PREPARE_ANALOG_DOMICILE)
+                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .timestamp(Instant.now())
+                .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
+                .statusInfo(StatusInfoEntity.builder().build())
+                .build();
+
+        String id3 = "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.REWORK_0";
+        TimelineElementEntity rework = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId(id3)
+                .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
+                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .timestamp(Instant.now())
+                .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
+                .statusInfo(StatusInfoEntity.builder().build())
+                .build();
+
+        when(table.getItem(any(GetItemEnhancedRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(row1));
+
+        mockQueryEnahncedRequest(table, List.of(rework));
+
+        TimelineElementInternal retrievedRow1 = dao.getTimelineElement(iun, id1, false).block();
+        Assertions.assertNotNull(retrievedRow1);
+        Assertions.assertEquals(row1.getIun(), retrievedRow1.getIun());
+        Assertions.assertEquals(row1.getTimelineElementId(), retrievedRow1.getElementId());
+        Assertions.assertEquals(row1.getCategory().name(), retrievedRow1.getCategory().name());
+        Assertions.assertEquals(row1.getStatusInfo().isStatusChanged(), retrievedRow1.getStatusInfo().isStatusChanged());
+        Assertions.assertEquals(row1.getNotificationSentAt(), retrievedRow1.getNotificationSentAt());
+        Assertions.assertEquals(row1.getPaId(), retrievedRow1.getPaId());
+        Assertions.assertEquals(row1.getTimestamp(), retrievedRow1.getTimestamp());
+        Assertions.assertEquals(row1.getBusinessTimestamp(), retrievedRow1.getEventTimestamp());
+        Assertions.assertInstanceOf(BaseAnalogDetailsInt.class, retrievedRow1.getDetails());
     }
 
     public static <T> void mockPutItem(DynamoDbAsyncTable<T> dynamoDbAsyncTable) {
