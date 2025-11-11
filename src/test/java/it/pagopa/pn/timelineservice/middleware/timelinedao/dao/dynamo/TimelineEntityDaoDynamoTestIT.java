@@ -540,6 +540,74 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
         checkElement(elementToInsert);
     }
 
+    @Test
+    void getTimelineElmentStronglyWithReworkCategory() {
+        String iun = UUID.randomUUID().toString();
+        String elementIdToSearch = "SEND_ANALOG_DOMICILE.IUN_"+iun+".ATTEMPT_0";
+        //GIVEN
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId("SEND_ANALOG_DOMICILE.IUN_"+iun+".ATTEMPT_0.REWORK_1")
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(AarCreationRequestDetailsInt.builder()
+                        .recIndex(0)
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        TimelineElementInternal reworkElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".ATTEMPT_0.REWORK_0")
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(NotificationTimelineReworkedDetailsInt.builder()
+                        .recIndex(0)
+                        .sentAttemptMade(0)
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".ATTEMPT_0.REWORK_1")
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(NotificationTimelineReworkedDetailsInt.builder()
+                        .recIndex(0)
+                        .sentAttemptMade(0)
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(reworkElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(secondReworkElementToInsert).block();
+
+        //WHEN
+        TimelineElementInternal timelineElmentStrongly = timelineEntityDao.getTimelineElement(iun, elementIdToSearch, true).block();
+
+        Assertions.assertNotNull(timelineElmentStrongly);
+    }
+
     private void checkElement(TimelineElementInternal elementToInsert) {
             //WHEN
             timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
