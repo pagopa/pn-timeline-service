@@ -77,6 +77,13 @@ public class TimelineEventIdParser {
         return extract(REWORK_PATTERN).map(Integer::parseInt);
     }
 
+    public Optional<String> reworkIndexFull() {
+        return extract(REWORK_PATTERN).flatMap(idx -> {
+            Matcher matcher = REWORK_PATTERN.matcher(eventId);
+            return matcher.find() ? Optional.of(matcher.group()) : Optional.empty();
+        });
+    }
+
     /**
      * Converte tutti i componenti in un record
      */
