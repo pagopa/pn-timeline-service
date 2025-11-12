@@ -360,7 +360,6 @@ public class TimelineServiceImpl implements TimelineService {
 
     private TimelineElementInternal enrichWithStatusInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline,
                                                          StatusService.NotificationStatusUpdate notificationStatuses, Instant notificationSentAt) {
-
         Instant timestampLastTimelineElement = getTimestampLastUpdateStatus(currentTimeline, notificationSentAt);
         StatusInfoInternal statusInfo = buildStatusInfo(notificationStatuses, timestampLastTimelineElement);
 
