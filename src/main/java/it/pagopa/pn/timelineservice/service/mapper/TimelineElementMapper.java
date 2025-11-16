@@ -32,6 +32,7 @@ public class TimelineElementMapper {
                 .statusInfo(toStatusInfoInternal(timelineElement.getStatusInfo()))
                 .notificationSentAt(timelineElement.getNotificationSentAt())
                 .paId(timelineElement.getPaId())
+                .reworkId(timelineElement.getReworkId())
                 .build();
     }
 

@@ -30,6 +30,7 @@ public class TimelineElementEntity {
     private StatusInfoEntity statusInfo;
     private Instant notificationSentAt;
     private Instant businessTimestamp;
+    private String reworkId;
 
     @DynamoDbPartitionKey
     @DynamoDbAttribute(value = FIELD_IUN )
@@ -108,6 +109,11 @@ public class TimelineElementEntity {
     public Instant getBusinessTimestamp(){return businessTimestamp;}
 
     public void setBusinessTimestamp(Instant businessTimestamp){this.businessTimestamp = businessTimestamp;}
+
+    @DynamoDbAttribute(value = "reworkId") @DynamoDbIgnoreNulls
+    public String getReworkId(){return reworkId;}
+
+    public void setReworkId(String reworkId){this.reworkId = reworkId;}
 
 }
 

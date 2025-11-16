@@ -20,6 +20,7 @@ public class DtoToEntityTimelineMapper {
                 .paId( dto.getPaId() )
                 .category( TimelineElementCategoryEntity.valueOf( dto.getCategory().name() ) )
                 .timestamp( dto.getTimestamp() )
+                .reworkId(dto.getReworkId())
                 .details( dtoToDetailsEntity( dto.getDetails() ) )
                 .legalFactIds( convertLegalFactsToEntity( dto.getLegalFactsIds() ) )
                 .statusInfo(dtoToStatusInfoEntity(dto.getStatusInfo()))
