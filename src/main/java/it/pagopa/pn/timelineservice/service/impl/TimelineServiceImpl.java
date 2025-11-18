@@ -132,7 +132,6 @@ public class TimelineServiceImpl implements TimelineService {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
                     StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
                     TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
-                    enrichedDto = updateTimestampIfReworkElement(enrichedDto, currentTimeline.stream().toList());
                     TimelineElementInternal enrichedDtoWithRework = enrichWithReworkInfo(enrichedDto, currentTimeline);
                     return confidentialInformationService.saveTimelineConfidentialInformation(dto)
                             .thenReturn(enrichedDtoWithRework)
@@ -364,20 +363,6 @@ public class TimelineServiceImpl implements TimelineService {
         Instant timestampLastTimelineElement = getTimestampLastUpdateStatus(currentTimeline, notificationSentAt);
         StatusInfoInternal statusInfo = buildStatusInfo(notificationStatuses, timestampLastTimelineElement);
         return dto.toBuilder().statusInfo(statusInfo).build();
-    }
-
-    private TimelineElementInternal updateTimestampIfReworkElement(TimelineElementInternal enrichedDto, List<TimelineElementInternal> timeline) {
-        if (!enrichedDto.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)) {
-            return enrichedDto;
-        }
-        NotificationTimelineReworkedDetailsInt reworkDetail = (NotificationTimelineReworkedDetailsInt) enrichedDto.getDetails();
-        return getElementByCategoryAndRecIndexFromTimeline(
-                timeline,
-                TimelineElementCategoryInt.SEND_ANALOG_DOMICILE,
-                reworkDetail.getRecIndex(),
-                reworkDetail.getSentAttemptMade()
-        ).map(elem -> enrichedDto.toBuilder().eventTimestamp(elem.getEventTimestamp()).build())
-                .orElse(enrichedDto);
     }
 
     private Optional<TimelineElementInternal> getElementByCategoryAndRecIndexFromTimeline(List<TimelineElementInternal> currentTimeline, TimelineElementCategoryInt category, Integer recIndex, Integer attemptId) {
