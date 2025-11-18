@@ -1144,7 +1144,7 @@ class TimelineServiceImplTest {
                 TimelineElementInternal.builder().elementId(timelineId).iun(iun).build()
         );
 
-        Mockito.when(timelineDao.getTimelineFilteredByElementId(iun, timelineId))
+        Mockito.when(timelineDao.getTimelineFilteredByElementId(iun, timelineId, false))
                 .thenReturn(Flux.fromIterable(expectedTimelineElements));
 
         // WHEN
@@ -1156,7 +1156,7 @@ class TimelineServiceImplTest {
                 .assertNext(result -> Assertions.assertEquals(expectedTimelineElements, result))
                 .verifyComplete();
 
-        Mockito.verify(timelineDao).getTimelineFilteredByElementId(iun, timelineId);
+        Mockito.verify(timelineDao).getTimelineFilteredByElementId(iun, timelineId, false);
         Mockito.verifyNoMoreInteractions(timelineDao);
     }
 

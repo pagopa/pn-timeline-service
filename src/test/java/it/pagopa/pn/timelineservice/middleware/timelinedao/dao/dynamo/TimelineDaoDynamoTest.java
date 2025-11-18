@@ -195,7 +195,7 @@ class TimelineDaoDynamoTest {
         mockQueryConditional(table, List.of(row1, row2));
         mockQueryEnahncedRequest(table, List.of());
 
-        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, "IUN_iun-di-prova").collectList().block();
+        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, "IUN_iun-di-prova", true).collectList().block();
         Assertions.assertNotNull(result);
 
         Assertions.assertEquals(row1.getIun(), result.getFirst().getIun());
@@ -225,7 +225,7 @@ class TimelineDaoDynamoTest {
         mockQueryConditional(table, List.of());
         mockQueryEnahncedRequest(table, List.of());
 
-        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId("iun", "element_")
+        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId("iun", "element_", true)
                 .collectList()
                 .block();
 
@@ -463,7 +463,7 @@ class TimelineDaoDynamoTest {
         mockQueryConditional(table, List.of(row1, row2));
         mockQueryEnahncedRequest(table, List.of(rework));
 
-        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.REWORK_0").collectList().block();
+        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.REWORK_0", true).collectList().block();
         Assertions.assertNotNull(result);
 
         Assertions.assertEquals(row1.getIun(), result.getFirst().getIun());

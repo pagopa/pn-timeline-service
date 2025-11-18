@@ -436,7 +436,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
         timelineEntityDao.addTimelineElementIfAbsent(nomatchElementToInsert).block();
 
         //WHEN
-        List<TimelineElementInternal> elementSet =  timelineEntityDao.getTimelineFilteredByElementId(iun, elementId).collectList().block();
+        List<TimelineElementInternal> elementSet =  timelineEntityDao.getTimelineFilteredByElementId(iun, elementId, true).collectList().block();
 
         //THEN
         Assertions.assertNotNull(elementSet);

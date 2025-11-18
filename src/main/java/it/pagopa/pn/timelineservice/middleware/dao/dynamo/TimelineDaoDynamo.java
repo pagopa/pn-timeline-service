@@ -50,7 +50,7 @@ public class TimelineDaoDynamo implements TimelineDao {
 
     @Override
     public Mono<TimelineElementInternal> getTimelineElement(String iun, String elementId, boolean strongly) {
-        return retrieveCorrectElementIdIfReworked(iun, elementId)
+        return retrieveCorrectElementIdIfReworked(iun, elementId, strongly)
                 .switchIfEmpty(Mono.just(elementId))
                 .map(updatedElementId -> GetItemEnhancedRequest.builder()
                         .key(key -> key.partitionValue(iun).sortValue(updatedElementId))
@@ -170,10 +170,10 @@ public class TimelineDaoDynamo implements TimelineDao {
     }
 
     @Override
-    public Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String elementId) {
+    public Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String elementId, boolean strongly) {
         return searchByIunAndElementId(iun, elementId)
                 .collectList()
-                .flatMapMany(timelineElementEntities -> filterForReworkedElementIdIfExists(iun, timelineElementEntities))
+                .flatMapMany(timelineElementEntities -> filterForReworkedElementIdIfExists(iun, timelineElementEntities, strongly))
                 .map(entity2dto::entityToDto);
     }
 
@@ -184,12 +184,13 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .flatMap(page -> Flux.fromIterable(page.items()));
     }
 
-    private Mono<String> getReworkTimelineReworkIdx(String iun) {
+    private Mono<String> getReworkTimelineReworkIdx(String iun, boolean strongly) {
         QueryEnhancedRequest request = QueryEnhancedRequest.builder()
                 .queryConditional(QueryConditional.sortBeginsWith(
                         Key.builder().partitionValue(iun).sortValue("NOTIFICATION_TIMELINE_REWORKED").build()))
                 .limit(1)
                 .scanIndexForward(false)
+                .consistentRead(strongly)
                 .build();
 
         return Flux.from(table.query(request))
@@ -198,18 +199,18 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .map(timelineElementEntity -> TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).reworkIndexFull().orElse(null));
     }
 
-    private Flux<TimelineElementEntity> filterForReworkedElementIdIfExists(String iun, List<TimelineElementEntity> timelineElementEntities) {
-        return getReworkTimelineReworkIdx(iun)
+    private Flux<TimelineElementEntity> filterForReworkedElementIdIfExists(String iun, List<TimelineElementEntity> timelineElementEntities, boolean strongly) {
+        return getReworkTimelineReworkIdx(iun, strongly)
                 .map(reworkSuffix -> timelineElementEntities.stream()
                         .filter(timelineElementEntity -> timelineElementEntity.getTimelineElementId().contains(reworkSuffix)).toList())
                 .defaultIfEmpty(timelineElementEntities)
                 .flatMapIterable(entities -> entities);
     }
 
-    public Mono<String> retrieveCorrectElementIdIfReworked(String iun, String timelineId) {
+    public Mono<String> retrieveCorrectElementIdIfReworked(String iun, String timelineId, boolean strongly) {
         String category = TimelineEventIdParser.parse(timelineId).category().orElse(null);
         if(StringUtils.hasText(category) && cfg.getInvalidableCategories().contains(category)) {
-            return getReworkTimelineReworkIdx(iun)
+            return getReworkTimelineReworkIdx(iun, strongly)
                     .map(reworkSuffix -> timelineId + "." + reworkSuffix);
         }
         return Mono.just(timelineId);

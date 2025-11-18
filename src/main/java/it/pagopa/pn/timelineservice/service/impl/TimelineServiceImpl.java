@@ -275,7 +275,7 @@ public class TimelineServiceImpl implements TimelineService {
         Flux<TimelineElementInternal> setTimelineElements;
 
         if (timelineId != null) {
-            setTimelineElements = timelineDao.getTimelineFilteredByElementId(iun, timelineId);
+            setTimelineElements = timelineDao.getTimelineFilteredByElementId(iun, timelineId, strongly);
         } else if (strongly) {
             setTimelineElements = timelineDao.getTimelineStrongly(iun);
         } else {
