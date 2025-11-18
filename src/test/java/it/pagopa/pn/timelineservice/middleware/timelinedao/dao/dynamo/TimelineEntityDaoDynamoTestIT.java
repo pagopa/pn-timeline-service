@@ -6,6 +6,7 @@ import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -260,6 +261,98 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 .anyMatch(s -> s.equals(firstElementToInsert.toString())));
         Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
                 .anyMatch(s -> s.equals(secondElementToInsert.toString())));
+    }
+
+    @Test
+    void findByIunWithRework() {
+        String iun = "pa1-1";
+        String invalidatedTimelineElementId1 = UUID.randomUUID().toString();
+        String invalidatedTimelineElementId2 = UUID.randomUUID().toString();
+
+
+        //GIVEN
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(invalidatedTimelineElementId1)
+                .category(TimelineElementCategoryInt.REFINEMENT)
+                .details(RefinementDetailsInt.builder()
+                        .recIndex(0)
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(SendAnalogDetailsInt.builder()
+                        .recIndex(0)
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        TimelineElementInternal thirdElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(invalidatedTimelineElementId2)
+                .category(TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK)
+                .details(SendAnalogFeedbackDetailsInt.builder()
+                        .recIndex(0)
+                        .build())
+                .build();
+
+        NotificationStatusHistoryElementInt notificationStatusHistoryElement = new NotificationStatusHistoryElementInt();
+        notificationStatusHistoryElement.setRelatedTimelineElements(List.of(invalidatedTimelineElementId1, invalidatedTimelineElementId2));
+        TimelineElementInternal fourthlementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(NotificationTimelineReworkedDetailsInt.builder()
+                        .invalidatedTimelineAndStatusHistory(List.of(notificationStatusHistoryElement))
+                        .build())
+                .build();
+
+        TimelineElementInternal fifthElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(UUID.randomUUID().toString())
+                .category(TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK)
+                .details(SendAnalogFeedbackDetailsInt.builder()
+                        .recIndex(0)
+                        .build())
+                .build();
+
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+
+        timelineEntityDao.addTimelineElementIfAbsent(secondElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(thirdElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(fourthlementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(fifthElementToInsert).block();
+
+        //WHEN
+        List<TimelineElementInternal> elementSet =  timelineEntityDao.getTimeline(iun).collectList().block();
+
+        //THEN
+        Assertions.assertNotNull(elementSet);
+        Assertions.assertFalse(elementSet.isEmpty());
+        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::getElementId)
+                .anyMatch(s -> s.equals(secondElementToInsert.getElementId())));
+        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::getElementId)
+                .anyMatch(s -> s.equals(fourthlementToInsert.getElementId())));
+        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::getElementId)
+                .anyMatch(s -> s.equals(fifthElementToInsert.getElementId())));
     }
 
     @Test

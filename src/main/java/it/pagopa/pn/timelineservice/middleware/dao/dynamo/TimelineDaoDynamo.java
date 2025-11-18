@@ -11,6 +11,7 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElement
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.EntityToDtoTimelineMapper;
+import it.pagopa.pn.timelineservice.utils.NotificationReworkUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -62,12 +63,18 @@ public class TimelineDaoDynamo implements TimelineDao {
 
     @Override
     public Flux<TimelineElementInternal> getTimeline(String iun) {
-       return getTimeline(iun, false);
+       return getTimeline(iun, false)
+               .collectList()
+               .map(NotificationReworkUtils::getNotInvalidatedTimelineElements)
+               .flatMapIterable(timelineElementInternals -> timelineElementInternals);
     }
 
     @Override
     public Flux<TimelineElementInternal> getTimelineStrongly(String iun) {
-        return getTimeline(iun, true);
+        return getTimeline(iun, true)
+                .collectList()
+                .map(NotificationReworkUtils::getNotInvalidatedTimelineElements)
+                .flatMapIterable(timelineElementInternals -> timelineElementInternals);
     }
 
     private Flux<TimelineElementInternal> getTimeline(String iun, boolean strongly) {
