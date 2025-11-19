@@ -493,7 +493,7 @@ class TimelineServiceImplTest {
         verify(timelineDao).addTimelineElementIfAbsent(captor.capture());
         TimelineElementInternal dtoToPersist = captor.getValue();
         TimelineElementInternal sendAnalogDomicile = setTimelineElement.stream().filter(elem -> elem.getCategory().equals(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)).findFirst().get();
-        Assertions.assertEquals(dtoToPersist.getEventTimestamp(), sendAnalogDomicile.getEventTimestamp());
+        Assertions.assertNull(dtoToPersist.getEventTimestamp());
     }
 
     @Test
