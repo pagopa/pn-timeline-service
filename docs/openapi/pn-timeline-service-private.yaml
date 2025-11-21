@@ -369,8 +369,8 @@ paths:
     get:
       summary: Informazioni di spedizione notifica
       description: >-
-        Ottiene le informazioni di spedizione del destinatario della notifica, il suo stato, la modalità di consegna,
-        la data di perfezionamento e la data di schedulazione dell'invio analogico.
+        Restituisce le informazioni sulla spedizione relativa ad un destinatario della notifica. I campi includono lo stato di cancellazione della notifica, 
+        la modalità di consegna adottata, la data di perfezionamento della notifica e, se previsto, la data di schedulazione per l'invio in modalità analogica
       tags:
         - timeline-controller
       operationId: getDeliveryInformation
