@@ -1526,7 +1526,9 @@ components:
 
     ExtendedDeliveryMode:
       type: string
-      description: Tipologia Domiciliazione (estesa con il caso di unknown in caso di ricerca prematura)
+      description: >
+        Tipologia Domiciliazione estesa con il valore di UNKNOWN in caso la ricerca avvenga 
+        in un momento in cui la notifica non ha ancora intrapreso la scelta della modalità di spedizione
       enum:
         - DIGITAL
         - ANALOG
