@@ -365,6 +365,45 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/delivery-information/{iun}:
+    get:
+      summary: Informazioni di spedizione notifica
+      description: >-
+        Restituisce le informazioni sulla spedizione relativa ad un destinatario della notifica. I campi includono lo stato di cancellazione della notifica, 
+        la modalità di consegna adottata, la data di perfezionamento della notifica e, se previsto, la data di schedulazione per l'invio in modalità analogica
+      tags:
+        - timeline-controller
+      operationId: getDeliveryInformation
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recIndex
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/DeliveryInformationResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
 
 components:
   schemas:
@@ -396,6 +435,25 @@ components:
           type: array
           items:
             $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
+    DeliveryInformationResponse:
+      type: object
+      required:
+        - deliveryMode
+        - isNotificationCancelled
+      properties:
+        deliveryMode:
+          $ref: './schemas-pn-timeline-service.yaml#/components/schemas/ExtendedDeliveryMode'
+        refinementOrViewedDate:
+          type: string
+          description: Data e ora di perfezionamento per decorrenza termini o per presa visione della notifica
+          format: date-time
+        schedulingAnalogDate:
+          type: string
+          description: Data e ora di schedulazione invio analogico
+          format: date-time
+        isNotificationCancelled:
+          type: boolean
+          description: Indica se la notifica è stata cancellata
     NotificationStatus:
       type: string
       description: >
