@@ -255,9 +255,3 @@ Resources:
               - 'dynamodb:UpdateItem'
             Resource:
               - !Sub "${PnDeliveryPushShedLockDynamoTableArn}"
-          - Effect: Allow
-            Action:
-              - 'ssm:GetParameter'
-              - 'ssm:GetParameters'
-            Resource:
-              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/config/timeline/invalidable-categories'
