@@ -2,7 +2,9 @@ package it.pagopa.pn.timelineservice.service.mapper;
 
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +41,7 @@ public class TimelineMapperBeforeFix extends TimelineMapper {
                 case REFINEMENT -> caseRefinement(timelineElementInternalSet, result);
                 case SEND_DIGITAL_DOMICILE -> caseSendDigitalDomicile(timelineElementInternalSet, result, isPfNewWorkflowEnabled);
                 case SEND_DIGITAL_FEEDBACK -> caseSendDigitalFeedback(timelineElementInternalSet, result, isPfNewWorkflowEnabled);
+                case NOTIFICATION_TIMELINE_REWORKED -> caseNotificationTimelineReworked(timelineElementInternalSet, result);
                 default -> {
                     //nothing to do
                 }
@@ -47,6 +50,26 @@ public class TimelineMapperBeforeFix extends TimelineMapper {
             //In ultima istanza viene settato l'eventTimestamp con il timestamp rimappato (avranno dunque in uscita sempre lo stesso valore)
             result.setEventTimestamp(result.getTimestamp());
         }
+    }
+
+    private void caseNotificationTimelineReworked(Set<TimelineElementInternal> timelineElementInternalSet, TimelineElementInternal result) {
+        TimelineEventIdParser reworkedEventIdParser = TimelineEventIdParser.parse(result.getElementId());
+        Integer reworkRecIndex = reworkedEventIdParser.recIndex().orElse(null);
+        Integer attempt = reworkedEventIdParser.sentAttemptMade().orElse(null);
+
+        timelineElementInternalSet.stream()
+                .filter(timelineElementInternal -> timelineElementInternal.getCategory().equals(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE))
+                .filter(timelineElementInternal -> {
+                    TimelineEventIdParser parser = TimelineEventIdParser.parse(timelineElementInternal.getElementId());
+                    return parser.recIndex()
+                            .map(integer -> integer.equals(reworkRecIndex)).orElse(false) &&
+                            parser.sentAttemptMade().map(integer -> integer.equals(attempt)).orElse(false);
+                })
+                .findFirst()
+                .ifPresent(timelineElementInternal -> {
+                    result.setEventTimestamp(timelineElementInternal.getTimestamp());
+                    result.setTimestamp(timelineElementInternal.getTimestamp());
+                });
     }
 
 }

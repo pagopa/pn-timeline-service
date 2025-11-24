@@ -95,4 +95,5 @@ public class TimelineElementDetailsEntity {
     @Getter(onMethod=@__({@DynamoDbAttribute("paProtocolNumber")})) private String paProtocolNumber;
     @Getter(onMethod=@__({@DynamoDbAttribute("idempotenceToken")})) private String idempotenceToken;
     @Getter(onMethod=@__({@DynamoDbAttribute("timeoutDate")})) private Instant timeoutDate;
+    @Getter(onMethod=@__({@DynamoDbAttribute("invalidatedTimelineAndStatusHistory")})) private List<NotificationStatusHistoryElementEntity> invalidatedTimelineAndStatusHistory;
 }

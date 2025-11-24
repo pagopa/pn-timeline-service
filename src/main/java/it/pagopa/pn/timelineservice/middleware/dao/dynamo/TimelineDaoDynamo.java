@@ -3,6 +3,7 @@ package it.pagopa.pn.timelineservice.middleware.dao.dynamo;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.DigitalAddressEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.PhysicalAddressEntity;
@@ -10,8 +11,10 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElement
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.EntityToDtoTimelineMapper;
+import it.pagopa.pn.timelineservice.utils.NotificationReworkUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.enhanced.dynamodb.*;
@@ -22,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 
 import java.util.Collections;
+import java.util.List;
 
 import static it.pagopa.pn.commons.abstractions.impl.AbstractDynamoKeyValueStore.ATTRIBUTE_NOT_EXISTS;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_DUPLICATED_ITEM;
@@ -35,33 +39,42 @@ public class TimelineDaoDynamo implements TimelineDao {
     private final DynamoDbAsyncTable<TimelineElementEntity> table;
     private final DtoToEntityTimelineMapper dto2entity;
     private final EntityToDtoTimelineMapper entity2dto;
+    private final PnTimelineServiceConfigs cfg;
 
     public TimelineDaoDynamo(DynamoDbEnhancedAsyncClient dynamoDbEnhancedClient, PnTimelineServiceConfigs cfg, DtoToEntityTimelineMapper dto2entity,
                              EntityToDtoTimelineMapper entity2dto) {
         this.dto2entity = dto2entity;
         this.entity2dto = entity2dto;
+        this.cfg = cfg;
         this.table = dynamoDbEnhancedClient.table(cfg.getTimelineDao().getTableName(), TableSchema.fromBean(TimelineElementEntity.class));
     }
 
     @Override
     public Mono<TimelineElementInternal> getTimelineElement(String iun, String elementId, boolean strongly) {
-        GetItemEnhancedRequest request = GetItemEnhancedRequest.builder()
-                .key(key -> key.partitionValue(iun).sortValue(elementId))
-                .consistentRead(strongly)
-                .build();
-
-        return Mono.fromFuture(table.getItem(request))
+        return retrieveCorrectElementIdIfReworked(iun, elementId, strongly)
+                .switchIfEmpty(Mono.just(elementId))
+                .map(updatedElementId -> GetItemEnhancedRequest.builder()
+                        .key(key -> key.partitionValue(iun).sortValue(updatedElementId))
+                        .consistentRead(strongly)
+                        .build())
+                .flatMap(getItemEnhancedRequest -> Mono.fromFuture(table.getItem(getItemEnhancedRequest)))
                 .map(entity2dto::entityToDto);
     }
 
     @Override
     public Flux<TimelineElementInternal> getTimeline(String iun) {
-       return getTimeline(iun, false);
+       return getTimeline(iun, false)
+               .collectList()
+               .map(NotificationReworkUtils::getNotInvalidatedTimelineElements)
+               .flatMapIterable(timelineElementInternals -> timelineElementInternals);
     }
 
     @Override
     public Flux<TimelineElementInternal> getTimelineStrongly(String iun) {
-        return getTimeline(iun, true);
+        return getTimeline(iun, true)
+                .collectList()
+                .map(NotificationReworkUtils::getNotInvalidatedTimelineElements)
+                .flatMapIterable(timelineElementInternals -> timelineElementInternals);
     }
 
     private Flux<TimelineElementInternal> getTimeline(String iun, boolean strongly) {
@@ -164,8 +177,10 @@ public class TimelineDaoDynamo implements TimelineDao {
     }
 
     @Override
-    public Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String elementId) {
+    public Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String elementId, boolean strongly) {
         return searchByIunAndElementId(iun, elementId)
+                .collectList()
+                .flatMapMany(timelineElementEntities -> filterForReworkedElementIdIfExists(iun, timelineElementEntities, strongly))
                 .map(entity2dto::entityToDto);
     }
 
@@ -174,5 +189,37 @@ public class TimelineDaoDynamo implements TimelineDao {
         QueryConditional queryByHashKey = sortBeginsWith(hashKey);
         return Flux.from(table.query(queryByHashKey))
                 .flatMap(page -> Flux.fromIterable(page.items()));
+    }
+
+    private Mono<String> getReworkTimelineReworkIdx(String iun, boolean strongly) {
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                .queryConditional(QueryConditional.sortBeginsWith(
+                        Key.builder().partitionValue(iun).sortValue("NOTIFICATION_TIMELINE_REWORKED").build()))
+                .limit(1)
+                .scanIndexForward(false)
+                .consistentRead(strongly)
+                .build();
+
+        return Flux.from(table.query(request))
+                .flatMap(page -> Flux.fromIterable(page.items()))
+                .next()
+                .map(timelineElementEntity -> TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).reworkIndexFull().orElse(null));
+    }
+
+    private Flux<TimelineElementEntity> filterForReworkedElementIdIfExists(String iun, List<TimelineElementEntity> timelineElementEntities, boolean strongly) {
+        return getReworkTimelineReworkIdx(iun, strongly)
+                .map(reworkSuffix -> timelineElementEntities.stream()
+                        .filter(timelineElementEntity -> timelineElementEntity.getTimelineElementId().contains(reworkSuffix)).toList())
+                .defaultIfEmpty(timelineElementEntities)
+                .flatMapIterable(entities -> entities);
+    }
+
+    public Mono<String> retrieveCorrectElementIdIfReworked(String iun, String timelineId, boolean strongly) {
+        String category = TimelineEventIdParser.parse(timelineId).category().orElse(null);
+        if(StringUtils.hasText(category) && cfg.getInvalidableCategories().contains(category)) {
+            return getReworkTimelineReworkIdx(iun, strongly)
+                    .map(reworkSuffix -> timelineId + "." + reworkSuffix);
+        }
+        return Mono.just(timelineId);
     }
 }

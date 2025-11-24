@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Import;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 @ConfigurationProperties( prefix = "pn.timeline-service")
@@ -37,6 +39,8 @@ public class PnTimelineServiceConfigs {
     private String pfNewWorkflowStop;
 
     private Duration timelineLockDuration;
+
+    private List<String> invalidableCategories = new ArrayList<>();
 
     @Data
     public static class TimelineDao {

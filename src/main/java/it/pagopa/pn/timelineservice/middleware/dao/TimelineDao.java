@@ -15,6 +15,6 @@ public interface TimelineDao {
 
     Flux<TimelineElementInternal> getTimelineStrongly(String iun);
 
-    Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String timelineId);
+    Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String timelineId, boolean strongly);
 
 }

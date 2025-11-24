@@ -95,6 +95,7 @@ class EntityToDtoTimelineMapperTest {
         TimelineElementEntity entity = TimelineElementEntity.builder()
                 .paId("PaId")
                 .iun("iun")
+                .reworkId("reworkId")
                 .category(TimelineElementCategoryEntity.PUBLIC_REGISTRY_CALL)
                 .details(
                         TimelineElementDetailsEntity.builder()
@@ -118,6 +119,7 @@ class EntityToDtoTimelineMapperTest {
         Assertions.assertEquals(entity.getDetails().getRecIndex(), details.getRecIndex());
         Assertions.assertEquals(entity.getDetails().getSentAttemptMade(), details.getSentAttemptMade());
         Assertions.assertEquals(entity.getDetails().getDeliveryMode().getValue(), details.getDeliveryMode().getValue());
+        Assertions.assertEquals("reworkId", entity.getReworkId());
     }
 
     @Test

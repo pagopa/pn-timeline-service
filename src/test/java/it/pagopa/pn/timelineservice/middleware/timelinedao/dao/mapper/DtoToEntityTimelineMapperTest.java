@@ -44,6 +44,7 @@ class DtoToEntityTimelineMapperTest {
         assertThat(actual.getLegalFactIds()).isNotNull().hasSize(timelineElementInternal.getLegalFactsIds().size());
         assertThat(actual.getLegalFactIds().get(0).getKey()).isEqualTo(timelineElementInternal.getLegalFactsIds().get(0).getKey());
         assertThat(actual.getLegalFactIds().get(0).getCategory().name()).isEqualTo(timelineElementInternal.getLegalFactsIds().get(0).getCategory().name());
+        assertThat(actual.getReworkId()).isEqualTo(timelineElementInternal.getReworkId());
     }
 
     @Test
@@ -211,6 +212,7 @@ class DtoToEntityTimelineMapperTest {
                 .details(elementDetailsInt)
                 .legalFactsIds(legalFactsIdInts)
                 .notificationSentAt(Instant.now())
+                .reworkId("reworkId")
                 .build();
     }
 

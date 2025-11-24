@@ -14,6 +14,7 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHi
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
@@ -38,6 +39,7 @@ import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -54,6 +56,10 @@ import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnri
 @Slf4j
 @RequiredArgsConstructor
 public class TimelineServiceImpl implements TimelineService {
+    public static final String REC_INDEX = "RECINDEX_";
+    public static final String ATTEMPT = "ATTEMPT_";
+    public static final String REWORK = ".REWORK_";
+
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
     private final StatusUtils statusUtils;
@@ -130,8 +136,9 @@ public class TimelineServiceImpl implements TimelineService {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
                     StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
                     TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
+                    TimelineElementInternal enrichedDtoWithRework = enrichWithReworkInfo(enrichedDto, currentTimeline);
                     return confidentialInformationService.saveTimelineConfidentialInformation(dto)
-                            .thenReturn(enrichedDto)
+                            .thenReturn(enrichedDtoWithRework)
                             .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
                             .flatMap(this::persistTimelineElement)
                             .doOnSuccess(item -> logAndCleanMdc(dto, logEvent, false))
@@ -271,7 +278,7 @@ public class TimelineServiceImpl implements TimelineService {
         Flux<TimelineElementInternal> setTimelineElements;
 
         if (timelineId != null) {
-            setTimelineElements = timelineDao.getTimelineFilteredByElementId(iun, timelineId);
+            setTimelineElements = timelineDao.getTimelineFilteredByElementId(iun, timelineId, strongly);
         } else if (strongly) {
             setTimelineElements = timelineDao.getTimelineStrongly(iun);
         } else {
@@ -376,6 +383,75 @@ public class TimelineServiceImpl implements TimelineService {
         Instant timestampLastTimelineElement = getTimestampLastUpdateStatus(currentTimeline, notificationSentAt);
         StatusInfoInternal statusInfo = buildStatusInfo(notificationStatuses, timestampLastTimelineElement);
         return dto.toBuilder().statusInfo(statusInfo).build();
+    }
+
+    private Optional<TimelineElementInternal> getElementByCategoryAndRecIndexFromTimeline(List<TimelineElementInternal> currentTimeline, TimelineElementCategoryInt category, Integer recIndex, Integer attemptId) {
+        return currentTimeline.stream()
+                .filter(elem -> elem.getElementId().contains(REC_INDEX + recIndex))
+                .filter(elem -> elem.getElementId().contains(ATTEMPT + attemptId))
+                .filter(elem -> category.equals(elem.getCategory())).findFirst();
+    }
+
+    private TimelineElementInternal enrichWithReworkInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
+        List<TimelineElementInternal> sortedTimeline = new ArrayList<>(currentTimeline);
+
+        //Ordino la lista in base al timestamp e poi la inverto per avere al primo posto l'evento con requestTimestamp più recente
+        sortedTimeline.sort(Comparator.comparing(TimelineElementInternal::getTimestamp).reversed());
+
+        Optional<TimelineElementInternal> reworkTimelineElement = getReworkElementIfTimelineElementToBeReworked(dto, sortedTimeline);
+
+        if (reworkTimelineElement.isPresent()) {
+            int notificationReworkIndex = Integer.parseInt(reworkTimelineElement.get().getElementId().substring((reworkTimelineElement.get().getElementId().lastIndexOf(REWORK) + REWORK.length()), (reworkTimelineElement.get().getElementId().lastIndexOf(REWORK) + REWORK.length() + 1)));
+            return dto.toBuilder().elementId(dto.getElementId() + REWORK + notificationReworkIndex).reworkId(reworkTimelineElement.get().getReworkId()).build();
+        }
+        return dto;
+    }
+
+    private Optional<TimelineElementInternal> getReworkElementIfTimelineElementToBeReworked(TimelineElementInternal dto, List<TimelineElementInternal> sortedTimeline) {
+        Optional<TimelineElementInternal> reworkTimelineElement = getLastReworkElement(sortedTimeline);
+
+        if (reworkTimelineElement.isEmpty()) {
+            log.debug("No rework timeline element found for elementId={}", dto.getElementId());
+            return Optional.empty();
+        }
+
+        NotificationTimelineReworkedDetailsInt reworkDetail = (NotificationTimelineReworkedDetailsInt) reworkTimelineElement.get().getDetails();
+        int recIndexDto = Integer.parseInt(dto.getElementId().substring(dto.getElementId().lastIndexOf(REC_INDEX) + REC_INDEX.length(), dto.getElementId().lastIndexOf(REC_INDEX) + REC_INDEX.length() + 1));
+
+        if (recIndexDto != reworkDetail.getRecIndex()) {
+            log.debug("Recipient index does not match: elementId={} recIndexDto={} reworkRecIndex={}", dto.getElementId(), recIndexDto, reworkDetail.getRecIndex());
+            return Optional.empty();
+        }
+
+        int attemptDto = Integer.parseInt(dto.getElementId().substring(dto.getElementId().lastIndexOf(ATTEMPT) + ATTEMPT.length(), dto.getElementId().lastIndexOf(ATTEMPT) + ATTEMPT.length() + 1));
+
+        if (reworkDetail.getSentAttemptMade() == null) {
+            Optional<TimelineElementInternal> sendAnalogFeedbackElement = getLastSendAnalogFeedbackElement(sortedTimeline, REC_INDEX + recIndexDto);
+            if (sendAnalogFeedbackElement.isPresent() && StringUtils.hasText(sendAnalogFeedbackElement.get().getReworkId())) {
+                log.debug("ReworkId found in analog feedback for elementId={}", dto.getElementId());
+                return reworkTimelineElement;
+            }
+            log.debug("No sentAttemptMade and no analog feedback with reworkId for elementId={}", dto.getElementId());
+            return Optional.empty();
+        }
+
+        if (attemptDto == reworkDetail.getSentAttemptMade()) {
+            log.debug("Attempt matches rework detail: elementId={} attemptDto={}", dto.getElementId(), attemptDto);
+            return reworkTimelineElement;
+        }
+
+        log.debug("Attempt does not match rework detail: elementId={} attemptDto={} sentAttemptMade={}", dto.getElementId(), attemptDto, reworkDetail.getSentAttemptMade());
+        return Optional.empty();
+    }
+
+    private Optional<TimelineElementInternal> getLastReworkElement(List<TimelineElementInternal> currentTimeline) {
+        return currentTimeline.stream().filter(elem -> TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED.equals(elem.getCategory())).findFirst();
+    }
+
+    private Optional<TimelineElementInternal> getLastSendAnalogFeedbackElement(List<TimelineElementInternal> currentTimeline, String recIndex) {
+        return currentTimeline.stream()
+                .filter(elem -> elem.getElementId().contains(recIndex))
+                .filter(elem -> TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK.equals(elem.getCategory())).findFirst();
     }
 
     private Instant getTimestampLastUpdateStatus(Set<TimelineElementInternal> currentTimeline, Instant notificationSentAt) {
