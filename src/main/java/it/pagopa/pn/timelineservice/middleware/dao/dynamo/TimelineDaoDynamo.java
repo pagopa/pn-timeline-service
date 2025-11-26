@@ -4,11 +4,9 @@ import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
+import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.DigitalAddressEntity;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.PhysicalAddressEntity;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementDetailsEntity;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
+import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.*;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.EntityToDtoTimelineMapper;
 import it.pagopa.pn.timelineservice.utils.NotificationReworkUtils;
@@ -26,6 +24,7 @@ import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedExce
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static it.pagopa.pn.commons.abstractions.impl.AbstractDynamoKeyValueStore.ATTRIBUTE_NOT_EXISTS;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_DUPLICATED_ITEM;
@@ -180,7 +179,7 @@ public class TimelineDaoDynamo implements TimelineDao {
     public Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String elementId, boolean strongly) {
         return searchByIunAndElementId(iun, elementId)
                 .collectList()
-                .flatMapMany(timelineElementEntities -> filterForReworkedElementIdIfExists(iun, timelineElementEntities, strongly))
+                .flatMapMany(timelineElementEntities -> filterForReworkedElementIdIfExists(iun, timelineElementEntities, strongly, elementId))
                 .map(entity2dto::entityToDto);
     }
 
@@ -191,7 +190,7 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .flatMap(page -> Flux.fromIterable(page.items()));
     }
 
-    private Mono<String> getReworkTimelineReworkIdx(String iun, boolean strongly) {
+    private Mono<String> getReworkTimelineReworkIdx(String iun, boolean strongly, String timelineElementId) {
         QueryEnhancedRequest request = QueryEnhancedRequest.builder()
                 .queryConditional(QueryConditional.sortBeginsWith(
                         Key.builder().partitionValue(iun).sortValue("NOTIFICATION_TIMELINE_REWORKED").build()))
@@ -203,11 +202,13 @@ public class TimelineDaoDynamo implements TimelineDao {
         return Flux.from(table.query(request))
                 .flatMap(page -> Flux.fromIterable(page.items()))
                 .next()
+                .filter(timelineElementEntity -> Objects.equals(timelineElementEntity.getDetails().getRecIndex(), TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).recIndex().get()))
+                .filter(timelineElementEntity -> !getInvalidatedTimelineIds(timelineElementEntity.getDetails().getInvalidatedTimelineAndStatusHistory()).contains(timelineElementId))
                 .map(timelineElementEntity -> TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).reworkIndexFull().orElse(null));
     }
 
-    private Flux<TimelineElementEntity> filterForReworkedElementIdIfExists(String iun, List<TimelineElementEntity> timelineElementEntities, boolean strongly) {
-        return getReworkTimelineReworkIdx(iun, strongly)
+    private Flux<TimelineElementEntity> filterForReworkedElementIdIfExists(String iun, List<TimelineElementEntity> timelineElementEntities, boolean strongly, String elementId) {
+        return getReworkTimelineReworkIdx(iun, strongly, elementId)
                 .map(reworkSuffix -> timelineElementEntities.stream()
                         .filter(timelineElementEntity -> timelineElementEntity.getTimelineElementId().contains(reworkSuffix)).toList())
                 .defaultIfEmpty(timelineElementEntities)
@@ -217,9 +218,16 @@ public class TimelineDaoDynamo implements TimelineDao {
     public Mono<String> retrieveCorrectElementIdIfReworked(String iun, String timelineId, boolean strongly) {
         String category = TimelineEventIdParser.parse(timelineId).category().orElse(null);
         if(StringUtils.hasText(category) && cfg.getInvalidableCategories().contains(category)) {
-            return getReworkTimelineReworkIdx(iun, strongly)
+            return getReworkTimelineReworkIdx(iun, strongly, timelineId)
                     .map(reworkSuffix -> timelineId + "." + reworkSuffix);
         }
         return Mono.just(timelineId);
+    }
+
+    private List<String> getInvalidatedTimelineIds(List<NotificationStatusHistoryElementEntity> invalidatedTimelineAndStatusHistory) {
+        return invalidatedTimelineAndStatusHistory.stream()
+                .map(NotificationStatusHistoryElementEntity::getRelatedTimelineElements)
+                .flatMap(List::stream)
+                .toList();
     }
 }

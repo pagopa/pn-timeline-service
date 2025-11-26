@@ -657,11 +657,12 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
 
         TimelineElementInternal reworkElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".ATTEMPT_0.REWORK_0")
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.REWORK_0")
                 .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
                 .details(NotificationTimelineReworkedDetailsInt.builder()
                         .recIndex(0)
                         .sentAttemptMade(0)
+                        .invalidatedTimelineAndStatusHistory(List.of())
                         .build())
                 .legalFactsIds(
                         Collections.singletonList(
@@ -675,11 +676,12 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
 
         TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".ATTEMPT_0.REWORK_1")
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.REWORK_1")
                 .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
                 .details(NotificationTimelineReworkedDetailsInt.builder()
                         .recIndex(0)
                         .sentAttemptMade(0)
+                        .invalidatedTimelineAndStatusHistory(List.of())
                         .build())
                 .legalFactsIds(
                         Collections.singletonList(
