@@ -4,7 +4,6 @@ import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.*;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
@@ -62,10 +61,10 @@ public class TimelineDaoDynamo implements TimelineDao {
 
     @Override
     public Flux<TimelineElementInternal> getTimeline(String iun) {
-       return getTimeline(iun, false)
-               .collectList()
-               .map(NotificationReworkUtils::getNotInvalidatedTimelineElements)
-               .flatMapIterable(timelineElementInternals -> timelineElementInternals);
+        return getTimeline(iun, false)
+                .collectList()
+                .map(NotificationReworkUtils::getNotInvalidatedTimelineElements)
+                .flatMapIterable(timelineElementInternals -> timelineElementInternals);
     }
 
     @Override
@@ -190,7 +189,7 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .flatMap(page -> Flux.fromIterable(page.items()));
     }
 
-    private Mono<String> getReworkTimelineReworkIdx(String iun, boolean strongly, String timelineElementId) {
+    private Mono<TimelineElementEntity> getReworkTimelineElementIfExists(String iun, boolean strongly) {
         QueryEnhancedRequest request = QueryEnhancedRequest.builder()
                 .queryConditional(QueryConditional.sortBeginsWith(
                         Key.builder().partitionValue(iun).sortValue("NOTIFICATION_TIMELINE_REWORKED").build()))
@@ -201,25 +200,32 @@ public class TimelineDaoDynamo implements TimelineDao {
 
         return Flux.from(table.query(request))
                 .flatMap(page -> Flux.fromIterable(page.items()))
-                .next()
-                .filter(timelineElementEntity -> Objects.equals(timelineElementEntity.getDetails().getRecIndex(), TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).recIndex().get()))
-                .filter(timelineElementEntity -> !getInvalidatedTimelineIds(timelineElementEntity.getDetails().getInvalidatedTimelineAndStatusHistory()).contains(timelineElementId))
-                .map(timelineElementEntity -> TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).reworkIndexFull().orElse(null));
+                .next();
+    }
+
+    private Mono<String> getReworkTimelineReworkIdx(TimelineElementEntity timelineElementEntity, String timelineElementId) {
+        return Mono.just(timelineElementEntity)
+                .filter(entity -> Objects.equals(entity.getDetails().getRecIndex(), TimelineEventIdParser.parse(entity.getTimelineElementId()).recIndex().get()))
+                .filter(entity -> getInvalidatedTimelineIds(entity.getDetails().getInvalidatedTimelineAndStatusHistory()).contains(timelineElementId))
+                .map(entity -> TimelineEventIdParser.parse(entity.getTimelineElementId()).reworkIndexFull().orElse(null));
     }
 
     private Flux<TimelineElementEntity> filterForReworkedElementIdIfExists(String iun, List<TimelineElementEntity> timelineElementEntities, boolean strongly, String elementId) {
-        return getReworkTimelineReworkIdx(iun, strongly, elementId)
-                .map(reworkSuffix -> timelineElementEntities.stream()
-                        .filter(timelineElementEntity -> timelineElementEntity.getTimelineElementId().contains(reworkSuffix)).toList())
+        return getReworkTimelineElementIfExists(iun, strongly)
+                .map(timelineElementEntity -> TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).reworkIndexFull()
+                        .map(reworkSuffix -> timelineElementEntities.stream().filter(entity -> entity.getTimelineElementId().contains(reworkSuffix)).toList())
+                        .orElse(timelineElementEntities))
                 .defaultIfEmpty(timelineElementEntities)
                 .flatMapIterable(entities -> entities);
     }
 
     public Mono<String> retrieveCorrectElementIdIfReworked(String iun, String timelineId, boolean strongly) {
         String category = TimelineEventIdParser.parse(timelineId).category().orElse(null);
-        if(StringUtils.hasText(category) && cfg.getInvalidableCategories().contains(category)) {
-            return getReworkTimelineReworkIdx(iun, strongly, timelineId)
-                    .map(reworkSuffix -> timelineId + "." + reworkSuffix);
+        if (StringUtils.hasText(category) && cfg.getInvalidableCategories().contains(category)) {
+            return getReworkTimelineElementIfExists(iun, strongly)
+                    .flatMap(timelineElementEntity -> getReworkTimelineReworkIdx(timelineElementEntity, timelineId))
+                    .map(reworkSuffix -> timelineId + "." + reworkSuffix)
+                    .switchIfEmpty(Mono.just(timelineId));
         }
         return Mono.just(timelineId);
     }
