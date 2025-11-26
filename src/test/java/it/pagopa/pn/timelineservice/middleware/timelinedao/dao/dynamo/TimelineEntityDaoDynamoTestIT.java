@@ -265,7 +265,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
 
     @Test
     void findByIunWithRework() {
-        String iun = "pa1-1";
+        String iun = "pa1-1BIS";
         String invalidatedTimelineElementId1 = UUID.randomUUID().toString();
         String invalidatedTimelineElementId2 = UUID.randomUUID().toString();
 
@@ -354,6 +354,193 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
         Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::getElementId)
                 .anyMatch(s -> s.equals(fifthElementToInsert.getElementId())));
     }
+
+    @Test
+    void getTimelineElementWithRework() {
+        String iun = "pa1-IUN2";
+        String invalidatedTimelineElementId1 = "PREPARE_ANALOG_DOMICILE.IUN_"+iun+".RECINDEX_0.ATTEMPT_1";
+
+        //GIVEN
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(invalidatedTimelineElementId1)
+                .category(TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE)
+                .details(RefinementDetailsInt.builder()
+                        .recIndex(0)
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("SEND_ANALOG_PROGRESS.IUN_"+iun+".RECINDEX_0.ATTEMPT_1"));
+
+        TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.REWORK_0")
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(NotificationTimelineReworkedDetailsInt.builder()
+                        .recIndex(0)
+                        .sentAttemptMade(0)
+                        .invalidatedTimelineAndStatusHistory(List.of(notificationStatusHistoryElementInt))
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(secondReworkElementToInsert).block();
+
+        //WHEN
+        TimelineElementInternal elementSet =  timelineEntityDao.getTimelineElement(iun, firstElementToInsert.getElementId(), false).block();
+
+        //THEN
+        Assertions.assertNotNull(elementSet);
+        Assertions.assertEquals("PREPARE_ANALOG_DOMICILE.IUN_"+iun+".RECINDEX_0.ATTEMPT_1", elementSet.getElementId());
+    }
+
+    @Test
+    void getTimelineElementWithReworkWithInvalidatedElement() {
+        String iun = "pa1-1";
+        String invalidatedTimelineElementId1 = "REFINEMENT.IUN_"+iun+".RECINDEX_0";
+
+        //GIVEN
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(invalidatedTimelineElementId1)
+                .category(TimelineElementCategoryInt.REFINEMENT)
+                .details(RefinementDetailsInt.builder()
+                        .recIndex(0)
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("REFINEMENT.IUN_"+iun+".RECINDEX_0"));
+
+        TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.REWORK_0")
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(NotificationTimelineReworkedDetailsInt.builder()
+                        .recIndex(0)
+                        .sentAttemptMade(0)
+                        .invalidatedTimelineAndStatusHistory(List.of(notificationStatusHistoryElementInt))
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(secondReworkElementToInsert).block();
+
+        //WHEN
+        TimelineElementInternal elementSet =  timelineEntityDao.getTimelineElement(iun, firstElementToInsert.getElementId(), false).block();
+
+        //THEN
+        Assertions.assertNull(elementSet);
+    }
+
+    @Test
+    void getTimelineElementWithReworkWithInvalidatedPrepare() {
+        String iun = "pa1-IUN1";
+        String invalidatedTimelineElementId1 = "REFINEMENT.IUN_"+iun+".RECINDEX_0";
+        String invalidatedTimelineElementId2 = "REFINEMENT.IUN_"+iun+".RECINDEX_0.REWORK_0";
+
+        //GIVEN
+        TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(invalidatedTimelineElementId1)
+                .category(TimelineElementCategoryInt.REFINEMENT)
+                .details(RefinementDetailsInt.builder()
+                        .recIndex(0)
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        TimelineElementInternal thirdElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId(invalidatedTimelineElementId2)
+                .category(TimelineElementCategoryInt.REFINEMENT)
+                .details(RefinementDetailsInt.builder()
+                        .recIndex(0)
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("REFINEMENT.IUN_"+iun+".RECINDEX_0"));
+
+        TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
+                .iun(iun)
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.REWORK_0")
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(NotificationTimelineReworkedDetailsInt.builder()
+                        .recIndex(0)
+                        .sentAttemptMade(0)
+                        .invalidatedTimelineAndStatusHistory(List.of(notificationStatusHistoryElementInt))
+                        .build())
+                .legalFactsIds(
+                        Collections.singletonList(
+                                LegalFactsIdInt.builder()
+                                        .key("key")
+                                        .category(LegalFactCategoryInt.DIGITAL_DELIVERY)
+                                        .build()
+                        )
+                )
+                .build();
+
+        timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(secondReworkElementToInsert).block();
+        timelineEntityDao.addTimelineElementIfAbsent(thirdElementToInsert).block();
+
+        //WHEN
+        TimelineElementInternal elementSet =  timelineEntityDao.getTimelineElement(iun, firstElementToInsert.getElementId(), false).block();
+
+        //THEN
+        Assertions.assertNotNull(elementSet);
+        Assertions.assertEquals("REFINEMENT.IUN_"+iun+".RECINDEX_0.REWORK_0", elementSet.getElementId());
+    }
+
 
     @Test
     void findByIunStrongly() {
@@ -469,7 +656,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
     void searchByIunAndElementId() {
 
 
-        String iun = "pa1-1";
+        String iun = "pa1-1tris";
         String elementId = UUID.randomUUID().toString();
 
         //GIVEN
@@ -635,13 +822,13 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
 
     @Test
     void getTimelineElmentStronglyWithReworkCategory() {
-        String iun = UUID.randomUUID().toString();
-        String elementIdToSearch = "SEND_ANALOG_DOMICILE.IUN_"+iun+".ATTEMPT_0";
+        String iun = "pa1-IUN3";
+        String elementIdToSearch = "SEND_ANALOG_FEEDBACK.IUN_"+iun+".ATTEMPT_0";
         //GIVEN
         TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .elementId("SEND_ANALOG_DOMICILE.IUN_"+iun+".ATTEMPT_0.REWORK_1")
-                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .elementId("SEND_ANALOG_FEEDBACK.IUN_"+iun+".ATTEMPT_0.REWORK_1")
+                .category(TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK)
                 .details(AarCreationRequestDetailsInt.builder()
                         .recIndex(0)
                         .build())
@@ -674,6 +861,10 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 )
                 .build();
 
+        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("SEND_ANALOG_FEEDBACK.IUN_"+iun+".ATTEMPT_0"));
+
+
         TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
                 .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.REWORK_1")
@@ -681,7 +872,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 .details(NotificationTimelineReworkedDetailsInt.builder()
                         .recIndex(0)
                         .sentAttemptMade(0)
-                        .invalidatedTimelineAndStatusHistory(List.of())
+                        .invalidatedTimelineAndStatusHistory(List.of(notificationStatusHistoryElementInt))
                         .build())
                 .legalFactsIds(
                         Collections.singletonList(

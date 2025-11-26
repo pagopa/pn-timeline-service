@@ -3,14 +3,12 @@ package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.dynamo;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.TimelineDaoDynamo;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.StatusInfoEntity;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementCategoryEntity;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementDetailsEntity;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
+import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.*;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.EntityToDtoTimelineMapper;
 import org.junit.jupiter.api.Assertions;
@@ -428,53 +426,65 @@ class TimelineDaoDynamoTest {
     void getTimelineFilteredByElementIdWithReworkItemTest() {
         String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
 
-        String id1 = "DIGITAL_PROG.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.SOURCE_SPECIAL.REPEAT_false.ATTEMPT_0.IDX_1.REWORK_0";
+        String id1 = "SEND_ANALOG_PROGRESS.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.ATTEMPT_0.IDX_1";
         TimelineElementEntity row1 = TimelineElementEntity.builder()
                 .iun(iun)
                 .timelineElementId(id1)
-                .category(TimelineElementCategoryEntity.REQUEST_ACCEPTED)
-                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .category(TimelineElementCategoryEntity.SEND_ANALOG_PROGRESS)
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
                 .statusInfo(StatusInfoEntity.builder().build())
                 .build();
-        String id2 = "DIGITAL_PROG.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.SOURCE_SPECIAL.REPEAT_false.ATTEMPT_0.IDX_1";
+
+        String id3 = "SEND_ANALOG_PROGRESS.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.ATTEMPT_0.IDX_2";
+        TimelineElementEntity row3 = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId(id3)
+                .category(TimelineElementCategoryEntity.SEND_ANALOG_PROGRESS)
+                .timestamp(Instant.now())
+                .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
+                .statusInfo(StatusInfoEntity.builder().build())
+                .build();
+
+        String id2 = "SEND_ANALOG_PROGRESS.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.ATTEMPT_0.IDX_3.REWORK_0";
         TimelineElementEntity row2 = TimelineElementEntity.builder()
                 .iun(iun)
                 .timelineElementId(id2)
-                .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .category(TimelineElementCategoryEntity.SEND_ANALOG_PROGRESS)
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
                 .statusInfo(StatusInfoEntity.builder().build())
                 .build();
 
-        String id3 = "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.RECINDEX_0.REWORK_0";
+        NotificationStatusHistoryElementEntity notificationStatusHistoryElementInt = new NotificationStatusHistoryElementEntity();
+        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("SEND_ANALOG_PROGRESS.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.IDX_1",
+                "SEND_ANALOG_PROGRESS.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.IDX_2"));
+
+        String id4 = "NOTIFICATION_TIMELINE_REWORKED.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.ATTEMPT_0.REWORK_0";
         TimelineElementEntity rework = TimelineElementEntity.builder()
                 .iun(iun)
-                .timelineElementId(id3)
-                .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder().recIndex(0).invalidatedTimelineAndStatusHistory(List.of()).build())
+                .timelineElementId(id4)
+                .category(TimelineElementCategoryEntity.NOTIFICATION_TIMELINE_REWORKED)
+                .details(TimelineElementDetailsEntity.builder().recIndex(0).invalidatedTimelineAndStatusHistory(List.of(notificationStatusHistoryElementInt)).build())
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
                 .statusInfo(StatusInfoEntity.builder().build())
                 .build();
 
-        mockQueryConditional(table, List.of(row1, row2));
+        mockQueryConditional(table, List.of(row1, row3, row2));
         mockQueryEnahncedRequest(table, List.of(rework));
 
-        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.REWORK_0", true).collectList().block();
+        List<TimelineElementInternal> result = dao.getTimelineFilteredByElementId(iun, "SEND_ANALOG_PROGRESS.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.ATTEMPT_0", true).collectList().block();
         Assertions.assertNotNull(result);
 
-        Assertions.assertEquals(row1.getIun(), result.getFirst().getIun());
-        Assertions.assertEquals(row1.getTimelineElementId(), result.getFirst().getElementId());
-        Assertions.assertEquals(row1.getCategory().name(), result.getFirst().getCategory().name());
-        Assertions.assertEquals(row1.getStatusInfo().isStatusChanged(), result.getFirst().getStatusInfo().isStatusChanged());
-        Assertions.assertEquals(row1.getNotificationSentAt(), result.getFirst().getNotificationSentAt());
-        Assertions.assertEquals(row1.getPaId(), result.getFirst().getPaId());
-        Assertions.assertEquals(row1.getTimestamp(), result.getFirst().getTimestamp());
-        Assertions.assertEquals(row1.getBusinessTimestamp(), result.getFirst().getEventTimestamp());
-        Assertions.assertInstanceOf(NotificationRequestAcceptedDetailsInt.class, result.getFirst().getDetails());
+        Assertions.assertEquals(row2.getIun(), result.getFirst().getIun());
+        Assertions.assertEquals(row2.getTimelineElementId(), result.getFirst().getElementId());
+        Assertions.assertEquals(row2.getCategory().name(), result.getFirst().getCategory().name());
+        Assertions.assertEquals(row2.getStatusInfo().isStatusChanged(), result.getFirst().getStatusInfo().isStatusChanged());
+        Assertions.assertEquals(row2.getNotificationSentAt(), result.getFirst().getNotificationSentAt());
+        Assertions.assertEquals(row2.getPaId(), result.getFirst().getPaId());
+        Assertions.assertEquals(row2.getTimestamp(), result.getFirst().getTimestamp());
+        Assertions.assertEquals(row2.getBusinessTimestamp(), result.getFirst().getEventTimestamp());
 
         Assertions.assertTrue(result.stream().allMatch(elem -> elem.getElementId().contains(".REWORK_")));
     }
