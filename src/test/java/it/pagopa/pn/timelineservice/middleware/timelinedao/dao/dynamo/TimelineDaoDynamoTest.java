@@ -449,12 +449,12 @@ class TimelineDaoDynamoTest {
                 .statusInfo(StatusInfoEntity.builder().build())
                 .build();
 
-        String id3 = "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.REWORK_0";
+        String id3 = "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.RECINDEX_0.REWORK_0";
         TimelineElementEntity rework = TimelineElementEntity.builder()
                 .iun(iun)
                 .timelineElementId(id3)
                 .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .details(TimelineElementDetailsEntity.builder().recIndex(0).invalidatedTimelineAndStatusHistory(List.of()).build())
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
                 .statusInfo(StatusInfoEntity.builder().build())
@@ -527,12 +527,12 @@ class TimelineDaoDynamoTest {
                 .statusInfo(StatusInfoEntity.builder().build())
                 .build();
 
-        String id3 = "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.REWORK_0";
+        String id3 = "SEND_DIGITAL_DOMICILE.IUN_iun-di-prova.RECINDEX_0.REWORK_0";
         TimelineElementEntity rework = TimelineElementEntity.builder()
                 .iun(iun)
                 .timelineElementId(id3)
                 .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
-                .details(TimelineElementDetailsEntity.builder().recIndex(0).build())
+                .details(TimelineElementDetailsEntity.builder().recIndex(0).invalidatedTimelineAndStatusHistory(List.of()).build())
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
                 .statusInfo(StatusInfoEntity.builder().build())
