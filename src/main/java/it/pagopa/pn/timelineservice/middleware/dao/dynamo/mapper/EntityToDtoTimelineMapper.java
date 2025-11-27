@@ -24,6 +24,7 @@ public class EntityToDtoTimelineMapper {
         assert category != null;
         return TimelineElementInternal.builder()
                 .iun(entity.getIun())
+                .reworkId(entity.getReworkId())
                 .elementId( entity.getTimelineElementId() )
                 .category( category )
                 .timestamp( entity.getTimestamp() )

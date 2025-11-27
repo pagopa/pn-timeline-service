@@ -14,6 +14,7 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHi
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
@@ -140,12 +141,13 @@ public class TimelineServiceImpl implements TimelineService {
                     return confidentialInformationService.saveTimelineConfidentialInformation(dto)
                             .thenReturn(enrichedDtoWithRework)
                             .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
-                            .flatMap(this::persistTimelineElement)
-                            .doOnSuccess(item -> logAndCleanMdc(dto, logEvent, false))
+                            .flatMap(finalDto -> persistTimelineElement(finalDto).thenReturn(finalDto))
+                            .doOnSuccess(finalDto -> logAndCleanMdc(finalDto, logEvent, false))
                             .doOnError(PnIdConflictException.class, ex -> {
                                 logAndCleanMdc(dto, logEvent, true);
                                 log.warn("Exception idconflict is expected for retry, letting flow continue");
-                            });
+                            })
+                            .then();
                 });
     }
 
@@ -401,8 +403,10 @@ public class TimelineServiceImpl implements TimelineService {
         Optional<TimelineElementInternal> reworkTimelineElement = getReworkElementIfTimelineElementToBeReworked(dto, sortedTimeline);
 
         if (reworkTimelineElement.isPresent()) {
-            int notificationReworkIndex = Integer.parseInt(reworkTimelineElement.get().getElementId().substring((reworkTimelineElement.get().getElementId().lastIndexOf(REWORK) + REWORK.length()), (reworkTimelineElement.get().getElementId().lastIndexOf(REWORK) + REWORK.length() + 1)));
-            return dto.toBuilder().elementId(dto.getElementId() + REWORK + notificationReworkIndex).reworkId(reworkTimelineElement.get().getReworkId()).build();
+            String notificationReworkIndex = TimelineEventIdParser.parse(reworkTimelineElement.get().getElementId()).reworkIndexFull().orElse(null);
+            dto.setElementId(dto.getElementId() + "." + notificationReworkIndex);
+            dto.setReworkId(reworkTimelineElement.get().getReworkId());
+            log.info("enriched timeline element with rework info from {} for elementId={}", reworkTimelineElement.get().getReworkId(), dto.getElementId());
         }
         return dto;
     }
@@ -416,14 +420,13 @@ public class TimelineServiceImpl implements TimelineService {
         }
 
         NotificationTimelineReworkedDetailsInt reworkDetail = (NotificationTimelineReworkedDetailsInt) reworkTimelineElement.get().getDetails();
-        int recIndexDto = Integer.parseInt(dto.getElementId().substring(dto.getElementId().lastIndexOf(REC_INDEX) + REC_INDEX.length(), dto.getElementId().lastIndexOf(REC_INDEX) + REC_INDEX.length() + 1));
-
+        int recIndexDto = TimelineEventIdParser.parse(dto.getElementId()).recIndex().orElse(0);
         if (recIndexDto != reworkDetail.getRecIndex()) {
             log.debug("Recipient index does not match: elementId={} recIndexDto={} reworkRecIndex={}", dto.getElementId(), recIndexDto, reworkDetail.getRecIndex());
             return Optional.empty();
         }
 
-        int attemptDto = Integer.parseInt(dto.getElementId().substring(dto.getElementId().lastIndexOf(ATTEMPT) + ATTEMPT.length(), dto.getElementId().lastIndexOf(ATTEMPT) + ATTEMPT.length() + 1));
+        int attemptDto = TimelineEventIdParser.parse(dto.getElementId()).sentAttemptMade().orElse(0);;
 
         if (reworkDetail.getSentAttemptMade() == null) {
             Optional<TimelineElementInternal> sendAnalogFeedbackElement = getLastSendAnalogFeedbackElement(sortedTimeline, REC_INDEX + recIndexDto);
