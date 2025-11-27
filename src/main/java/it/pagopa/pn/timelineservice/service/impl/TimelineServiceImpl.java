@@ -139,7 +139,7 @@ public class TimelineServiceImpl implements TimelineService {
                     StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
                     TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
                     TimelineElementInternal enrichedDtoWithRework = enrichWithReworkInfo(enrichedDto, currentTimeline);
-                    return confidentialInformationService.saveTimelineConfidentialInformation(dto)
+                    return confidentialInformationService.saveTimelineConfidentialInformation(enrichedDtoWithRework)
                             .thenReturn(enrichedDtoWithRework)
                             .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
                             .flatMap(finalDto -> persistTimelineElement(finalDto).thenReturn(finalDto))

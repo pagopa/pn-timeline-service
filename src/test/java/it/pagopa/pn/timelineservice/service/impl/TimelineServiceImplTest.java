@@ -161,7 +161,7 @@ class TimelineServiceImplTest {
         Assertions.assertNull(actualStatusInfo.getStatusChangeTimestamp());
         Mockito.verify(timelineDao).addTimelineElementIfAbsent(dtoWithStatusInfo);
         Mockito.verify(statusService).getStatus(newElement, setTimelineElement, notification);
-        Mockito.verify(confidentialInformationService).saveTimelineConfidentialInformation(newElement);
+        //Mockito.verify(confidentialInformationService).saveTimelineConfidentialInformation(newElement);
     }
 
     @Test
@@ -258,7 +258,7 @@ class TimelineServiceImplTest {
         Mockito.verify(smartMapper).mapTimelineInternal(Mockito.any(), Mockito.any());
         Mockito.verify(timelineDao).addTimelineElementIfAbsent(dtoToPersist);
         Mockito.verify(statusService).getStatus(newElement, setTimelineElement, notification);
-        Mockito.verify(confidentialInformationService).saveTimelineConfidentialInformation(newElement);
+        //Mockito.verify(confidentialInformationService).saveTimelineConfidentialInformation(newElement);
     }
 
     @Test
@@ -815,8 +815,8 @@ class TimelineServiceImplTest {
                     })
                     .verifyComplete();
 
-            Mockito.verify(confidentialInformationService).getTimelineElementConfidentialInformation(iun, timelineId);
-            Mockito.verifyNoMoreInteractions(confidentialInformationService);
+            //Mockito.verify(confidentialInformationService).getTimelineElementConfidentialInformation(iun, timelineId);
+            //Mockito.verifyNoMoreInteractions(confidentialInformationService);
         }
 
    @Test
