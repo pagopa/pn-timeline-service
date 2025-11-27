@@ -71,7 +71,7 @@ public class TimelineServiceImpl implements TimelineService {
     private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
 
     @Override
-    public Mono<Void> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
+    public Mono<String> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
         log.debug("addTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
         PnAuditLogBuilder auditLogBuilder = new PnAuditLogBuilder();
 
@@ -89,11 +89,12 @@ public class TimelineServiceImpl implements TimelineService {
                         return addTimelineElement(dto, notification, logEvent);
                     }
                 })
+                .map(TimelineElementInternal::getElementId)
                 .doFinally(signal -> MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC));
 
     }
 
-    private Mono<Void> addCriticalTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
+    private Mono<TimelineElementInternal> addCriticalTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         log.debug("addCriticalTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
 
         return Mono.fromCallable(() -> lockProvider.lock(
@@ -118,7 +119,7 @@ public class TimelineServiceImpl implements TimelineService {
                 });
     }
 
-    private Mono<Void> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
+    private Mono<TimelineElementInternal> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return processTimelinePersistence(dto, notification, logEvent)
                 .onErrorMap(ex -> {
                     if(ex instanceof PnIdConflictException) {
@@ -130,7 +131,7 @@ public class TimelineServiceImpl implements TimelineService {
                 });
     }
 
-    private Mono<Void> processTimelinePersistence(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
+    private Mono<TimelineElementInternal> processTimelinePersistence(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
         return getTimeline(dto.getIun(), null, true, false)
                 .collectList()
                 .flatMap(list -> {
@@ -146,8 +147,7 @@ public class TimelineServiceImpl implements TimelineService {
                             .doOnError(PnIdConflictException.class, ex -> {
                                 logAndCleanMdc(dto, logEvent, true);
                                 log.warn("Exception idconflict is expected for retry, letting flow continue");
-                            })
-                            .then();
+                            });
                 });
     }
 

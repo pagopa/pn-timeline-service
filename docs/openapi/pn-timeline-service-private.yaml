@@ -32,8 +32,12 @@ paths:
             schema:
               $ref: './schemas-pn-timeline-service.yaml#/components/schemas/NewTimelineElement'
       responses:
-        '201':
-          description: Created
+        '200':
+          description: 'inserted timeline elementId'
+          content:
+            application/json:
+              schema:
+                $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElementIdResponse'
         '400':
           description: Invalid input
           content:

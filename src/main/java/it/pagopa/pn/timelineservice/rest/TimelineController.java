@@ -27,9 +27,10 @@ public class TimelineController implements TimelineControllerApi {
     private final TimelineElementMapper timelineElementMapper;
 
     @Override
-    public Mono<ResponseEntity<Void>> addTimelineElement(Mono<NewTimelineElement> newTimelineElementRequest, final ServerWebExchange exchange) {
+    public Mono<ResponseEntity<TimelineElementIdResponse>> addTimelineElement(Mono<NewTimelineElement> newTimelineElementRequest, final ServerWebExchange exchange) {
         return newTimelineElementRequest.flatMap(request -> timelineService.addTimelineElement(timelineElementMapper.externalToInternal(request.getTimelineElement()),
                         SmartMapper.mapToClass(request.getNotificationInfo(), NotificationInfoInt.class)))
+                .map(elementId -> new TimelineElementIdResponse().elementId(elementId))
                 .map(ResponseEntity::ok);
     }
 
