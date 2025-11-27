@@ -402,7 +402,7 @@ public class TimelineServiceImpl implements TimelineService {
 
         Optional<TimelineElementInternal> reworkTimelineElement = getReworkElementIfTimelineElementToBeReworked(dto, sortedTimeline);
 
-        if (reworkTimelineElement.isPresent()) {
+        if (reworkTimelineElement.isPresent() && !dto.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)) {
             String notificationReworkIndex = TimelineEventIdParser.parse(reworkTimelineElement.get().getElementId()).reworkIndexFull().orElse(null);
             dto.setElementId(dto.getElementId() + "." + notificationReworkIndex);
             dto.setReworkId(reworkTimelineElement.get().getReworkId());
