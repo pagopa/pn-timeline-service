@@ -89,7 +89,7 @@ class TimelineControllerTest {
 
         when(timelineService.addTimelineElement(any(TimelineElementInternal.class),any(NotificationInfoInt.class))).thenReturn(Mono.empty());
 
-        Mono<ResponseEntity<Void>> response = timelineController.addTimelineElement(Mono.just(request), null);
+        Mono<ResponseEntity<TimelineElementIdResponse>> response = timelineController.addTimelineElement(Mono.just(request), null);
 
         StepVerifier.create(response)
                 .verifyComplete();

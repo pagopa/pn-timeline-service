@@ -140,11 +140,11 @@ class TimelineServiceImplTest {
         TimelineElementInternal newElement = getAnalogSuccessTimelineCriticalElement(iun, elementId);
 
         // WHEN
-        Mono<Void> result = timeLineService.addTimelineElement(newElement, notification);
+        Mono<String> result = timeLineService.addTimelineElement(newElement, notification);
 
         // THEN
         StepVerifier.create(result)
-                .expectNext()
+                .expectNext("elementId_12345")
                 .verifyComplete();
 
         TimelineElementInternal timelineElement = setTimelineElement.iterator().next();
@@ -241,11 +241,11 @@ class TimelineServiceImplTest {
         TimelineElementInternal newElement = getAarGenerationTimelineElement(iun, elementId);
 
         // WHEN
-        Mono<Void> result = timeLineService.addTimelineElement(newElement, notification);
+        Mono<String> result = timeLineService.addTimelineElement(newElement, notification);
 
         // THEN
         StepVerifier.create(result)
-                .expectNext()
+                .expectNext(elementId)
                 .verifyComplete();
 
         ArgumentCaptor<TimelineElementInternal> captor = ArgumentCaptor.forClass(TimelineElementInternal.class);
@@ -407,7 +407,7 @@ class TimelineServiceImplTest {
 
         // WHEN & THEN
         StepVerifier.create(timeLineService.addTimelineElement(newElement, notification))
-                .expectNext()
+                .expectNext(elementId)
                 .verifyComplete();
 
         StepVerifier.create(Mono.just(timeLineService.buildStatusInfo(notificationStatuses, timestampLastElementInTimeline)))

@@ -86,6 +86,11 @@ components:
           format: date-time
         statusChanged:
           type: boolean
+    TimelineElementIdResponse:
+      type: object
+      properties:
+        elementId:
+          type: string
     TimelineElement:
       type: object
       required:
