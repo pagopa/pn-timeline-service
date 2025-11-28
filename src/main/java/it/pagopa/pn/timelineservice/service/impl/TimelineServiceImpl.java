@@ -419,47 +419,11 @@ public class TimelineServiceImpl implements TimelineService {
             return Optional.empty();
         }
 
-        Integer attemptDto = timelineEventIdParser.sentAttemptMade().orElse(null);
-
-        if (Objects.isNull(attemptDto)) {
-            Optional<TimelineElementInternal> sendAnalogFeedbackElement = getLastSendAnalogFeedbackElement(sortedTimeline, REC_INDEX + recIndexDto);
-            Optional<TimelineElementInternal> prepareAttemptOne = getLastPrepareAttemptOneElement(sortedTimeline);
-            if(prepareAttemptOne.isPresent() && reworkDetail.getSentAttemptMade().equals(0)){
-                log.debug("new Attempt without rework started, no rework suffix needed for this element: {}", dto.getElementId());
-                return Optional.empty();
-            }
-
-            if (sendAnalogFeedbackElement.isPresent() && StringUtils.hasText(sendAnalogFeedbackElement.get().getReworkId())) {
-                log.debug("ReworkId found in analog feedback for elementId={}", dto.getElementId());
-                return reworkTimelineElement;
-            }
-            log.debug("No rework suffix needed for this element={}", dto.getElementId());
-            return Optional.empty();
-        }
-
-        if (attemptDto.equals(reworkDetail.getSentAttemptMade())) {
-            log.debug("Attempt matches rework detail: elementId={} attemptDto={}", dto.getElementId(), attemptDto);
-            return reworkTimelineElement;
-        }else {
-            log.debug("Attempt does not match rework detail: elementId={} attemptDto={} sentAttemptMade={}", dto.getElementId(), attemptDto, reworkDetail.getSentAttemptMade());
-            return Optional.empty();
-        }
-    }
-
-    private Optional<TimelineElementInternal> getLastPrepareAttemptOneElement(List<TimelineElementInternal> sortedTimeline) {
-        return sortedTimeline.stream()
-                .filter(elem -> elem.getElementId().contains(ATTEMPT + "1"))
-                .filter(elem -> TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE.equals(elem.getCategory())).findFirst();
+        return reworkTimelineElement;
     }
 
     private Optional<TimelineElementInternal> getLastReworkElement(List<TimelineElementInternal> currentTimeline) {
         return currentTimeline.stream().filter(elem -> TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED.equals(elem.getCategory())).findFirst();
-    }
-
-    private Optional<TimelineElementInternal> getLastSendAnalogFeedbackElement(List<TimelineElementInternal> currentTimeline, String recIndex) {
-        return currentTimeline.stream()
-                .filter(elem -> elem.getElementId().contains(recIndex))
-                .filter(elem -> TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK.equals(elem.getCategory())).findFirst();
     }
 
     private Instant getTimestampLastUpdateStatus(Set<TimelineElementInternal> currentTimeline, Instant notificationSentAt) {
