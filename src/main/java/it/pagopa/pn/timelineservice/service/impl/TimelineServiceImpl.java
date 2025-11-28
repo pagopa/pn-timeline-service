@@ -59,7 +59,6 @@ import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnri
 public class TimelineServiceImpl implements TimelineService {
     public static final String REC_INDEX = "RECINDEX_";
     public static final String ATTEMPT = "ATTEMPT_";
-    public static final String REWORK = ".REWORK_";
 
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
@@ -387,13 +386,6 @@ public class TimelineServiceImpl implements TimelineService {
         return dto.toBuilder().statusInfo(statusInfo).build();
     }
 
-    private Optional<TimelineElementInternal> getElementByCategoryAndRecIndexFromTimeline(List<TimelineElementInternal> currentTimeline, TimelineElementCategoryInt category, Integer recIndex, Integer attemptId) {
-        return currentTimeline.stream()
-                .filter(elem -> elem.getElementId().contains(REC_INDEX + recIndex))
-                .filter(elem -> elem.getElementId().contains(ATTEMPT + attemptId))
-                .filter(elem -> category.equals(elem.getCategory())).findFirst();
-    }
-
     private TimelineElementInternal enrichWithReworkInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
         List<TimelineElementInternal> sortedTimeline = new ArrayList<>(currentTimeline);
 
@@ -413,6 +405,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     private Optional<TimelineElementInternal> getReworkElementIfTimelineElementToBeReworked(TimelineElementInternal dto, List<TimelineElementInternal> sortedTimeline) {
         Optional<TimelineElementInternal> reworkTimelineElement = getLastReworkElement(sortedTimeline);
+        TimelineEventIdParser timelineEventIdParser = TimelineEventIdParser.parse(dto.getElementId());
 
         if (reworkTimelineElement.isEmpty()) {
             log.debug("No rework timeline element found for elementId={}", dto.getElementId());
@@ -420,31 +413,43 @@ public class TimelineServiceImpl implements TimelineService {
         }
 
         NotificationTimelineReworkedDetailsInt reworkDetail = (NotificationTimelineReworkedDetailsInt) reworkTimelineElement.get().getDetails();
-        int recIndexDto = TimelineEventIdParser.parse(dto.getElementId()).recIndex().orElse(0);
-        if (recIndexDto != reworkDetail.getRecIndex()) {
+        Integer recIndexDto = timelineEventIdParser.recIndex().orElse(null);
+        if (Objects.nonNull(recIndexDto) && recIndexDto != reworkDetail.getRecIndex()) {
             log.debug("Recipient index does not match: elementId={} recIndexDto={} reworkRecIndex={}", dto.getElementId(), recIndexDto, reworkDetail.getRecIndex());
             return Optional.empty();
         }
 
-        int attemptDto = TimelineEventIdParser.parse(dto.getElementId()).sentAttemptMade().orElse(0);;
+        Integer attemptDto = timelineEventIdParser.sentAttemptMade().orElse(null);
 
-        if (reworkDetail.getSentAttemptMade() == null) {
+        if (Objects.isNull(attemptDto)) {
             Optional<TimelineElementInternal> sendAnalogFeedbackElement = getLastSendAnalogFeedbackElement(sortedTimeline, REC_INDEX + recIndexDto);
+            Optional<TimelineElementInternal> prepareAttemptOne = getLastPrepareAttemptOneElement(sortedTimeline);
+            if(prepareAttemptOne.isPresent() && reworkDetail.getSentAttemptMade().equals(0)){
+                log.debug("new Attempt without rework started, no rework suffix needed for this element: {}", dto.getElementId());
+                return Optional.empty();
+            }
+
             if (sendAnalogFeedbackElement.isPresent() && StringUtils.hasText(sendAnalogFeedbackElement.get().getReworkId())) {
                 log.debug("ReworkId found in analog feedback for elementId={}", dto.getElementId());
                 return reworkTimelineElement;
             }
-            log.debug("No sentAttemptMade and no analog feedback with reworkId for elementId={}", dto.getElementId());
+            log.debug("No rework suffix needed for this element={}", dto.getElementId());
             return Optional.empty();
         }
 
-        if (attemptDto == reworkDetail.getSentAttemptMade()) {
+        if (attemptDto.equals(reworkDetail.getSentAttemptMade())) {
             log.debug("Attempt matches rework detail: elementId={} attemptDto={}", dto.getElementId(), attemptDto);
             return reworkTimelineElement;
+        }else {
+            log.debug("Attempt does not match rework detail: elementId={} attemptDto={} sentAttemptMade={}", dto.getElementId(), attemptDto, reworkDetail.getSentAttemptMade());
+            return Optional.empty();
         }
+    }
 
-        log.debug("Attempt does not match rework detail: elementId={} attemptDto={} sentAttemptMade={}", dto.getElementId(), attemptDto, reworkDetail.getSentAttemptMade());
-        return Optional.empty();
+    private Optional<TimelineElementInternal> getLastPrepareAttemptOneElement(List<TimelineElementInternal> sortedTimeline) {
+        return sortedTimeline.stream()
+                .filter(elem -> elem.getElementId().contains(ATTEMPT + "1"))
+                .filter(elem -> TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE.equals(elem.getCategory())).findFirst();
     }
 
     private Optional<TimelineElementInternal> getLastReworkElement(List<TimelineElementInternal> currentTimeline) {
