@@ -59,7 +59,6 @@ import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnri
 public class TimelineServiceImpl implements TimelineService {
     public static final String REC_INDEX = "RECINDEX_";
     public static final String ATTEMPT = "ATTEMPT_";
-    public static final String REWORK = ".REWORK_";
 
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
@@ -430,8 +429,7 @@ public class TimelineServiceImpl implements TimelineService {
                 return Optional.empty();
             }
 
-            if (sendAnalogFeedbackElement.isPresent() && StringUtils.hasText(sendAnalogFeedbackElement.get().getReworkId())
-                && prepareAttemptOne.isPresent() && reworkDetail.getSentAttemptMade().equals(0)) {
+            if (sendAnalogFeedbackElement.isPresent() && StringUtils.hasText(sendAnalogFeedbackElement.get().getReworkId())) {
                 log.debug("ReworkId found in analog feedback for elementId={}", dto.getElementId());
                 return reworkTimelineElement;
             }
