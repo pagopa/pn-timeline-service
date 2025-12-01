@@ -51,6 +51,7 @@ public class TimelineDaoDynamo implements TimelineDao {
     public Mono<TimelineElementInternal> getTimelineElement(String iun, String elementId, boolean strongly) {
         return retrieveCorrectElementIdIfReworked(iun, elementId, strongly)
                 .switchIfEmpty(Mono.just(elementId))
+                .doOnNext(timelineId ->  log.info("Call getTimeline with timelineId {} ", timelineId))
                 .map(updatedElementId -> GetItemEnhancedRequest.builder()
                         .key(key -> key.partitionValue(iun).sortValue(updatedElementId))
                         .consistentRead(strongly)
@@ -220,6 +221,10 @@ public class TimelineDaoDynamo implements TimelineDao {
     }
 
     public Mono<String> retrieveCorrectElementIdIfReworked(String iun, String timelineId, boolean strongly) {
+        TimelineEventIdParser parser = TimelineEventIdParser.parse(timelineId);
+        if(parser.reworkIndexFull().isPresent()){
+            return Mono.just(timelineId);
+        }
         String category = TimelineEventIdParser.parse(timelineId).category().orElse(null);
         if (StringUtils.hasText(category) && cfg.getInvalidableCategories().contains(category)) {
             return getReworkTimelineElementIfExists(iun, strongly)

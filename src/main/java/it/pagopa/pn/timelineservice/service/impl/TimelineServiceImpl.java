@@ -40,7 +40,6 @@ import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -49,7 +48,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.*;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
 
 
@@ -57,8 +57,6 @@ import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnri
 @Slf4j
 @RequiredArgsConstructor
 public class TimelineServiceImpl implements TimelineService {
-    public static final String REC_INDEX = "RECINDEX_";
-    public static final String ATTEMPT = "ATTEMPT_";
 
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
@@ -387,6 +385,7 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     private TimelineElementInternal enrichWithReworkInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
+        TimelineEventIdParser timelineEventIdParser = TimelineEventIdParser.parse(dto.getElementId());
         List<TimelineElementInternal> sortedTimeline = new ArrayList<>(currentTimeline);
 
         //Ordino la lista in base al timestamp e poi la inverto per avere al primo posto l'evento con requestTimestamp più recente
@@ -394,7 +393,7 @@ public class TimelineServiceImpl implements TimelineService {
 
         Optional<TimelineElementInternal> reworkTimelineElement = getReworkElementIfTimelineElementToBeReworked(dto, sortedTimeline);
 
-        if (reworkTimelineElement.isPresent() && !dto.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)) {
+        if (reworkTimelineElement.isPresent() && !dto.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED) && timelineEventIdParser.reworkIndexFull().isEmpty()) {
             String notificationReworkIndex = TimelineEventIdParser.parse(reworkTimelineElement.get().getElementId()).reworkIndexFull().orElse(null);
             dto.setElementId(dto.getElementId() + "." + notificationReworkIndex);
             dto.setReworkId(reworkTimelineElement.get().getReworkId());
