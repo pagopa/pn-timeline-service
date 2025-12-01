@@ -204,7 +204,7 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .next();
     }
 
-    private Mono<String> getReworkTimelineReworkIdx(TimelineElementEntity timelineElementEntity, String timelineElementId) {
+    private Mono<String> getReworkTimelineReworkIdx(TimelineElementEntity timelineElementEntity) {
         return Mono.just(timelineElementEntity)
                 .filter(entity -> Objects.equals(entity.getDetails().getRecIndex(), TimelineEventIdParser.parse(entity.getTimelineElementId()).recIndex().orElse(null)))
                 .map(entity -> TimelineEventIdParser.parse(entity.getTimelineElementId()).reworkIndexFull().orElse(null));
@@ -227,17 +227,10 @@ public class TimelineDaoDynamo implements TimelineDao {
         String category = TimelineEventIdParser.parse(timelineId).category().orElse(null);
         if (StringUtils.hasText(category) && cfg.getInvalidableCategories().contains(category)) {
             return getReworkTimelineElementIfExists(iun, strongly)
-                    .flatMap(timelineElementEntity -> getReworkTimelineReworkIdx(timelineElementEntity, timelineId))
+                    .flatMap(this::getReworkTimelineReworkIdx)
                     .map(reworkSuffix -> timelineId + "." + reworkSuffix)
                     .switchIfEmpty(Mono.just(timelineId));
         }
         return Mono.just(timelineId);
-    }
-
-    private List<String> getInvalidatedTimelineIds(List<NotificationStatusHistoryElementEntity> invalidatedTimelineAndStatusHistory) {
-        return invalidatedTimelineAndStatusHistory.stream()
-                .map(NotificationStatusHistoryElementEntity::getRelatedTimelineElements)
-                .flatMap(List::stream)
-                .toList();
     }
 }
