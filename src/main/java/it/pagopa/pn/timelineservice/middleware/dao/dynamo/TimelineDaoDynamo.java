@@ -206,8 +206,7 @@ public class TimelineDaoDynamo implements TimelineDao {
 
     private Mono<String> getReworkTimelineReworkIdx(TimelineElementEntity timelineElementEntity, String timelineElementId) {
         return Mono.just(timelineElementEntity)
-                .filter(entity -> Objects.equals(entity.getDetails().getRecIndex(), TimelineEventIdParser.parse(entity.getTimelineElementId()).recIndex().get()))
-                .filter(entity -> getInvalidatedTimelineIds(entity.getDetails().getInvalidatedTimelineAndStatusHistory()).contains(timelineElementId))
+                .filter(entity -> Objects.equals(entity.getDetails().getRecIndex(), TimelineEventIdParser.parse(entity.getTimelineElementId()).recIndex().orElse(null)))
                 .map(entity -> TimelineEventIdParser.parse(entity.getTimelineElementId()).reworkIndexFull().orElse(null));
     }
 
