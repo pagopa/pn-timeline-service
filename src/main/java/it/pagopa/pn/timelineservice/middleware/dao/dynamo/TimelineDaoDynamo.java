@@ -1,6 +1,7 @@
 package it.pagopa.pn.timelineservice.middleware.dao.dynamo;
 
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
+import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
@@ -27,6 +28,8 @@ import java.util.Objects;
 
 import static it.pagopa.pn.commons.abstractions.impl.AbstractDynamoKeyValueStore.ATTRIBUTE_NOT_EXISTS;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_DUPLICATED_ITEM;
+import static it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementCategoryEntity.NOTIFICATION_TIMELINE_REWORKED;
+import static it.pagopa.pn.timelineservice.utils.NotificationReworkUtils.removeInvalidatedElement;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBeginsWith;
 
@@ -190,33 +193,47 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .flatMap(page -> Flux.fromIterable(page.items()));
     }
 
-    private Mono<TimelineElementEntity> getReworkTimelineElementIfExists(String iun, boolean strongly) {
+    private Mono<TimelineElementEntity> getReworkTimelineElementIfExists(String iun, boolean strongly, String timelineElementId) {
+        return getReworkTimelineElementsIfExists(iun, strongly, timelineElementId)
+                .next();
+    }
+
+
+    private Flux<TimelineElementEntity> getReworkTimelineElementsIfExists(String iun, boolean strongly, String timelineElementId) {
         QueryEnhancedRequest request = QueryEnhancedRequest.builder()
                 .queryConditional(QueryConditional.sortBeginsWith(
-                        Key.builder().partitionValue(iun).sortValue("NOTIFICATION_TIMELINE_REWORKED").build()))
-                .limit(1)
+                        Key.builder().partitionValue(iun).sortValue(NOTIFICATION_TIMELINE_REWORKED.getValue()).build()))
                 .scanIndexForward(false)
                 .consistentRead(strongly)
                 .build();
 
         return Flux.from(table.query(request))
                 .flatMap(page -> Flux.fromIterable(page.items()))
-                .next();
+                .filter(timelineElementEntity -> TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).recIndex()
+                        .orElseThrow(() -> new PnInternalException("RecIndex not present in timelineElementId " + timelineElementId, "ERROR_CODE_TIMELINESERVICE_INVALID_TIMELINE_ID"))
+                        .equals(TimelineEventIdParser.parse(timelineElementId).recIndex().orElse(null)));
     }
 
-    private Mono<String> getReworkTimelineReworkIdx(TimelineElementEntity timelineElementEntity) {
+    private Mono<String> getReworkTimelineReworkIdx(TimelineElementEntity timelineElementEntity, String timelineElementId) {
         return Mono.just(timelineElementEntity)
                 .filter(entity -> Objects.equals(entity.getDetails().getRecIndex(), TimelineEventIdParser.parse(entity.getTimelineElementId()).recIndex().orElse(null)))
+                .filter(entity -> getInvalidatedTimelineIds(entity.getDetails().getInvalidatedTimelineAndStatusHistory()).contains(timelineElementId))
                 .map(entity -> TimelineEventIdParser.parse(entity.getTimelineElementId()).reworkIndexFull().orElse(null));
     }
 
+    private List<String> getInvalidatedTimelineIds(List<NotificationStatusHistoryElementEntity> invalidatedTimelineAndStatusHistory) {
+        return invalidatedTimelineAndStatusHistory.stream()
+                .map(NotificationStatusHistoryElementEntity::getRelatedTimelineElements)
+                .flatMap(List::stream)
+                .toList();
+    }
+
     private Flux<TimelineElementEntity> filterForReworkedElementIdIfExists(String iun, List<TimelineElementEntity> timelineElementEntities, boolean strongly, String elementId) {
-        return getReworkTimelineElementIfExists(iun, strongly)
-                .map(timelineElementEntity -> TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).reworkIndexFull()
-                        .map(reworkSuffix -> timelineElementEntities.stream().filter(entity -> entity.getTimelineElementId().contains(reworkSuffix)).toList())
-                        .orElse(timelineElementEntities))
+        return getReworkTimelineElementsIfExists(iun, strongly, elementId)
+                .collectList()
+                .map(reworkEntities -> removeInvalidatedElement(timelineElementEntities,timelineElementEntities))
                 .defaultIfEmpty(timelineElementEntities)
-                .flatMapIterable(entities -> entities);
+                .flatMapIterable(timelineElementInternals -> timelineElementInternals);
     }
 
     public Mono<String> retrieveCorrectElementIdIfReworked(String iun, String timelineId, boolean strongly) {
@@ -226,8 +243,8 @@ public class TimelineDaoDynamo implements TimelineDao {
         }
         String category = TimelineEventIdParser.parse(timelineId).category().orElse(null);
         if (StringUtils.hasText(category) && cfg.getInvalidableCategories().contains(category)) {
-            return getReworkTimelineElementIfExists(iun, strongly)
-                    .flatMap(this::getReworkTimelineReworkIdx)
+            return getReworkTimelineElementIfExists(iun, strongly, timelineId)
+                    .flatMap(timelineElementEntity -> getReworkTimelineReworkIdx(timelineElementEntity, timelineId))
                     .map(reworkSuffix -> timelineId + "." + reworkSuffix)
                     .switchIfEmpty(Mono.just(timelineId));
         }

@@ -386,14 +386,23 @@ public class TimelineServiceImpl implements TimelineService {
 
     private TimelineElementInternal enrichWithReworkInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
         TimelineEventIdParser timelineEventIdParser = TimelineEventIdParser.parse(dto.getElementId());
+        Integer dtoAttempt = timelineEventIdParser.sentAttemptMade().orElse(null);
+
         List<TimelineElementInternal> sortedTimeline = new ArrayList<>(currentTimeline);
 
         //Ordino la lista in base al timestamp e poi la inverto per avere al primo posto l'evento con requestTimestamp più recente
         sortedTimeline.sort(Comparator.comparing(TimelineElementInternal::getTimestamp).reversed());
 
         Optional<TimelineElementInternal> reworkTimelineElement = getReworkElementIfTimelineElementToBeReworked(dto, sortedTimeline);
+        if(reworkTimelineElement.isEmpty() || !dto.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED) || timelineEventIdParser.reworkIndexFull().isPresent()){
+            return dto;
+        }
 
-        if (reworkTimelineElement.isPresent() && !dto.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED) && timelineEventIdParser.reworkIndexFull().isEmpty()) {
+        TimelineEventIdParser reworkTimelineEventIdParser = TimelineEventIdParser.parse(reworkTimelineElement.get().getElementId());
+        Integer reworkAttempt = reworkTimelineEventIdParser.sentAttemptMade()
+                .orElseThrow(() -> new PnInternalException("No sentAttemptMade in rework element with elementId: " + reworkTimelineElement.get().getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED));
+
+        if (pnTimelineServiceConfigs.getInvalidableCategories().contains(dto.getCategory().name()) && (Objects.isNull(dtoAttempt) || dtoAttempt >= reworkAttempt)) {
             String notificationReworkIndex = TimelineEventIdParser.parse(reworkTimelineElement.get().getElementId()).reworkIndexFull().orElse(null);
             dto.setElementId(dto.getElementId() + "." + notificationReworkIndex);
             dto.setReworkId(reworkTimelineElement.get().getReworkId());
@@ -403,7 +412,7 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     private Optional<TimelineElementInternal> getReworkElementIfTimelineElementToBeReworked(TimelineElementInternal dto, List<TimelineElementInternal> sortedTimeline) {
-        Optional<TimelineElementInternal> reworkTimelineElement = getLastReworkElement(sortedTimeline);
+        Optional<TimelineElementInternal> reworkTimelineElement = getLastReworkElement(sortedTimeline, dto);
         TimelineEventIdParser timelineEventIdParser = TimelineEventIdParser.parse(dto.getElementId());
 
         if (reworkTimelineElement.isEmpty()) {
@@ -421,8 +430,16 @@ public class TimelineServiceImpl implements TimelineService {
         return reworkTimelineElement;
     }
 
-    private Optional<TimelineElementInternal> getLastReworkElement(List<TimelineElementInternal> currentTimeline) {
-        return currentTimeline.stream().filter(elem -> TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED.equals(elem.getCategory())).findFirst();
+    private Optional<TimelineElementInternal> getLastReworkElement(List<TimelineElementInternal> currentTimeline, TimelineElementInternal dto) {
+        Optional<Integer> dtoRecIndex = TimelineEventIdParser.parse(dto.getElementId()).recIndex();
+        if(dtoRecIndex.isEmpty()) {
+            throw new PnInternalException("No recIndex in element with elementId: " + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED);
+        }
+        return currentTimeline.stream()
+                .filter(elem -> TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED.equals(elem.getCategory()))
+                .filter(timelineElementInternal -> dtoRecIndex.get().equals(TimelineEventIdParser.parse(timelineElementInternal.getElementId()).recIndex()
+                        .orElse(null)))
+                .findFirst();
     }
 
     private Instant getTimestampLastUpdateStatus(Set<TimelineElementInternal> currentTimeline, Instant notificationSentAt) {
