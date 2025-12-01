@@ -823,11 +823,11 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
     @Test
     void getTimelineElmentStronglyWithReworkCategory() {
         String iun = "pa1-IUN3";
-        String elementIdToSearch = "SEND_ANALOG_FEEDBACK.IUN_"+iun+".ATTEMPT_0";
+        String elementIdToSearch = "SEND_ANALOG_FEEDBACK.IUN_"+iun+".RECINDEX_0.ATTEMPT_0";
         //GIVEN
         TimelineElementInternal firstElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
-                .elementId("SEND_ANALOG_FEEDBACK.IUN_"+iun+".ATTEMPT_0.REWORK_1")
+                .elementId("SEND_ANALOG_FEEDBACK.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.REWORK_1")
                 .category(TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK)
                 .details(AarCreationRequestDetailsInt.builder()
                         .recIndex(0)

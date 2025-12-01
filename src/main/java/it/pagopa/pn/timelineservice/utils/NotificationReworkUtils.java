@@ -1,11 +1,14 @@
 package it.pagopa.pn.timelineservice.utils;
 
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
 
 import java.util.List;
+import java.util.Objects;
 
 public class NotificationReworkUtils {
 
@@ -22,16 +25,30 @@ public class NotificationReworkUtils {
                 .toList();
     }
 
-    public static List<TimelineElementEntity> removeInvalidatedElement(List<TimelineElementEntity> timelineElementEntities, List<TimelineElementEntity> timelineByTimestampSorted) {
-        List<String> invalidatedTimelineElements = timelineElementEntities.stream()
-                .flatMap(e -> e.getDetails()
-                        .getInvalidatedTimelineAndStatusHistory().stream())
+    public static List<TimelineElementEntity> removeInvalidatedElement(List<TimelineElementInternal> reworkElementsInternal, List<TimelineElementEntity> timelineByTimestampSorted) {
+        List<String> invalidatedTimelineElements = reworkElementsInternal.stream()
+                .map(timelineElementInternal -> (NotificationTimelineReworkedDetailsInt) timelineElementInternal.getDetails())
+                .flatMap(e -> e.getInvalidatedTimelineAndStatusHistory().stream())
                 .flatMap(timelineElem -> timelineElem.getRelatedTimelineElements().stream())
                 .toList();
 
         return timelineByTimestampSorted.stream()
                 .filter(elem -> !invalidatedTimelineElements.contains(elem.getTimelineElementId()))
                 .toList();
+    }
+
+    public static ReworkFilteringResult checkReworkAttemptAndReturnSuffix(List<TimelineElementInternal> reworkTimelineElements, String timelineId) {
+        TimelineEventIdParser newElementId = TimelineEventIdParser.parse(timelineId);
+        Integer newElementAttempt = newElementId.sentAttemptMade().orElse(null);
+        for(TimelineElementInternal reworkItem : reworkTimelineElements) {
+            TimelineEventIdParser parser = TimelineEventIdParser.parse(reworkItem.getElementId());
+            String reworkSuffix = parser.reworkIndexFull().orElse(null);
+            NotificationTimelineReworkedDetailsInt notificationTimelineReworkedDetailsInt = (NotificationTimelineReworkedDetailsInt) reworkItem.getDetails();
+            if(Objects.isNull(newElementAttempt) || newElementAttempt >= notificationTimelineReworkedDetailsInt.getSentAttemptMade() ){
+                return new ReworkFilteringResult(timelineId + "." + reworkSuffix, reworkItem.getReworkId());
+            }
+        }
+        return new ReworkFilteringResult(timelineId, null);
     }
 
 }

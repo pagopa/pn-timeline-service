@@ -12,10 +12,10 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
@@ -40,6 +40,7 @@ import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -51,6 +52,7 @@ import java.util.stream.Collectors;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
+import static it.pagopa.pn.timelineservice.utils.NotificationReworkUtils.checkReworkAttemptAndReturnSuffix;
 
 
 @Service
@@ -385,52 +387,26 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     private TimelineElementInternal enrichWithReworkInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
-        TimelineEventIdParser timelineEventIdParser = TimelineEventIdParser.parse(dto.getElementId());
-        Integer dtoAttempt = timelineEventIdParser.sentAttemptMade().orElse(null);
-
         List<TimelineElementInternal> sortedTimeline = new ArrayList<>(currentTimeline);
 
         //Ordino la lista in base al timestamp e poi la inverto per avere al primo posto l'evento con requestTimestamp più recente
         sortedTimeline.sort(Comparator.comparing(TimelineElementInternal::getTimestamp).reversed());
 
-        Optional<TimelineElementInternal> reworkTimelineElement = getReworkElementIfTimelineElementToBeReworked(dto, sortedTimeline);
-        if(reworkTimelineElement.isEmpty() || !dto.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED) || timelineEventIdParser.reworkIndexFull().isPresent()){
+        List<TimelineElementInternal> reworkTimelineElements = getReworkElementsFromTimeline(sortedTimeline, dto);
+        TimelineEventIdParser parser = TimelineEventIdParser.parse(dto.getElementId());
+        if(CollectionUtils.isEmpty(reworkTimelineElements) || parser.reworkIndexFull().isPresent()){
             return dto;
         }
-
-        TimelineEventIdParser reworkTimelineEventIdParser = TimelineEventIdParser.parse(reworkTimelineElement.get().getElementId());
-        Integer reworkAttempt = reworkTimelineEventIdParser.sentAttemptMade()
-                .orElseThrow(() -> new PnInternalException("No sentAttemptMade in rework element with elementId: " + reworkTimelineElement.get().getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED));
-
-        if (pnTimelineServiceConfigs.getInvalidableCategories().contains(dto.getCategory().name()) && (Objects.isNull(dtoAttempt) || dtoAttempt >= reworkAttempt)) {
-            String notificationReworkIndex = TimelineEventIdParser.parse(reworkTimelineElement.get().getElementId()).reworkIndexFull().orElse(null);
-            dto.setElementId(dto.getElementId() + "." + notificationReworkIndex);
-            dto.setReworkId(reworkTimelineElement.get().getReworkId());
-            log.info("enriched timeline element with rework info from {} for elementId={}", reworkTimelineElement.get().getReworkId(), dto.getElementId());
+        if (pnTimelineServiceConfigs.getInvalidableCategories().contains(dto.getCategory().name())) {
+            ReworkFilteringResult reworkFilteringResult = checkReworkAttemptAndReturnSuffix(reworkTimelineElements, dto.getElementId());
+            dto.setElementId(reworkFilteringResult.getTimelineElementId());
+            dto.setReworkId(reworkFilteringResult.getReworkId());
+            log.info("enriched timeline element with rework info from {} for elementId={}", reworkFilteringResult.getReworkId(), dto.getElementId());
         }
         return dto;
     }
 
-    private Optional<TimelineElementInternal> getReworkElementIfTimelineElementToBeReworked(TimelineElementInternal dto, List<TimelineElementInternal> sortedTimeline) {
-        Optional<TimelineElementInternal> reworkTimelineElement = getLastReworkElement(sortedTimeline, dto);
-        TimelineEventIdParser timelineEventIdParser = TimelineEventIdParser.parse(dto.getElementId());
-
-        if (reworkTimelineElement.isEmpty()) {
-            log.debug("No rework timeline element found for elementId={}", dto.getElementId());
-            return Optional.empty();
-        }
-
-        NotificationTimelineReworkedDetailsInt reworkDetail = (NotificationTimelineReworkedDetailsInt) reworkTimelineElement.get().getDetails();
-        Integer recIndexDto = timelineEventIdParser.recIndex().orElse(null);
-        if (Objects.nonNull(recIndexDto) && recIndexDto != reworkDetail.getRecIndex()) {
-            log.debug("Recipient index does not match: elementId={} recIndexDto={} reworkRecIndex={}", dto.getElementId(), recIndexDto, reworkDetail.getRecIndex());
-            return Optional.empty();
-        }
-
-        return reworkTimelineElement;
-    }
-
-    private Optional<TimelineElementInternal> getLastReworkElement(List<TimelineElementInternal> currentTimeline, TimelineElementInternal dto) {
+    private List<TimelineElementInternal> getReworkElementsFromTimeline(List<TimelineElementInternal> currentTimeline, TimelineElementInternal dto) {
         Optional<Integer> dtoRecIndex = TimelineEventIdParser.parse(dto.getElementId()).recIndex();
         if(dtoRecIndex.isEmpty()) {
             throw new PnInternalException("No recIndex in element with elementId: " + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED);
@@ -439,7 +415,7 @@ public class TimelineServiceImpl implements TimelineService {
                 .filter(elem -> TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED.equals(elem.getCategory()))
                 .filter(timelineElementInternal -> dtoRecIndex.get().equals(TimelineEventIdParser.parse(timelineElementInternal.getElementId()).recIndex()
                         .orElse(null)))
-                .findFirst();
+                .toList();
     }
 
     private Instant getTimestampLastUpdateStatus(Set<TimelineElementInternal> currentTimeline, Instant notificationSentAt) {
