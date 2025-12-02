@@ -1503,9 +1503,12 @@ class TimelineServiceImplTest {
     }
 
     private TimelineElementInternal getNotificationReworkDetailsTimelineElement(String iun, String timelineId, int recIndex, Integer attemptId) {
+        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("PREPARE_ANALOG_DOMICILE.IUN_"+iun+"RECINDEX_0.ATTEMPT_0"));
         NotificationTimelineReworkedDetailsInt details = NotificationTimelineReworkedDetailsInt.builder()
                 .recIndex(recIndex)
                 .sentAttemptMade(attemptId)
+                .invalidatedTimelineAndStatusHistory(List.of(notificationStatusHistoryElementInt))
                 .build();
         return TimelineElementInternal.builder()
                 .timestamp(Instant.now())
