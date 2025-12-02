@@ -10,6 +10,9 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElement
 import java.util.List;
 import java.util.Objects;
 
+import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE;
+import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.SEND_ANALOG_DOMICILE;
+
 public class NotificationReworkUtils {
 
     public static List<TimelineElementInternal> getNotInvalidatedTimelineElements(List<TimelineElementInternal> timelineByTimestampSorted) {
@@ -44,11 +47,21 @@ public class NotificationReworkUtils {
             TimelineEventIdParser parser = TimelineEventIdParser.parse(reworkItem.getElementId());
             String reworkSuffix = parser.reworkIndexFull().orElse(null);
             NotificationTimelineReworkedDetailsInt notificationTimelineReworkedDetailsInt = (NotificationTimelineReworkedDetailsInt) reworkItem.getDetails();
-            if(Objects.isNull(newElementAttempt) || newElementAttempt >= notificationTimelineReworkedDetailsInt.getSentAttemptMade() ){
+            if(validAttempt(newElementAttempt, notificationTimelineReworkedDetailsInt.getSentAttemptMade()) && !isPrepareOrSendAttempt0(newElementId)){
                 return new ReworkFilteringResult(timelineId + "." + reworkSuffix, reworkItem.getReworkId());
             }
         }
         return new ReworkFilteringResult(timelineId, null);
+    }
+
+    private static boolean isPrepareOrSendAttempt0(TimelineEventIdParser newElementId) {
+        return (PREPARE_ANALOG_DOMICILE.name().equalsIgnoreCase(newElementId.category().orElse(null)) ||
+                SEND_ANALOG_DOMICILE.name().equalsIgnoreCase(newElementId.category().orElse(null))) &&
+                (newElementId.sentAttemptMade().isPresent() && newElementId.sentAttemptMade().get() == 0);
+    }
+
+    private static boolean validAttempt(Integer newElementAttempt, Integer sentAttemptMade) {
+        return Objects.isNull(newElementAttempt) || newElementAttempt >= sentAttemptMade;
     }
 
 }
