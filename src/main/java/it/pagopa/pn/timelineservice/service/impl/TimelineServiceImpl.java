@@ -392,12 +392,12 @@ public class TimelineServiceImpl implements TimelineService {
         //Ordino la lista in base al timestamp e poi la inverto per avere al primo posto l'evento con requestTimestamp più recente
         sortedTimeline.sort(Comparator.comparing(TimelineElementInternal::getTimestamp).reversed());
 
-        List<TimelineElementInternal> reworkTimelineElements = getReworkElementsFromTimeline(sortedTimeline, dto);
-        TimelineEventIdParser parser = TimelineEventIdParser.parse(dto.getElementId());
-        if(CollectionUtils.isEmpty(reworkTimelineElements) || parser.reworkIndexFull().isPresent()){
-            return dto;
-        }
         if (pnTimelineServiceConfigs.getInvalidableCategories().contains(dto.getCategory().name())) {
+            List<TimelineElementInternal> reworkTimelineElements = getReworkElementsFromTimeline(sortedTimeline, dto);
+            TimelineEventIdParser parser = TimelineEventIdParser.parse(dto.getElementId());
+            if(CollectionUtils.isEmpty(reworkTimelineElements) || parser.reworkIndexFull().isPresent()){
+                return dto;
+            }
             ReworkFilteringResult reworkFilteringResult = checkReworkAttemptAndReturnSuffix(reworkTimelineElements, dto.getElementId());
             dto.setElementId(reworkFilteringResult.getTimelineElementId());
             dto.setReworkId(reworkFilteringResult.getReworkId());
@@ -409,6 +409,7 @@ public class TimelineServiceImpl implements TimelineService {
     private List<TimelineElementInternal> getReworkElementsFromTimeline(List<TimelineElementInternal> currentTimeline, TimelineElementInternal dto) {
         Optional<Integer> dtoRecIndex = TimelineEventIdParser.parse(dto.getElementId()).recIndex();
         if(dtoRecIndex.isEmpty()) {
+            log.error("No recIndex found in timeline element with elementId: {}", dto.getElementId());
             throw new PnInternalException("No recIndex in element with elementId: " + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED);
         }
         return currentTimeline.stream()
