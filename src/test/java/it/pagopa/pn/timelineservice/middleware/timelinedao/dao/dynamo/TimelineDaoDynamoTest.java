@@ -424,7 +424,7 @@ class TimelineDaoDynamoTest {
 
     @Test
     void getTimelineFilteredByElementIdWithReworkItemTest() {
-        String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
+        String iun = "JQUD-NRZR-ZVTH-202503-Y-1";
 
         String id1 = "SEND_ANALOG_PROGRESS.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.ATTEMPT_0.IDX_1";
         TimelineElementEntity row1 = TimelineElementEntity.builder()

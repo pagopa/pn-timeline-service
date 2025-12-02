@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class TimelineServiceImplTest {
     private TimelineDao timelineDao;
@@ -78,6 +79,7 @@ class TimelineServiceImplTest {
         simpleLock = Mockito.mock(SimpleLock.class);
         lockProvider = Mockito.mock(LockProvider.class);
         Mockito.when(pnTimelineServiceConfigs.getTimelineLockDuration()).thenReturn(Duration.ofSeconds(5));
+        when(pnTimelineServiceConfigs.getInvalidableCategories()).thenReturn(List.of("PREPARE_ANALOG_DOMICILE","PREPARE_ANALOG_DOMICILE_FAILURE","SEND_ANALOG_DOMICILE","SEND_ANALOG_PROGRESS","SEND_ANALOG_FEEDBACK","ANALOG_SUCCESS_WORKFLOW","ANALOG_FAILURE_WORKFLOW","SCHEDULE_REFINEMENT","REFINEMENT","COMPLETELY_UNREACHABLE_CREATION_REQUEST","COMPLETELY_UNREACHABLE","ANALOG_WORKFLOW_RECIPIENT_DECEASED"));
         timeLineService = new TimelineServiceImpl(timelineDao , timelineCounterDao , statusUtils, confidentialInformationService, statusService, smartMapper, lockProvider, pnTimelineServiceConfigs);
     }
 
@@ -85,7 +87,7 @@ class TimelineServiceImplTest {
     void addTimelineElement() {
         // GIVEN
         String iun = "iun_12345";
-        String elementId = "elementId_12345";
+        String elementId = "SEND_ANALOG_FEEDBACK.IUN_+"+iun+".RECINDEX_0.ATTEMPT_0";
 
         NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
@@ -122,7 +124,7 @@ class TimelineServiceImplTest {
     void addCriticalTimelineElement() {
         // GIVEN
         String iun = "iun_12345";
-        String elementId = "elementId_12345";
+        String elementId = "ANALOG_SUCCESS_WORKFLOW.IUN_"+iun+".RECINDEX_0";
         String elementId2 = "elementId2";
 
         NotificationInfoInt notification = getNotificationWithMultipleRecipients(iun);
@@ -144,7 +146,7 @@ class TimelineServiceImplTest {
 
         // THEN
         StepVerifier.create(result)
-                .expectNext("elementId_12345")
+                .expectNext("ANALOG_SUCCESS_WORKFLOW.IUN_iun_12345.RECINDEX_0")
                 .verifyComplete();
 
         TimelineElementInternal timelineElement = setTimelineElement.iterator().next();
@@ -156,12 +158,16 @@ class TimelineServiceImplTest {
         StatusInfoInternal actualStatusInfo = timeLineService.buildStatusInfo(notificationStatuses, null);
         TimelineElementInternal dtoWithStatusInfo = newElement.toBuilder().statusInfo(actualStatusInfo).build();
 
+        ArgumentCaptor<TimelineElementInternal> confInfoCaptor = ArgumentCaptor.forClass(TimelineElementInternal.class);
+        verify(confidentialInformationService).saveTimelineConfidentialInformation(confInfoCaptor.capture());
+        TimelineElementInternal confInfoToPersist = confInfoCaptor.getValue();
+        Assertions.assertFalse(confInfoToPersist.getElementId().contains("REWORK"));
+
         Assertions.assertEquals(expectedStatusInfo.getActual(), actualStatusInfo.getActual());
         Assertions.assertEquals(expectedStatusInfo.isStatusChanged(), actualStatusInfo.isStatusChanged());
         Assertions.assertNull(actualStatusInfo.getStatusChangeTimestamp());
         Mockito.verify(timelineDao).addTimelineElementIfAbsent(dtoWithStatusInfo);
         Mockito.verify(statusService).getStatus(newElement, setTimelineElement, notification);
-        //Mockito.verify(confidentialInformationService).saveTimelineConfidentialInformation(newElement);
     }
 
     @Test
@@ -216,7 +222,7 @@ class TimelineServiceImplTest {
     void addTimelineElementWithBusinessTimestampFeatureFlag() {
         // GIVEN
         String iun = "iun_12345";
-        String elementId = "elementId_12345";
+        String elementId = "AAR_GENERATION_IUN_"+iun+".RECINDEX_0";
 
         NotificationInfoInt notification = getNotification(iun);
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
@@ -229,7 +235,7 @@ class TimelineServiceImplTest {
 
         Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
 
-        String elementId2 = "elementId2";
+        String elementId2 = "SEND_ANALOG_DOMICILE.IUN_"+iun+".RECINDEX_0.ATTEMPT_0";
         Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId2);
         Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
                 .thenReturn(Flux.fromIterable(setTimelineElement));
@@ -249,23 +255,27 @@ class TimelineServiceImplTest {
                 .verifyComplete();
 
         ArgumentCaptor<TimelineElementInternal> captor = ArgumentCaptor.forClass(TimelineElementInternal.class);
+        ArgumentCaptor<TimelineElementInternal> confInfoCaptor = ArgumentCaptor.forClass(TimelineElementInternal.class);
+
         verify(timelineDao).addTimelineElementIfAbsent(captor.capture());
+        verify(confidentialInformationService).saveTimelineConfidentialInformation(confInfoCaptor.capture());
         TimelineElementInternal dtoToPersist = captor.getValue();
+        TimelineElementInternal confInfoToPersist = confInfoCaptor.getValue();
         Assertions.assertEquals(dtoToPersist.getTimestamp(), newElement.getTimestamp());
         // Verifica che il campo eventTimestamp sia valorizzato (feature flag attiva)
         Assertions.assertNotNull(dtoToPersist.getEventTimestamp());
+        Assertions.assertFalse(confInfoToPersist.getElementId().contains("REWORK"));
 
         Mockito.verify(smartMapper).mapTimelineInternal(Mockito.any(), Mockito.any());
         Mockito.verify(timelineDao).addTimelineElementIfAbsent(dtoToPersist);
         Mockito.verify(statusService).getStatus(newElement, setTimelineElement, notification);
-        //Mockito.verify(confidentialInformationService).saveTimelineConfidentialInformation(newElement);
     }
 
     @Test
     void addTimelineElementIdConflict(){
         // GIVEN
         String iun = "iun_12345";
-        String elementId = "elementId_12345";
+        String elementId = "SEND_ANALOG_FEEDBACK.IUN_"+iun+".RECINDEX_0.ATTEMPT_0";
 
         NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
@@ -302,7 +312,7 @@ class TimelineServiceImplTest {
     void addCriticalTimelineElementIdConflic() {
         // GIVEN
         String iun = "iun_12345";
-        String elementId = "elementId_12345";
+        String elementId = "ANALOG_SUCCESS_WORKFLOW.IUN_"+iun+".RECINDEX_0";
         NotificationInfoInt notification = getNotificationWithMultipleRecipients(iun);
         TimelineElementInternal newElement = getAnalogSuccessTimelineCriticalElement(iun, elementId);
 
@@ -379,7 +389,7 @@ class TimelineServiceImplTest {
     void addTimelineElementWithUnchangedStatus() {
         // GIVEN
         String iun = "iun";
-        String elementId = "elementId";
+        String elementId = "AAR_GENERATION.IUN_"+iun+".RECINDEX_0";
 
         String expectedNewStatus = NotificationStatusInt.IN_VALIDATION.getValue();
         boolean expectedStatusChanged = false;
@@ -432,7 +442,7 @@ class TimelineServiceImplTest {
         Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any()))
                 .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
         Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
-        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, false, true, 0, 0);
+        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, false, true, true, false, 0, 0);
         Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
                 .thenReturn(Flux.fromIterable(setTimelineElement));
 
@@ -469,7 +479,7 @@ class TimelineServiceImplTest {
         Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any()))
                 .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
         Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
-        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, false, true, 0, 0);
+        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, false, true, true, false, 0, 0);
         Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
                 .thenReturn(Flux.fromIterable(setTimelineElement));
 
@@ -512,7 +522,7 @@ class TimelineServiceImplTest {
         Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any()))
                 .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
         Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
-        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, true, true, 0, 0);
+        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, true, true, true, false, 0, 0);
         Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
                 .thenReturn(Flux.fromIterable(setTimelineElement));
 
@@ -549,7 +559,7 @@ class TimelineServiceImplTest {
         Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any()))
                 .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
         Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
-        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, true, true, 1, 0);
+        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, true, true, true, false, 1, 0);
         Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
                 .thenReturn(Flux.fromIterable(setTimelineElement));
 
@@ -586,7 +596,7 @@ class TimelineServiceImplTest {
         Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any()))
                 .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
         Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
-        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, false, true, 0, null);
+        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, false, true, true, false, 0, 0);
         Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
                 .thenReturn(Flux.fromIterable(setTimelineElement));
 
@@ -608,6 +618,120 @@ class TimelineServiceImplTest {
         verify(timelineDao).addTimelineElementIfAbsent(captor.capture());
         TimelineElementInternal dtoToPersist = captor.getValue();
         Assertions.assertEquals(dtoToPersist.getTimestamp(), newElement.getTimestamp());
+    }
+
+    @Test
+    void addTimelineElementWithReworkElementAttemptNullWithSendAnalogFeedback() {
+        // GIVEN
+        String iun = "iun_12345";
+        String elementId = "PREPARE_ANALOG_DOMICILE.IUN_12345";
+
+        NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
+        StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
+        Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any())).thenReturn(Mono.empty());
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any()))
+                .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
+        Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
+        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, true, true, true, false, 0, 0);
+        Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
+                .thenReturn(Flux.fromIterable(setTimelineElement));
+
+        TimelineElementInternal newElement = TimelineElementInternal.builder()
+                .elementId(elementId+".RECINDEX_0")
+                .category(TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE)
+                .iun(iun)
+                .timestamp(Instant.now())
+                .build();
+
+        // WHEN
+        Mono<Void> result = timeLineService.addTimelineElement(newElement, notification).then();
+
+        // THEN
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        ArgumentCaptor<TimelineElementInternal> captor = ArgumentCaptor.forClass(TimelineElementInternal.class);
+        verify(timelineDao).addTimelineElementIfAbsent(captor.capture());
+        TimelineElementInternal dtoToPersist = captor.getValue();
+        Assertions.assertEquals(dtoToPersist.getTimestamp(), newElement.getTimestamp());
+        Assertions.assertTrue(dtoToPersist.getElementId().contains("REWORK"));
+    }
+
+    @Test
+    void addTimelineElementWithReworkElementAttemptNullWithPrepareAttemptOne() {
+        // GIVEN
+        String iun = "iun_12345";
+        String elementId = "PREPARE_ANALOG_DOMICILE.IUN_12345";
+
+        NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
+        StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
+        Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any())).thenReturn(Mono.empty());
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any()))
+                .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
+        Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
+        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, true, false, true, true, 0, 0);
+        Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
+                .thenReturn(Flux.fromIterable(setTimelineElement));
+
+        TimelineElementInternal newElement = TimelineElementInternal.builder()
+                .elementId(elementId+".RECINDEX_0")
+                .category(TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE)
+                .iun(iun)
+                .timestamp(Instant.now())
+                .build();
+
+        // WHEN
+        Mono<Void> result = timeLineService.addTimelineElement(newElement, notification).then();
+
+        // THEN
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        ArgumentCaptor<TimelineElementInternal> captor = ArgumentCaptor.forClass(TimelineElementInternal.class);
+        verify(timelineDao).addTimelineElementIfAbsent(captor.capture());
+        TimelineElementInternal dtoToPersist = captor.getValue();
+        Assertions.assertEquals(dtoToPersist.getTimestamp(), newElement.getTimestamp());
+        Assertions.assertTrue(dtoToPersist.getElementId().contains("REWORK"));
+    }
+
+    @Test
+    void addTimelineElementWithReworkElementAttemptNullWithPrepareAttemptOneButAlsoReworkForAttemptOne() {
+        // GIVEN
+        String iun = "iun_12345";
+        String elementId = "PREPARE_ANALOG_DOMICILE.IUN_12345";
+
+        NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
+        StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
+        Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any())).thenReturn(Mono.empty());
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(any()))
+                .thenReturn(Mono.just(Map.of("key", ConfidentialTimelineElementDtoInt.builder().timelineElementId("1").build())));
+        Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
+        Set<TimelineElementInternal> setTimelineElement = getNotificationReworkDetailsList(iun, elementId, true, false, true, true, 0, 1);
+        Mockito.when(timelineDao.getTimeline(Mockito.anyString()))
+                .thenReturn(Flux.fromIterable(setTimelineElement));
+
+        TimelineElementInternal newElement = TimelineElementInternal.builder()
+                .elementId(elementId+".RECINDEX_0")
+                .category(TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE)
+                .iun(iun)
+                .timestamp(Instant.now())
+                .build();
+
+        // WHEN
+        Mono<Void> result = timeLineService.addTimelineElement(newElement, notification).then();
+
+        // THEN
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        ArgumentCaptor<TimelineElementInternal> captor = ArgumentCaptor.forClass(TimelineElementInternal.class);
+        verify(timelineDao).addTimelineElementIfAbsent(captor.capture());
+        TimelineElementInternal dtoToPersist = captor.getValue();
+        Assertions.assertEquals(dtoToPersist.getTimestamp(), newElement.getTimestamp());
+        Assertions.assertTrue(dtoToPersist.getElementId().contains("REWORK"));
     }
 
     @Test
@@ -815,8 +939,8 @@ class TimelineServiceImplTest {
                     })
                     .verifyComplete();
 
-            //Mockito.verify(confidentialInformationService).getTimelineElementConfidentialInformation(iun, timelineId);
-            //Mockito.verifyNoMoreInteractions(confidentialInformationService);
+            Mockito.verify(confidentialInformationService).getTimelineElementConfidentialInformation(iun, timelineId);
+            Mockito.verifyNoMoreInteractions(confidentialInformationService);
         }
 
    @Test
@@ -1236,15 +1360,15 @@ class TimelineServiceImplTest {
         return new HashSet<>(timelineElementList);
     }
 
-    private Set<TimelineElementInternal> getNotificationReworkDetailsList(String iun,  String elementId, boolean withSendAnalogFeedback, boolean withSendAnalogDomicile, int recIndex, Integer attemptId){
+    private Set<TimelineElementInternal> getNotificationReworkDetailsList(String iun,  String elementId, boolean withSendAnalogFeedback, boolean withSendAnalogFeedbackWithRework, boolean withSendAnalogDomicile, boolean withNextPrepareAnalogDomicile, int recIndex, Integer attemptId){
         List<TimelineElementInternal> timelineElementList = new ArrayList<>();
         TimelineElementInternal timelineElementInternal = getSendPaperDetailsTimelineElement(iun, elementId+".RECINDEX_0.ATTEMPT_0");
-        TimelineElementInternal timelineElementInternalNotificationRework = getNotificationReworkDetailsTimelineElement(iun, elementId+".RECINDEX_0.ATTEMPT_0.REWORK_0", withSendAnalogFeedback, recIndex, attemptId);
+        TimelineElementInternal timelineElementInternalNotificationRework = getNotificationReworkDetailsTimelineElement(iun, "NOTIFICATION_TIMELINE_REWORKED.RECINDEX_0.ATTEMPT_0.REWORK_0", recIndex, attemptId);
         timelineElementList.add(timelineElementInternal);
         timelineElementList.add(timelineElementInternalNotificationRework);
 
         if (withSendAnalogFeedback) {
-            TimelineElementInternal timelineElementInternalSendAnalogFeedback = getSendPaperFeedbackTimelineElement(iun, elementId+".RECINDEX_0.ATTEMPT_0", Instant.now(), true);
+            TimelineElementInternal timelineElementInternalSendAnalogFeedback = getSendPaperFeedbackTimelineElement(iun, elementId+".RECINDEX_0.ATTEMPT_0", Instant.now(), withSendAnalogFeedbackWithRework);
             timelineElementList.add(timelineElementInternalSendAnalogFeedback);
         }
 
@@ -1253,7 +1377,27 @@ class TimelineServiceImplTest {
             timelineElementList.add(timelineElementInternalSendAnalogDomicile);
         }
 
+        if (withNextPrepareAnalogDomicile) {
+            TimelineElementInternal nextPrepareAnalogDomicile = getPrepareAnalogDomicileTimelineElement(iun, elementId+".RECINDEX_0.ATTEMPT_1", Instant.now());
+            timelineElementList.add(nextPrepareAnalogDomicile);
+        }
+
         return new HashSet<>(timelineElementList);
+    }
+
+    private TimelineElementInternal getPrepareAnalogDomicileTimelineElement(String iun, String elementId, Instant timestamp) {
+        BaseAnalogDetailsInt details =  BaseAnalogDetailsInt.builder()
+                .recIndex(0)
+                .build();
+        return TimelineElementInternal.builder()
+                .elementId(elementId)
+                .iun(iun)
+                .category(TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE)
+                .timestamp(timestamp)
+                .eventTimestamp(timestamp)
+                .reworkId(null)
+                .details( details )
+                .build();
     }
 
     private TimelineElementInternal getSendPaperDetailsTimelineElement(String iun, String elementId) {
@@ -1358,12 +1502,14 @@ class TimelineServiceImplTest {
                 .build();
     }
 
-    private TimelineElementInternal getNotificationReworkDetailsTimelineElement(String iun, String timelineId, boolean withSendAnalogFeedback, int recIndex, Integer attemptId) {
-        NotificationTimelineReworkedDetailsInt.NotificationTimelineReworkedDetailsIntBuilder detailsBuilder = NotificationTimelineReworkedDetailsInt.builder()
+    private TimelineElementInternal getNotificationReworkDetailsTimelineElement(String iun, String timelineId, int recIndex, Integer attemptId) {
+        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("PREPARE_ANALOG_DOMICILE.IUN_"+iun+"RECINDEX_0.ATTEMPT_0"));
+        NotificationTimelineReworkedDetailsInt details = NotificationTimelineReworkedDetailsInt.builder()
                 .recIndex(recIndex)
-                .sentAttemptMade(attemptId);
-        if (withSendAnalogFeedback) detailsBuilder.sentAttemptMade(null);
-        NotificationTimelineReworkedDetailsInt details = detailsBuilder.build();
+                .sentAttemptMade(attemptId)
+                .invalidatedTimelineAndStatusHistory(List.of(notificationStatusHistoryElementInt))
+                .build();
         return TimelineElementInternal.builder()
                 .timestamp(Instant.now())
                 .elementId(timelineId)
