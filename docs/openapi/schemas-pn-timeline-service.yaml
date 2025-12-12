@@ -1595,7 +1595,7 @@ components:
         denomination:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
           type: string
-          maxLength: 128
+          maxLength: 512
         delegateType:
           $ref: '#/components/schemas/RecipientType'
 
