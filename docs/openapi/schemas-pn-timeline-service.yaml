@@ -1844,7 +1844,7 @@ components:
           description: elenco degli avanzamenti effettuati dal processo di notifica prima dell'invalidazione
           type: array
           items:
-            $ref: "./pn-timeline-service-private.yaml#/components/schemas/NotificationStatusHistoryElement"
+            $ref: "./pn-timeline-service-private.yaml#/components/schemas/NotificationStatusHistoryInvalidatedElement"
         categoryType:
           type: string
 
