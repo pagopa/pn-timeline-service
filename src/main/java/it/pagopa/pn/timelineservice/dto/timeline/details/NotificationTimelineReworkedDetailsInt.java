@@ -1,6 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
-import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -15,7 +15,7 @@ import java.util.List;
 public class NotificationTimelineReworkedDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
     private int recIndex;
     private Integer sentAttemptMade;
-    private List<NotificationStatusHistoryElementInt> invalidatedTimelineAndStatusHistory;
+    private List<NotificationStatusHistoryInvalidatedElementInt> invalidatedTimelineAndStatusHistory;
     private String categoryType;
 
     @Override

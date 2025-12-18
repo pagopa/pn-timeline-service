@@ -457,7 +457,7 @@ class TimelineDaoDynamoTest {
                 .build();
 
         NotificationStatusHistoryElementEntity notificationStatusHistoryElementInt = new NotificationStatusHistoryElementEntity();
-        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("SEND_ANALOG_PROGRESS.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.IDX_1",
+        notificationStatusHistoryElementInt.setRelatedTimelineElementIds(List.of("SEND_ANALOG_PROGRESS.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.IDX_1",
                 "SEND_ANALOG_PROGRESS.IUN_"+iun+".RECINDEX_0.ATTEMPT_0.IDX_2"));
 
         String id4 = "NOTIFICATION_TIMELINE_REWORKED.IUN_JQUD-NRZR-ZVTH-202503-Y-1.RECINDEX_0.ATTEMPT_0.REWORK_0";

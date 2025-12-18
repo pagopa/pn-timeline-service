@@ -23,7 +23,7 @@ public class NotificationReworkUtils {
                 .filter(e -> e.getCategory().equals(TimelineElementCategoryEntity.NOTIFICATION_TIMELINE_REWORKED))
                 .flatMap(e -> e.getDetails()
                         .getInvalidatedTimelineAndStatusHistory().stream())
-                .flatMap(timelineElem -> timelineElem.getRelatedTimelineElements().stream())
+                .flatMap(timelineElem -> timelineElem.getRelatedTimelineElementIds().stream())
                 .toList();
     }
 
@@ -64,7 +64,7 @@ public class NotificationReworkUtils {
         return reworkElements.stream()
                 .map(e -> (NotificationTimelineReworkedDetailsInt) e.getDetails())
                 .flatMap(d -> d.getInvalidatedTimelineAndStatusHistory().stream())
-                .flatMap(h -> h.getRelatedTimelineElements().stream())
+                .flatMap(h -> h.getRelatedTimelineElementIds().stream())
                 .toList();
     }
 

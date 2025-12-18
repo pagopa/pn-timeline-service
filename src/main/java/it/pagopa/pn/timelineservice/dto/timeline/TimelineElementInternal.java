@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -30,7 +29,6 @@ public class TimelineElementInternal implements Comparable<TimelineElementIntern
     private Instant notificationSentAt;
     private Instant ingestionTimestamp; //Questo campo viene valorizzato solo ed esclusivamente in uscita per api e webhook dal mapper
     private Instant eventTimestamp; //Questo campo viene valorizzato solo ed esclusivamente in uscita per api e webhook dal mapper
-    private Map<String,TimelineElementInternal> invalidatedTimelineElements; //questo campo viene usato solo internamente per tenere traccia degli elementi invalidati in caso di rework
 
     @Override
     public int compareTo(@NotNull TimelineElementInternal o) {

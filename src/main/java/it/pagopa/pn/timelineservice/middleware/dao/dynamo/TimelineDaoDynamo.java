@@ -59,9 +59,7 @@ public class TimelineDaoDynamo implements TimelineDao {
     @Override
     public Mono<TimelineElementInternal> getTimelineElement(String iun, String elementId, boolean strongly) {
         if (isReworkedId(elementId)) {
-            return getTimeline(iun, strongly)
-                    .filter(e -> e.getElementId().equalsIgnoreCase(elementId))
-                    .next();
+            return getTimelineAndFilterWithElementId(iun, elementId).next();
         }
         return retrieveCorrectElementIdIfReworked(iun, elementId, strongly)
                 .switchIfEmpty(Mono.just(elementId))
@@ -88,14 +86,18 @@ public class TimelineDaoDynamo implements TimelineDao {
     @Override
     public Flux<TimelineElementInternal> getTimelineFilteredByElementId(String iun, String elementId, boolean strongly) {
         if (isReworkedId(elementId)) {
-            return getTimeline(iun)
-                    .filter(timelineElementInternal -> timelineElementInternal.getElementId().startsWith(elementId));
+            return getTimelineAndFilterWithElementId(iun, elementId);
         }
 
         return searchByIunAndElementId(iun, elementId)
                 .collectList()
                 .flatMapMany(timelineElementEntities -> filterForReworkedElementIdIfExists(iun, timelineElementEntities, strongly, elementId))
                 .map(timelineElementEntity -> entity2dto.entityToDto(timelineElementEntity, null));
+    }
+
+    private Flux<TimelineElementInternal> getTimelineAndFilterWithElementId(String iun, String elementId) {
+        return getTimeline(iun)
+                .filter(timelineElementInternal -> timelineElementInternal.getElementId().startsWith(elementId));
     }
 
     private boolean isReworkedId(String elementId) {
@@ -125,8 +127,6 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .orElse(Mono.just(timelineId));
     }
 
-
-
     private Flux<TimelineElementInternal> getTimeline(String iun, boolean strongly) {
         Map<String,TimelineElementInternal> invalidatedTimelineElements = new HashMap<>();
         QueryEnhancedRequest request = QueryEnhancedRequest.builder()
@@ -137,22 +137,24 @@ public class TimelineDaoDynamo implements TimelineDao {
         return Flux.from(table.query(request))
                 .flatMap(page -> Flux.fromIterable(page.items()))
                 .collectList()
-                .doOnNext(entities -> {
-                    if(!CollectionUtils.isEmpty(entities) &&
-                            entities.stream().anyMatch(timelineElementEntity -> timelineElementEntity.getCategory().equals(NOTIFICATION_TIMELINE_REWORKED))) {
-                        invalidatedTimelineElements.putAll(getInvalidatedTimelineElementIds(entities));
-                    }
-                })
+                .doOnNext(entities -> checkIfReworksArePresentAndRetrieveInvalidatedElements(entities, invalidatedTimelineElements))
                 .flatMapMany(Flux::fromIterable)
                 .map(entity -> entity2dto.entityToDto(entity, invalidatedTimelineElements))
                 .filter(timelineElementInternal -> isNotInvalidated(timelineElementInternal, invalidatedTimelineElements));
+    }
+
+    private void checkIfReworksArePresentAndRetrieveInvalidatedElements(List<TimelineElementEntity> entities, Map<String, TimelineElementInternal> invalidatedTimelineElements) {
+        if(!CollectionUtils.isEmpty(entities) &&
+                entities.stream().anyMatch(timelineElementEntity -> timelineElementEntity.getCategory().equals(NOTIFICATION_TIMELINE_REWORKED))) {
+            invalidatedTimelineElements.putAll(getInvalidatedTimelineElementIds(entities));
+        }
     }
 
     private Map<String,TimelineElementInternal> getInvalidatedTimelineElementIds(List<TimelineElementEntity> entities) {
         List<String> invalidatedTimelineElementIds = getInvalidatedTimelineElementsIds(entities);
         return entities.stream()
                 .filter(elem -> invalidatedTimelineElementIds.contains(elem.getTimelineElementId()))
-                .map(timelineElementEntity -> entity2dto.entityToDto(timelineElementEntity, Map.of()))
+                .map(timelineElementEntity -> entity2dto.entityToDto(timelineElementEntity, null))
                 .collect(Collectors.toMap(TimelineElementInternal::getElementId, Function.identity()));
     }
 
@@ -269,6 +271,6 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .filter(timelineElementEntity -> TimelineEventIdParser.parse(timelineElementEntity.getTimelineElementId()).recIndex()
                         .orElseThrow(() -> new PnInternalException("RecIndex not present in timelineElementId " + timelineElementId, "ERROR_CODE_TIMELINESERVICE_INVALID_TIMELINE_ID"))
                         .equals(TimelineEventIdParser.parse(timelineElementId).recIndex().orElse(null)))
-                .map(timelineElementEntity -> entity2dto.entityToDto(timelineElementEntity, Map.of()));
+                .map(timelineElementEntity -> entity2dto.entityToDto(timelineElementEntity, null));
     }
 }

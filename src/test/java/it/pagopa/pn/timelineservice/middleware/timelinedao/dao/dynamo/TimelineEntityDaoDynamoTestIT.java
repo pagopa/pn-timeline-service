@@ -7,10 +7,12 @@ import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.NotificationRefusedErrorEntity;
+import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +53,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         try{
@@ -86,7 +87,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         assertDoesNotThrow(() -> timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block());
@@ -117,7 +117,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -135,7 +134,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         //WHEN
@@ -168,7 +166,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -186,7 +183,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
@@ -234,7 +230,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -252,7 +247,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
@@ -322,8 +316,8 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                         .build())
                 .build();
 
-        NotificationStatusHistoryElementInt notificationStatusHistoryElement = new NotificationStatusHistoryElementInt();
-        notificationStatusHistoryElement.setRelatedTimelineElements(List.of(invalidatedTimelineElementId1, invalidatedTimelineElementId2));
+        NotificationStatusHistoryInvalidatedElementInt notificationStatusHistoryElement = new NotificationStatusHistoryInvalidatedElementInt();
+        notificationStatusHistoryElement.setRelatedTimelineElementIds(List.of(invalidatedTimelineElementId1, invalidatedTimelineElementId2));
         TimelineElementInternal fourthlementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
                 .elementId(UUID.randomUUID().toString())
@@ -386,8 +380,8 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 )
                 .build();
 
-        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
-        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("SEND_ANALOG_PROGRESS.IUN_"+iun+".RECINDEX_0.ATTEMPT_1"));
+        NotificationStatusHistoryInvalidatedElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryInvalidatedElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElementIds(List.of("SEND_ANALOG_PROGRESS.IUN_"+iun+".RECINDEX_0.ATTEMPT_1"));
 
         TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
@@ -442,8 +436,8 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 )
                 .build();
 
-        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
-        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("REFINEMENT.IUN_"+iun+".RECINDEX_0"));
+        NotificationStatusHistoryInvalidatedElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryInvalidatedElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElementIds(List.of("REFINEMENT.IUN_"+iun+".RECINDEX_0"));
 
         TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
@@ -515,8 +509,8 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 )
                 .build();
 
-        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
-        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("REFINEMENT.IUN_"+iun+".RECINDEX_0"));
+        NotificationStatusHistoryInvalidatedElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryInvalidatedElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElementIds(List.of("REFINEMENT.IUN_"+iun+".RECINDEX_0"));
 
         TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
                 .iun(iun)
@@ -570,7 +564,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -588,7 +581,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
@@ -642,7 +634,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
@@ -686,7 +677,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -704,7 +694,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal nomatchElementToInsert = TimelineElementInternal.builder()
@@ -776,7 +765,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                 .retryNumber(0)
                                 .build()
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
             //WHEN
             timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
@@ -809,7 +797,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         checkElement(elementToInsert);
@@ -830,7 +817,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                 .notificationCost(100)
                                 .build()
                 )
-                .invalidatedTimelineElements(Map.of())
                 .build();
 
         checkElement(elementToInsert);
@@ -877,8 +863,8 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 )
                 .build();
 
-        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
-        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("SEND_ANALOG_FEEDBACK.IUN_"+iun+".ATTEMPT_0"));
+        NotificationStatusHistoryInvalidatedElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryInvalidatedElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElementIds(List.of("SEND_ANALOG_FEEDBACK.IUN_"+iun+".ATTEMPT_0"));
 
 
         TimelineElementInternal secondReworkElementToInsert = TimelineElementInternal.builder()
