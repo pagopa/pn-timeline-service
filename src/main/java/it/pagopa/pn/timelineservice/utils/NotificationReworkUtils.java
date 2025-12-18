@@ -5,10 +5,11 @@ import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementCategoryEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE;
@@ -17,50 +18,54 @@ import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceException
 
 public class NotificationReworkUtils {
 
-    public static List<TimelineElementInternal> getNotInvalidatedTimelineElements(List<TimelineElementInternal> timelineByTimestampSorted) {
-        List<String> invalidatedTimelineElements = timelineByTimestampSorted.stream()
-                .filter(e -> e.getCategory().equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED))
-                .flatMap(e -> ((NotificationTimelineReworkedDetailsInt) e.getDetails())
+    public static List<String> getInvalidatedTimelineElementsIds(List<TimelineElementEntity> entities) {
+        return entities.stream()
+                .filter(e -> e.getCategory().equals(TimelineElementCategoryEntity.NOTIFICATION_TIMELINE_REWORKED))
+                .flatMap(e -> e.getDetails()
                         .getInvalidatedTimelineAndStatusHistory().stream())
                 .flatMap(timelineElem -> timelineElem.getRelatedTimelineElements().stream())
-                .toList();
-
-        return timelineByTimestampSorted.stream()
-                .filter(elem -> !invalidatedTimelineElements.contains(elem.getElementId()))
                 .toList();
     }
 
     public static List<TimelineElementEntity> removeInvalidatedElement(List<TimelineElementInternal> reworkElementsInternal, List<TimelineElementEntity> timelineByTimestampSorted) {
-        List<String> invalidatedTimelineElements = reworkElementsInternal.stream()
-                .map(timelineElementInternal -> (NotificationTimelineReworkedDetailsInt) timelineElementInternal.getDetails())
-                .flatMap(e -> e.getInvalidatedTimelineAndStatusHistory().stream())
-                .flatMap(timelineElem -> timelineElem.getRelatedTimelineElements().stream())
-                .toList();
-
+        List<String> invalidatedIds = extractInvalidatedIds(reworkElementsInternal);
         return timelineByTimestampSorted.stream()
-                .filter(elem -> !invalidatedTimelineElements.contains(elem.getTimelineElementId()))
+                .filter(e -> !invalidatedIds.contains(e.getTimelineElementId()))
                 .toList();
     }
 
-    public static ReworkFilteringResult checkReworkAttemptAndReturnSuffix(List<TimelineElementInternal> reworkTimelineElements, String timelineId) {
-        TimelineEventIdParser newElementId = TimelineEventIdParser.parse(timelineId);
-        Integer newElementAttempt = newElementId.sentAttemptMade().orElse(null);
-        
-        List<String> invalidatedTimelineElements = reworkTimelineElements.stream()
-                .map(timelineElementInternal -> (NotificationTimelineReworkedDetailsInt) timelineElementInternal.getDetails())
-                .flatMap(e -> e.getInvalidatedTimelineAndStatusHistory().stream())
-                .flatMap(timelineElem -> timelineElem.getRelatedTimelineElements().stream())
-                .toList();
-        
-        for(TimelineElementInternal reworkItem : reworkTimelineElements) {
-            TimelineEventIdParser parser = TimelineEventIdParser.parse(reworkItem.getElementId());
-            String reworkSuffix = parser.reworkIndexFull().orElse(null);
-            NotificationTimelineReworkedDetailsInt notificationTimelineReworkedDetailsInt = (NotificationTimelineReworkedDetailsInt) reworkItem.getDetails();
-            if(validAttempt(newElementAttempt, notificationTimelineReworkedDetailsInt.getSentAttemptMade()) && !isPrepareOrSendAttempt0(newElementId) && isInvalidatedByRework(timelineId, invalidatedTimelineElements)){
-                return new ReworkFilteringResult(timelineId + "." + reworkSuffix, reworkItem.getReworkId());
-            }
+    public static ReworkFilteringResult checkReworkAttemptAndReturnSuffix(List<TimelineElementInternal> reworkElements, String timelineId) {
+
+        TimelineEventIdParser newParser = TimelineEventIdParser.parse(timelineId);
+        Integer newAttempt = newParser.sentAttemptMade().orElse(null);
+
+        if (isPrepareOrSendAttempt0(newParser)) {
+            return new ReworkFilteringResult(timelineId, null);
         }
-        return new ReworkFilteringResult(timelineId, null);
+
+        List<String> invalidatedIds = extractInvalidatedIds(reworkElements);
+
+        if (!isInvalidatedByRework(timelineId, invalidatedIds)) {
+            return new ReworkFilteringResult(timelineId, null);
+        }
+
+        return reworkElements.stream()
+                .filter(r -> validAttempt(newAttempt, ((NotificationTimelineReworkedDetailsInt) r.getDetails()).getSentAttemptMade()))
+                .findFirst()
+                .map(r -> new ReworkFilteringResult(
+                        timelineId + "." + TimelineEventIdParser.parse(r.getElementId())
+                                .reworkIndexFull()
+                                .orElse(null),
+                        r.getReworkId()))
+                .orElseGet(() -> new ReworkFilteringResult(timelineId, null));
+    }
+
+    private static List<String> extractInvalidatedIds(List<TimelineElementInternal> reworkElements) {
+        return reworkElements.stream()
+                .map(e -> (NotificationTimelineReworkedDetailsInt) e.getDetails())
+                .flatMap(d -> d.getInvalidatedTimelineAndStatusHistory().stream())
+                .flatMap(h -> h.getRelatedTimelineElements().stream())
+                .toList();
     }
 
     private static boolean isInvalidatedByRework(String timelineId, List<String> invalidatedTimelineElements) {
@@ -80,13 +85,21 @@ public class NotificationReworkUtils {
     }
 
     private static boolean isPrepareOrSendAttempt0(TimelineEventIdParser newElementId) {
-        return (PREPARE_ANALOG_DOMICILE.name().equalsIgnoreCase(newElementId.category().orElse(null)) ||
-                SEND_ANALOG_DOMICILE.name().equalsIgnoreCase(newElementId.category().orElse(null))) &&
-                (newElementId.sentAttemptMade().isPresent() && newElementId.sentAttemptMade().get() == 0);
+        return isPrepareOrSend(newElementId.category().orElse(null))
+                && newElementId.sentAttemptMade().orElse(-1) == 0;
+    }
+
+    private static boolean isPrepareOrSend(String category) {
+        return PREPARE_ANALOG_DOMICILE.name().equalsIgnoreCase(category)
+                || SEND_ANALOG_DOMICILE.name().equalsIgnoreCase(category);
     }
 
     private static boolean validAttempt(Integer newElementAttempt, Integer sentAttemptMade) {
         return Objects.isNull(newElementAttempt) || newElementAttempt >= sentAttemptMade;
+    }
+
+    public static boolean isNotInvalidated(TimelineElementInternal timelineElementInternal, Map<String, TimelineElementInternal> invalidatedTimelineElements) {
+        return !invalidatedTimelineElements.containsKey(timelineElementInternal.getElementId());
     }
 
 }

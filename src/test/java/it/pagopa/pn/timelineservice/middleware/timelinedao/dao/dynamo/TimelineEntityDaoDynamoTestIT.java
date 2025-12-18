@@ -51,6 +51,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         try{
@@ -85,6 +86,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         assertDoesNotThrow(() -> timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block());
@@ -115,6 +117,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -132,6 +135,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         //WHEN
@@ -164,6 +168,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -181,6 +186,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
@@ -228,6 +234,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -245,6 +252,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
@@ -562,6 +570,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -579,6 +588,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
@@ -632,6 +642,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         timelineEntityDao.addTimelineElementIfAbsent(firstElementToInsert).block();
@@ -675,6 +686,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal secondElementToInsert = TimelineElementInternal.builder()
@@ -692,6 +704,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         TimelineElementInternal nomatchElementToInsert = TimelineElementInternal.builder()
@@ -763,6 +776,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                 .retryNumber(0)
                                 .build()
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
             //WHEN
             timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
@@ -795,6 +809,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         checkElement(elementToInsert);
@@ -815,6 +830,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                 .notificationCost(100)
                                 .build()
                 )
+                .invalidatedTimelineElements(Map.of())
                 .build();
 
         checkElement(elementToInsert);

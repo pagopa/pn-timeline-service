@@ -12,17 +12,19 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElement
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class EntityToDtoTimelineMapper {
     
-    public TimelineElementInternal entityToDto(TimelineElementEntity entity ) {
+    public TimelineElementInternal entityToDto(TimelineElementEntity entity, Map<String,TimelineElementInternal> invalidatedTimelineElements ) {
         TimelineElementCategoryInt category = entity.getCategory() != null ? TimelineElementCategoryInt.valueOf(entity.getCategory().getValue()) : null;
 
         assert category != null;
-        return TimelineElementInternal.builder()
+        TimelineElementInternal timelineElementInternal =  TimelineElementInternal.builder()
                 .iun(entity.getIun())
                 .reworkId(entity.getReworkId())
                 .elementId( entity.getTimelineElementId() )
@@ -35,6 +37,11 @@ public class EntityToDtoTimelineMapper {
                 .paId(entity.getPaId())
                 .eventTimestamp(entity.getBusinessTimestamp())
                 .build();
+
+        if(category.equals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED) && !CollectionUtils.isEmpty(invalidatedTimelineElements)){
+            timelineElementInternal.setInvalidatedTimelineElements(invalidatedTimelineElements);
+        }
+        return timelineElementInternal;
     }
 
     private List<LegalFactsIdInt> convertLegalFactsFromEntity(List<LegalFactsIdEntity>  entity ) {
