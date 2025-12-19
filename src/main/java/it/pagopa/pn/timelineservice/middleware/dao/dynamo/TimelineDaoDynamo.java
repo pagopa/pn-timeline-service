@@ -137,17 +137,21 @@ public class TimelineDaoDynamo implements TimelineDao {
         return Flux.from(table.query(request))
                 .flatMap(page -> Flux.fromIterable(page.items()))
                 .collectList()
-                .doOnNext(entities -> checkIfReworksArePresentAndRetrieveInvalidatedElements(entities, invalidatedTimelineElements))
+                .doOnNext(entities -> {
+                    Map<String,TimelineElementInternal> invalidatedElementMap = checkIfReworksArePresentAndRetrieveInvalidatedElements(entities);
+                    invalidatedTimelineElements.putAll(invalidatedElementMap);
+                })
                 .flatMapMany(Flux::fromIterable)
                 .map(entity -> entity2dto.entityToDto(entity, invalidatedTimelineElements))
                 .filter(timelineElementInternal -> isNotInvalidated(timelineElementInternal, invalidatedTimelineElements));
     }
 
-    private void checkIfReworksArePresentAndRetrieveInvalidatedElements(List<TimelineElementEntity> entities, Map<String, TimelineElementInternal> invalidatedTimelineElements) {
+    private Map<String,TimelineElementInternal> checkIfReworksArePresentAndRetrieveInvalidatedElements(List<TimelineElementEntity> entities) {
         if(!CollectionUtils.isEmpty(entities) &&
                 entities.stream().anyMatch(timelineElementEntity -> timelineElementEntity.getCategory().equals(NOTIFICATION_TIMELINE_REWORKED))) {
-            invalidatedTimelineElements.putAll(getInvalidatedTimelineElementIds(entities));
+            return getInvalidatedTimelineElementIds(entities);
         }
+        return Map.of();
     }
 
     private Map<String,TimelineElementInternal> getInvalidatedTimelineElementIds(List<TimelineElementEntity> entities) {

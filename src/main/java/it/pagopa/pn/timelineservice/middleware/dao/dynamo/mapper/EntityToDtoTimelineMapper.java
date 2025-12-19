@@ -75,7 +75,7 @@ public class EntityToDtoTimelineMapper {
         timelineElementDetailsInt.getInvalidatedTimelineAndStatusHistory()
                 .forEach(notificationStatusHistoryElementInt -> notificationStatusHistoryElementInt.getRelatedTimelineElementIds()
                         .forEach(elementId -> Optional.ofNullable(invalidatedTimelineElements.get(elementId))
-                                .map(timelineElementInternal -> notificationStatusHistoryElementInt.getRelatedTimelineElement().add(timelineElementInternal))));
+                                .map(timelineElementInternal -> notificationStatusHistoryElementInt.getRelatedTimelineElements().add(timelineElementInternal))));
     }
 
     private StatusInfoInternal entityToStatusInfoInternal(StatusInfoEntity entity) {

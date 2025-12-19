@@ -17,6 +17,6 @@ import java.util.List;
 public class NotificationStatusHistoryInvalidatedElementInt {
     private NotificationStatusInt status;
     private Instant activeFrom;
-    private List<String> relatedTimelineElementIds;
-    private List<TimelineElementInternal> relatedTimelineElement = new ArrayList<>();
+    private List<String> relatedTimelineElementIds; //per uso interno per il mapping entityToDto e dtoToEntity
+    private List<TimelineElementInternal> relatedTimelineElements = new ArrayList<>(); //per uso b2b e web
 }
