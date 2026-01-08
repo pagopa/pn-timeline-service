@@ -20,5 +20,5 @@ public class NotificationStatusHistoryElementEntity {
     @Getter(onMethod = @__({@DynamoDbAttribute("activeFrom")}))
     private Instant activeFrom;
     @Getter(onMethod = @__({@DynamoDbAttribute("relatedTimelineElements")}))
-    private List<String> relatedTimelineElements;
+    private List<String> relatedTimelineElementIds;
 }

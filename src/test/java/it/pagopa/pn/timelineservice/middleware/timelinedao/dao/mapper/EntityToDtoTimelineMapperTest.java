@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 class EntityToDtoTimelineMapperTest {
     private final EntityToDtoTimelineMapper mapper = new EntityToDtoTimelineMapper();
@@ -43,7 +44,7 @@ class EntityToDtoTimelineMapperTest {
                 )
                 .build();
 
-        TimelineElementInternal actual = mapper.entityToDto(entity);
+        TimelineElementInternal actual = mapper.entityToDto(entity, Map.of());
 
         Assertions.assertEquals(entity.getIun(), actual.getIun());
         Assertions.assertEquals(entity.getTimelineElementId(), actual.getElementId());
@@ -82,7 +83,8 @@ class EntityToDtoTimelineMapperTest {
                         .build())
                 .build();
 
-        TimelineElementInternal actual = mapper.entityToDto(entity);
+        TimelineElementInternal actual = mapper.entityToDto(entity,  Map.of());
+
 
         RequestRefusedDetailsInt requestRefusedDetailsInt = (RequestRefusedDetailsInt) actual.getDetails();
 
@@ -113,7 +115,8 @@ class EntityToDtoTimelineMapperTest {
                 )
                 .build();
         
-        TimelineElementInternal internal = mapper.entityToDto(entity);
+        TimelineElementInternal internal = mapper.entityToDto(entity, Map.of());
+
         PublicRegistryCallDetailsInt details = (PublicRegistryCallDetailsInt) internal.getDetails();
         
         Assertions.assertEquals(entity.getDetails().getRecIndex(), details.getRecIndex());
@@ -132,7 +135,8 @@ class EntityToDtoTimelineMapperTest {
                 .category(TimelineElementCategoryEntity.PUBLIC_REGISTRY_CALL)
                 .build();
 
-        TimelineElementInternal internal = mapper.entityToDto(entity);
+        TimelineElementInternal internal = mapper.entityToDto(entity,  Map.of());
+
 
         Assertions.assertNull(internal.getDetails());
         Assertions.assertEquals(entity.getIun(), internal.getIun());
@@ -157,7 +161,8 @@ class EntityToDtoTimelineMapperTest {
                         .build())
                 .build();
 
-        TimelineElementInternal actual = mapper.entityToDto(entity);
+        TimelineElementInternal actual = mapper.entityToDto(entity, Map.of());
+
 
         AarCreationRequestDetailsInt details = (AarCreationRequestDetailsInt) actual.getDetails();
 

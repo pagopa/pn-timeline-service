@@ -11,6 +11,7 @@ import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
@@ -28,6 +29,7 @@ import it.pagopa.pn.timelineservice.service.StatusService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
+import it.pagopa.pn.timelineservice.utils.NotificationReworkUtils;
 import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
@@ -58,6 +60,7 @@ class TimelineServiceImplTest {
     private ConfidentialInformationService confidentialInformationService;
     private SimpleLock simpleLock;
     private LockProvider lockProvider;
+    private NotificationReworkUtils notificationReworkUtils;
 
     private PnTimelineServiceConfigs pnTimelineServiceConfigs;
     private SmartMapper smartMapper;
@@ -1503,8 +1506,8 @@ class TimelineServiceImplTest {
     }
 
     private TimelineElementInternal getNotificationReworkDetailsTimelineElement(String iun, String timelineId, int recIndex, Integer attemptId) {
-        NotificationStatusHistoryElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryElementInt();
-        notificationStatusHistoryElementInt.setRelatedTimelineElements(List.of("PREPARE_ANALOG_DOMICILE.IUN_"+iun+"RECINDEX_0.ATTEMPT_0"));
+        NotificationStatusHistoryInvalidatedElementInt notificationStatusHistoryElementInt = new NotificationStatusHistoryInvalidatedElementInt();
+        notificationStatusHistoryElementInt.setRelatedTimelineElementIds(List.of("PREPARE_ANALOG_DOMICILE.IUN_"+iun+"RECINDEX_0.ATTEMPT_0"));
         NotificationTimelineReworkedDetailsInt details = NotificationTimelineReworkedDetailsInt.builder()
                 .recIndex(recIndex)
                 .sentAttemptMade(attemptId)
