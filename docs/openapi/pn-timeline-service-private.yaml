@@ -516,7 +516,6 @@ components:
       required:
         - status
         - activeFrom
-        - relatedTimelineElements
       properties:
         status:
           $ref: "#/components/schemas/NotificationStatus"
@@ -524,6 +523,11 @@ components:
           type: string
           description: data e ora di raggiungimento dello stato di avanzamento
           format: date-time
+        relatedTimelineElementIds:
+          type: array
+          description: Id degli eventi avvenuti nello stato
+          items:
+            type: string
         relatedTimelineElements:
           type: array
           description: Eventi avvenuti nello stato
