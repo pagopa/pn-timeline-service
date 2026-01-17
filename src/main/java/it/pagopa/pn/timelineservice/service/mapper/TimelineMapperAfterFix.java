@@ -44,7 +44,7 @@ public class TimelineMapperAfterFix extends TimelineMapper {
 
     private void caseNotificationTimelineReworked(Set<TimelineElementInternal> timelineElementInternalSet, TimelineElementInternal result) {
         TimelineEventIdParser reworkedEventIdParser = TimelineEventIdParser.parse(result.getElementId());
-        Integer reworkRecIndex = reworkedEventIdParser.reworkIndex().orElse(null);
+        Integer reworkRecIndex = reworkedEventIdParser.recIndex().orElse(null);
         Integer attempt = reworkedEventIdParser.sentAttemptMade().orElse(null);
 
         timelineElementInternalSet.stream()
