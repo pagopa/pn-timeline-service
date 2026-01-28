@@ -992,6 +992,61 @@ class TimelineServiceImplTest {
     }
 
     @Test
+    void getReworkTimelineWithConfidentialInfo() {
+        // GIVEN
+        String iun = "iun_12345";
+        boolean confidentialInfoRequired = true;
+        boolean strongly = false;
+
+        TimelineElementInternal timelineElement = TimelineElementInternal.builder()
+                .elementId("elementId_12345")
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(NotificationTimelineReworkedDetailsInt.builder()
+                        .invalidatedTimelineAndStatusHistory(
+                                List.of(NotificationStatusHistoryInvalidatedElementInt.builder()
+                                                .relatedTimelineElements(List.of(TimelineElementInternal.builder()
+                                                        .elementId("elementId_12346")
+                                                        .details(SendAnalogDetailsInt.builder()
+                                                                .physicalAddress(PhysicalAddressInt.builder()
+                                                                        .address("Old Address")
+                                                                        .build())
+                                                                .build())
+                                                        .build()))
+                                        .build())
+                        )
+                        .build())
+                .build();
+
+        ConfidentialTimelineElementDtoInt confidentialDto = ConfidentialTimelineElementDtoInt.builder()
+                .timelineElementId("elementId_12346")
+                .physicalAddress(PhysicalAddressInt.builder()
+                        .address("Confidential Address")
+                        .build())
+                .build();
+
+        Mockito.when(timelineDao.getTimeline(iun)).thenReturn(Flux.just(timelineElement));
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(iun))
+                .thenReturn(Mono.just(Map.of("elementId_12346", confidentialDto)));
+
+        // WHEN
+        Mono<Set<TimelineElementInternal>> resultMono = timeLineService.getTimeline(iun, null, confidentialInfoRequired, strongly)
+                .collect(Collectors.toSet());
+
+        // THEN
+        StepVerifier.create(resultMono)
+                .assertNext(result -> {
+                    Assertions.assertEquals(1, result.size());
+                    TimelineElementInternal enrichedElement = result.iterator().next();
+                    PhysicalAddressInt enrichedAddress = ((SendAnalogDetailsInt) ((NotificationTimelineReworkedDetailsInt) enrichedElement.getDetails()).getInvalidatedTimelineAndStatusHistory().getFirst().getRelatedTimelineElements().getFirst().getDetails()).getPhysicalAddress();
+                    Assertions.assertEquals("Confidential Address", enrichedAddress.getAddress());
+                })
+                .verifyComplete();
+
+        Mockito.verify(confidentialInformationService).getTimelineConfidentialInformation(iun);
+        Mockito.verifyNoMoreInteractions(confidentialInformationService);
+    }
+
+    @Test
     void getTimelineElementDetails_SendCourtesyMessageDetailsInt_NullDigitalAddress() {
         // GIVEN
         String iun = "iun_12345";
