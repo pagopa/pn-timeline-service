@@ -233,7 +233,7 @@ public class TimelineServiceImpl implements TimelineService {
                 .flatMap(timelineElement -> {
                     if (NOTIFICATION_TIMELINE_REWORKED.equals(timelineElement.getCategory()) && timelineElement.getDetails() instanceof NotificationTimelineReworkedDetailsInt) {
                         return setConfidentialInfo(iun, timelineElement)
-                                .flatMap(element -> Mono.just(element.getDetails()));
+                                .map(TimelineElementInternal::getDetails);
                     } else {
                         return confidentialInformationService
                                 .getTimelineElementConfidentialInformation(iun, timelineId)
@@ -277,7 +277,7 @@ public class TimelineServiceImpl implements TimelineService {
                     if (confidentialInfoRequired) {
                         if (NOTIFICATION_TIMELINE_REWORKED.equals(timelineElement.getCategory()) && timelineElement.getDetails() instanceof NotificationTimelineReworkedDetailsInt) {
                             return setConfidentialInfo(iun, timelineElement)
-                                    .flatMap(element -> Mono.just(element.getDetails()));
+                                    .map(TimelineElementInternal::getDetails);
                         } else {
                             return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineElement.getElementId())
                                     .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
@@ -322,8 +322,8 @@ public class TimelineServiceImpl implements TimelineService {
 
     private Mono<TimelineElementInternal> setConfidentialInfo(String iun, TimelineElementInternal element) {
         return confidentialInformationService.getTimelineConfidentialInformation(iun)
-                .flatMap(confidentialMap ->
-                        Mono.just(enrichWithConfidentialInformation(element, confidentialMap))
+                .map(confidentialMap ->
+                        enrichWithConfidentialInformation(element, confidentialMap)
                 )
                 .switchIfEmpty(Mono.just(element));
     }
