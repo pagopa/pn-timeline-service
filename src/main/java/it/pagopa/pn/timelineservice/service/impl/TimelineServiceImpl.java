@@ -23,9 +23,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
-import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementId;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatusHistoryInvalidatedElement;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
@@ -212,9 +210,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     private Mono<TimelineElementInternal> addConfidentialInformationIfTimelineElementIsPresent(String iun, String timelineId, TimelineElementInternal timelineElement) {
         if (NOTIFICATION_TIMELINE_REWORKED.equals(timelineElement.getCategory()) && timelineElement.getDetails() instanceof NotificationTimelineReworkedDetailsInt) {
-            return setConfidentialInfo(iun, true, Flux.just(timelineElement))
-                    .collectList()
-                    .flatMap(list -> Mono.just(list.getFirst()));
+            return setConfidentialInfo(iun, timelineElement);
         } else {
             return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineId)
                     .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
@@ -236,9 +232,8 @@ public class TimelineServiceImpl implements TimelineService {
         return this.timelineDao.getTimelineElement(iun, timelineId, false)
                 .flatMap(timelineElement -> {
                     if (NOTIFICATION_TIMELINE_REWORKED.equals(timelineElement.getCategory()) && timelineElement.getDetails() instanceof NotificationTimelineReworkedDetailsInt) {
-                        return setConfidentialInfo(iun, true, Flux.just(timelineElement))
-                                .collectList()
-                                .flatMap(list -> Mono.just(list.getFirst().getDetails()));
+                        return setConfidentialInfo(iun, timelineElement)
+                                .flatMap(element -> Mono.just(element.getDetails()));
                     } else {
                         return confidentialInformationService
                                 .getTimelineElementConfidentialInformation(iun, timelineId)
@@ -281,9 +276,8 @@ public class TimelineServiceImpl implements TimelineService {
                 .flatMap(timelineElement -> {
                     if (confidentialInfoRequired) {
                         if (NOTIFICATION_TIMELINE_REWORKED.equals(timelineElement.getCategory()) && timelineElement.getDetails() instanceof NotificationTimelineReworkedDetailsInt) {
-                            return setConfidentialInfo(iun, true, Flux.just(timelineElement))
-                                    .collectList()
-                                    .flatMap(list -> Mono.just(list.getFirst().getDetails()));
+                            return setConfidentialInfo(iun, timelineElement)
+                                    .flatMap(element -> Mono.just(element.getDetails()));
                         } else {
                             return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineElement.getElementId())
                                     .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
@@ -318,21 +312,31 @@ public class TimelineServiceImpl implements TimelineService {
         if (confidentialInfoRequired) {
             return confidentialInformationService.getTimelineConfidentialInformation(iun)
                     .flatMapMany(confidentialMap ->
-                            setTimelineElements.map(element -> {
-                                if (NOTIFICATION_TIMELINE_REWORKED.equals(element.getCategory()) && element.getDetails() instanceof NotificationTimelineReworkedDetailsInt reworkDetail) {
-                                    enrichReworkDetailWithConfidentialInformation(reworkDetail, confidentialMap);
-                                }
-                                ConfidentialTimelineElementDtoInt dtoInt = confidentialMap.get(element.getElementId());
-                                if (dtoInt != null) {
-                                    enrichTimelineElementWithConfidentialInformation(element.getDetails(), dtoInt);
-                                }
-                                return element;
-                            })
+                            setTimelineElements.map(element -> enrichWithConfidentialInformation(element, confidentialMap))
                     )
                     .switchIfEmpty(setTimelineElements);
         } else {
             return setTimelineElements;
         }
+    }
+
+    private Mono<TimelineElementInternal> setConfidentialInfo(String iun, TimelineElementInternal element) {
+        return confidentialInformationService.getTimelineConfidentialInformation(iun)
+                .flatMap(confidentialMap ->
+                        Mono.just(enrichWithConfidentialInformation(element, confidentialMap))
+                )
+                .switchIfEmpty(Mono.just(element));
+    }
+
+    private TimelineElementInternal enrichWithConfidentialInformation(TimelineElementInternal element, Map<String, ConfidentialTimelineElementDtoInt> confidentialMap) {
+        if (NOTIFICATION_TIMELINE_REWORKED.equals(element.getCategory()) && element.getDetails() instanceof NotificationTimelineReworkedDetailsInt reworkDetail) {
+            enrichReworkDetailWithConfidentialInformation(reworkDetail, confidentialMap);
+        }
+        ConfidentialTimelineElementDtoInt dtoInt = confidentialMap.get(element.getElementId());
+        if (dtoInt != null) {
+            enrichTimelineElementWithConfidentialInformation(element.getDetails(), dtoInt);
+        }
+        return element;
     }
 
     private void enrichReworkDetailWithConfidentialInformation(NotificationTimelineReworkedDetailsInt reworkDetail, Map<String, ConfidentialTimelineElementDtoInt> confidentialMap) {

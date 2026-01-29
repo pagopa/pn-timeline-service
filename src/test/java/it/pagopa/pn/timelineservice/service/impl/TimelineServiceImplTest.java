@@ -1047,6 +1047,56 @@ class TimelineServiceImplTest {
     }
 
     @Test
+    void getTimelineReworkElementDetails_SendCourtesyMessageDetailsInt_NullDigitalAddress() {
+        // GIVEN
+        String iun = "iun_12345";
+        String timelineId = "idTimeline";
+
+        TimelineElementInternal daoElement = TimelineElementInternal.builder()
+                .elementId("elementId_12345")
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(NotificationTimelineReworkedDetailsInt.builder()
+                        .invalidatedTimelineAndStatusHistory(
+                                List.of(NotificationStatusHistoryInvalidatedElementInt.builder()
+                                        .relatedTimelineElements(List.of(TimelineElementInternal.builder()
+                                                .elementId("elementId_12346")
+                                                .details(SendCourtesyMessageDetailsInt.builder()
+                                                        .digitalAddress(null) // Digital address set to null
+                                                        .build())
+                                                .build()))
+                                        .build())
+                        )
+                        .build())
+                .build();
+
+
+        ConfidentialTimelineElementDtoInt confidentialDto = ConfidentialTimelineElementDtoInt.builder()
+                .timelineElementId(timelineId)
+                .digitalAddress("confidential@courtesy.com")
+                .build();
+
+        Mockito.when(timelineDao.getTimelineElement(Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean()))
+                .thenReturn(Mono.justOrEmpty(daoElement));
+
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(iun))
+                .thenReturn(Mono.just(Map.of("elementId_12346", confidentialDto)));
+
+        // WHEN
+        Mono<TimelineElementDetailsInt> detailsMono = timeLineService.getTimelineElementDetails(iun, timelineId);
+
+        // THEN
+        StepVerifier.create(detailsMono)
+                .assertNext(details -> {
+                    var sendCourtesyDetails = ((SendCourtesyMessageDetailsInt) ((NotificationTimelineReworkedDetailsInt) details).getInvalidatedTimelineAndStatusHistory().getFirst().getRelatedTimelineElements().getFirst().getDetails());
+                    Assertions.assertEquals("confidential@courtesy.com", sendCourtesyDetails.getDigitalAddress().getAddress());
+                })
+                .verifyComplete();
+
+        Mockito.verify(confidentialInformationService).getTimelineConfidentialInformation(iun);
+        Mockito.verifyNoMoreInteractions(confidentialInformationService);
+    }
+
+    @Test
     void getTimelineElementDetails_SendCourtesyMessageDetailsInt_NullDigitalAddress() {
         // GIVEN
         String iun = "iun_12345";
