@@ -11,11 +11,13 @@ import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElemen
 import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
+import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
@@ -49,6 +51,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
@@ -206,11 +209,15 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     private Mono<TimelineElementInternal> addConfidentialInformationIfTimelineElementIsPresent(String iun, String timelineId, TimelineElementInternal timelineElement) {
-        return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineId)
-                .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
-                        timelineElement.getDetails(), confidentialDto
-                ))
-                .thenReturn(timelineElement);
+        if (NOTIFICATION_TIMELINE_REWORKED.equals(timelineElement.getCategory()) && timelineElement.getDetails() instanceof NotificationTimelineReworkedDetailsInt) {
+            return setConfidentialInfo(iun, timelineElement);
+        } else {
+            return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineId)
+                    .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
+                            timelineElement.getDetails(), confidentialDto
+                    ))
+                    .thenReturn(timelineElement);
+        }
     }
 
     public Mono<Long> retrieveAndIncrementCounterForTimelineEvent(String timelineId) {
@@ -223,12 +230,19 @@ public class TimelineServiceImpl implements TimelineService {
         log.debug("GetTimelineElement - IUN={} and timelineId={}", iun, timelineId);
 
         return this.timelineDao.getTimelineElement(iun, timelineId, false)
-                .flatMap(timelineElement -> confidentialInformationService
-                        .getTimelineElementConfidentialInformation(iun, timelineId)
-                        .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
-                                timelineElement.getDetails(), confidentialDto
-                        ))
-                        .thenReturn(timelineElement.getDetails()));
+                .flatMap(timelineElement -> {
+                    if (NOTIFICATION_TIMELINE_REWORKED.equals(timelineElement.getCategory()) && timelineElement.getDetails() instanceof NotificationTimelineReworkedDetailsInt) {
+                        return setConfidentialInfo(iun, timelineElement)
+                                .map(TimelineElementInternal::getDetails);
+                    } else {
+                        return confidentialInformationService
+                                .getTimelineElementConfidentialInformation(iun, timelineId)
+                                .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
+                                        timelineElement.getDetails(), confidentialDto
+                                ))
+                                .thenReturn(timelineElement.getDetails());
+                    }
+                });
     }
 
     @Override
@@ -261,11 +275,16 @@ public class TimelineServiceImpl implements TimelineService {
                 .next()
                 .flatMap(timelineElement -> {
                     if (confidentialInfoRequired) {
-                        return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineElement.getElementId())
-                                .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
-                                        timelineElement.getDetails(), confidentialDto
-                                ))
-                                .thenReturn(timelineElement.getDetails());
+                        if (NOTIFICATION_TIMELINE_REWORKED.equals(timelineElement.getCategory()) && timelineElement.getDetails() instanceof NotificationTimelineReworkedDetailsInt) {
+                            return setConfidentialInfo(iun, timelineElement)
+                                    .map(TimelineElementInternal::getDetails);
+                        } else {
+                            return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineElement.getElementId())
+                                    .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
+                                            timelineElement.getDetails(), confidentialDto
+                                    ))
+                                    .thenReturn(timelineElement.getDetails());
+                        }
                     } else {
                         return Mono.just(timelineElement.getDetails());
                     }
@@ -293,18 +312,40 @@ public class TimelineServiceImpl implements TimelineService {
         if (confidentialInfoRequired) {
             return confidentialInformationService.getTimelineConfidentialInformation(iun)
                     .flatMapMany(confidentialMap ->
-                            setTimelineElements.map(element -> {
-                                ConfidentialTimelineElementDtoInt dtoInt = confidentialMap.get(element.getElementId());
-                                if (dtoInt != null) {
-                                    enrichTimelineElementWithConfidentialInformation(element.getDetails(), dtoInt);
-                                }
-                                return element;
-                            })
+                            setTimelineElements.map(element -> enrichWithConfidentialInformation(element, confidentialMap))
                     )
                     .switchIfEmpty(setTimelineElements);
         } else {
             return setTimelineElements;
         }
+    }
+
+    private Mono<TimelineElementInternal> setConfidentialInfo(String iun, TimelineElementInternal element) {
+        return confidentialInformationService.getTimelineConfidentialInformation(iun)
+                .map(confidentialMap ->
+                        enrichWithConfidentialInformation(element, confidentialMap)
+                )
+                .switchIfEmpty(Mono.just(element));
+    }
+
+    private TimelineElementInternal enrichWithConfidentialInformation(TimelineElementInternal element, Map<String, ConfidentialTimelineElementDtoInt> confidentialMap) {
+        if (NOTIFICATION_TIMELINE_REWORKED.equals(element.getCategory()) && element.getDetails() instanceof NotificationTimelineReworkedDetailsInt reworkDetail) {
+            enrichReworkDetailWithConfidentialInformation(reworkDetail, confidentialMap);
+        }
+        ConfidentialTimelineElementDtoInt dtoInt = confidentialMap.get(element.getElementId());
+        if (dtoInt != null) {
+            enrichTimelineElementWithConfidentialInformation(element.getDetails(), dtoInt);
+        }
+        return element;
+    }
+
+    private void enrichReworkDetailWithConfidentialInformation(NotificationTimelineReworkedDetailsInt reworkDetail, Map<String, ConfidentialTimelineElementDtoInt> confidentialMap) {
+        reworkDetail.getInvalidatedTimelineAndStatusHistory().stream()
+                .map(NotificationStatusHistoryInvalidatedElementInt::getRelatedTimelineElements)
+                .flatMap(Collection::stream)
+                .forEach(timelineElementInternal -> {
+                    enrichTimelineElementWithConfidentialInformation(timelineElementInternal.getDetails(), confidentialMap.get(timelineElementInternal.getElementId()));
+                });
     }
 
     @Override
@@ -413,7 +454,7 @@ public class TimelineServiceImpl implements TimelineService {
             throw new PnInternalException("No recIndex in element with elementId: " + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED);
         }
         return currentTimeline.stream()
-                .filter(elem -> TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED.equals(elem.getCategory()))
+                .filter(elem -> NOTIFICATION_TIMELINE_REWORKED.equals(elem.getCategory()))
                 .filter(timelineElementInternal -> dtoRecIndex.get().equals(TimelineEventIdParser.parse(timelineElementInternal.getElementId()).recIndex()
                         .orElse(null)))
                 .toList();
