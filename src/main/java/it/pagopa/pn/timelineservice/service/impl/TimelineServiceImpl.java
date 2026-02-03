@@ -331,10 +331,11 @@ public class TimelineServiceImpl implements TimelineService {
     private TimelineElementInternal enrichWithConfidentialInformation(TimelineElementInternal element, Map<String, ConfidentialTimelineElementDtoInt> confidentialMap) {
         if (NOTIFICATION_TIMELINE_REWORKED.equals(element.getCategory()) && element.getDetails() instanceof NotificationTimelineReworkedDetailsInt reworkDetail) {
             enrichReworkDetailWithConfidentialInformation(reworkDetail, confidentialMap);
-        }
-        ConfidentialTimelineElementDtoInt dtoInt = confidentialMap.get(element.getElementId());
-        if (dtoInt != null) {
-            enrichTimelineElementWithConfidentialInformation(element.getDetails(), dtoInt);
+        }else {
+            ConfidentialTimelineElementDtoInt dtoInt = confidentialMap.get(element.getElementId());
+            if (dtoInt != null) {
+                enrichTimelineElementWithConfidentialInformation(element.getDetails(), dtoInt);
+            }
         }
         return element;
     }
@@ -344,7 +345,10 @@ public class TimelineServiceImpl implements TimelineService {
                 .map(NotificationStatusHistoryInvalidatedElementInt::getRelatedTimelineElements)
                 .flatMap(Collection::stream)
                 .forEach(timelineElementInternal -> {
-                    enrichTimelineElementWithConfidentialInformation(timelineElementInternal.getDetails(), confidentialMap.get(timelineElementInternal.getElementId()));
+                    ConfidentialTimelineElementDtoInt dtoInt = confidentialMap.get(timelineElementInternal.getElementId());
+                    if (dtoInt != null) {
+                        enrichTimelineElementWithConfidentialInformation(timelineElementInternal.getDetails(),dtoInt);
+                    }
                 });
     }
 
