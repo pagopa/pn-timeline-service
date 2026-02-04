@@ -1,11 +1,5 @@
 {
   "Parameters" : {
-    "TimelinesDynamoTableArn": "arn:aws:dynamodb:eu-south-1:830192246553:table/pn-Timelines",
-    "TimelinesCounterTableArn": "arn:aws:dynamodb:eu-south-1:830192246553:table/pn-TimelinesCounters",
-    "PnDeliveryPushShedLockDynamoTableArn": "arn:aws:dynamodb:eu-south-1:830192246553:table/pn-PnDeliveryPushShedLock",
-    "TimelinesDynamoTableName": "pn-Timelines",
-    "TimelinesCounterTableName": "pn-TimelinesCounters",
-    "PnDeliveryPushShedLockDynamoTableName": "pn-PnDeliveryPushShedLock",
     "PnCronAnalyzer": "-",
     "WireTapLogActivation": "false",
     "MountEfs": "false",
