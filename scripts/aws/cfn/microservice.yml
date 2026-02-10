@@ -53,6 +53,10 @@ Parameters:
     Type: String
     Description: 'The S3 bucket from which to fetch the templates used by this stack.'
 
+  AlbSecurityGroup:
+    Type: String
+    Description: "Application load balancer security group"
+
   ECSClusterName:
     Type: String
     Description: 'The name of the ECS cluster where the microservice is going to be deployed'
@@ -205,6 +209,7 @@ Resources:
         AutoscalingDataPointM: !Ref AutoscalingDataPointM
         VpcId: !Ref VpcId
         HealthCheckPath: /actuator/health
+        AlbSecurityGroup: !Ref AlbSecurityGroup
         EcsDefaultSecurityGroup: !Ref EcsDefaultSecurityGroup
         LoadBalancerListenerArn: !Ref ApplicationLoadBalancerListenerArn
         LoadbalancerRulePriority: !Ref MicroserviceNumber
