@@ -90,7 +90,14 @@ public class TimelineController implements TimelineControllerApi {
 
     @Override
     public Mono<ResponseEntity<AarResponse>> getAarForRecipient(String iun, Integer recIndex, ServerWebExchange exchange) {
-        return Mono.just(ResponseEntity.ok(null));
+        return timelineService.getAarForRecipient(iun, recIndex)
+                .map(aarDataInt -> {
+                    AarResponse response = new AarResponse();
+                    response.setUrl(aarDataInt.getUrl());
+                    response.setNumberOfPages(aarDataInt.getNumberOfPages());
+                    return ResponseEntity.ok(response);
+                })
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
     @Override
