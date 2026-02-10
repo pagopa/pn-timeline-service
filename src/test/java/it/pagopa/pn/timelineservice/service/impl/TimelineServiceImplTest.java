@@ -18,6 +18,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.AarResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.ExtendedDeliveryMode;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatus;
@@ -1815,6 +1816,48 @@ class TimelineServiceImplTest {
         StepVerifier.create(result)
                 .expectErrorMatches(throwable -> throwable instanceof PnNotFoundException &&
                         throwable.getMessage().contains("IUN not found"))
+                .verify();
+    }
+
+    @Test
+    void getAarForRecipient_shouldReturnAarResponse_whenAarIsPresent() {
+        // Arrange
+        String iun = "IUN-TEST";
+        int recIndex = 1;
+        String expectedUrl = "https://aar.example.com/aar.pdf";
+        int expectedPages = 3;
+        AarGenerationDetailsInt details = new AarGenerationDetailsInt();
+        details.setGeneratedAarUrl(expectedUrl);
+        details.setNumberOfPages(expectedPages);
+        TimelineElementInternal timelineElement = new TimelineElementInternal();
+        timelineElement.setDetails(details);
+        timelineElement.setCategory(TimelineElementCategoryInt.AAR_GENERATION);
+        Mockito.when(timelineDao.getTimeline(iun))
+                .thenReturn(Flux.just(timelineElement));
+
+        StepVerifier.create(timeLineService.getAarForRecipient(iun, recIndex))
+            .expectComplete()
+            .verify();
+    }
+
+    @Test
+    void getAarForRecipient_shouldReturnEmpty_whenAarNotPresent() {
+        // Arrange
+        String iun = "IUN-TEST";
+        int recIndex = 2;
+        Mockito.when(timelineDao.getTimeline(iun))
+                .thenReturn(Flux.empty());
+
+        TimelineServiceImpl service = new TimelineServiceImpl(
+                timelineDao, timelineCounterDao, statusUtils, confidentialInformationService, statusService, smartMapper, lockProvider, pnTimelineServiceConfigs
+        );
+
+        // Act
+        Mono<AarResponse> result = service.getAarForRecipient(iun, recIndex);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectComplete()
                 .verify();
     }
 
