@@ -89,17 +89,17 @@ public class TimelineController implements TimelineControllerApi {
     }
 
     @Override
-    public Mono<ResponseEntity<GetAarForRecipient200Response>> getAarForRecipient(String iun, Integer recIndex, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<AarResponse>> getAarForRecipient(String iun, Integer recIndex, ServerWebExchange exchange) {
         return Mono.just(ResponseEntity.ok(null));
     }
 
     @Override
-    public Mono<ResponseEntity<GetNotificationCancelled200Response>> getNotificationCancelled(String iun, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<CancellationRequestResponse>> getCancellationRequest(String iun, ServerWebExchange exchange) {
         return Mono.just(ResponseEntity.ok(null));
     }
 
     @Override
-    public Mono<ResponseEntity<GetNotificationRefused200Response>> getNotificationRefused(String iun, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<RequestRefusedResponse>> getRequestRefused(String iun, ServerWebExchange exchange) {
         return Mono.just(ResponseEntity.ok(null));
     }
 }
