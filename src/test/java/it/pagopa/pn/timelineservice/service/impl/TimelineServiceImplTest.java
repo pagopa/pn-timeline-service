@@ -18,6 +18,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.CancellationRequestResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.ExtendedDeliveryMode;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatus;
@@ -1816,6 +1817,53 @@ class TimelineServiceImplTest {
                 .expectErrorMatches(throwable -> throwable instanceof PnNotFoundException &&
                         throwable.getMessage().contains("IUN not found"))
                 .verify();
+    }
+
+    @Test
+    void getCancellationRequestReturnsResponseWhenExists() {
+        String iun = "testIun";
+        TimelineElementInternal element = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.NOTIFICATION_CANCELLATION_REQUEST)
+                .build();
+
+        when(timelineDao.getTimeline(iun)).thenReturn(Flux.just(element));
+
+        Mono<CancellationRequestResponse> result = timeLineService.getCancellationRequest(iun);
+
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    // Verifica che il timestamp sia valorizzato
+                    assert response.getTimestamp() != null;
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getCancellationRequestReturnsEmptyWhenNotExists() {
+        String iun = "testIun";
+        TimelineElementInternal element = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .build();
+
+        when(timelineDao.getTimeline(iun)).thenReturn(Flux.just(element));
+
+        Mono<CancellationRequestResponse> result = timeLineService.getCancellationRequest(iun);
+
+        StepVerifier.create(result)
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    void getCancellationRequestReturnsEmptyWhenTimelineIsEmpty() {
+        String iun = "testIun";
+        when(timelineDao.getTimeline(iun)).thenReturn(Flux.empty());
+
+        Mono<CancellationRequestResponse> result = timeLineService.getCancellationRequest(iun);
+
+        StepVerifier.create(result)
+                .expectNextCount(0)
+                .verifyComplete();
     }
 
 }

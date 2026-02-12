@@ -23,6 +23,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.CancellationRequestResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -373,6 +374,20 @@ public class TimelineServiceImpl implements TimelineService {
                 .doOnNext(this::checkTimelineForCurrentIun)
                 .map(timelineElements -> new TimelineDataExtractionEngine.EngineBuilder()
                         .executeAndMap(timelineElements, new DeliveryInfoMapper(recIndex)));
+    }
+
+    @Override
+    public Mono<CancellationRequestResponse> getCancellationRequest(String iun) {
+        return this.timelineDao.getTimeline(iun)
+            .filter(element -> element.getCategory() == TimelineElementCategoryInt.NOTIFICATION_CANCELLATION_REQUEST)
+            .hasElements()
+            .flatMap(hasCancellationRequest -> {
+                if (hasCancellationRequest) {
+                    return Mono.just(new CancellationRequestResponse().timestamp(Instant.now()));
+                } else {
+                    return Mono.empty();
+                }
+            });
     }
 
     private void checkTimelineForCurrentIun(List<TimelineElementInternal> timelineList) {
