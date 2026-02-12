@@ -385,8 +385,11 @@ public class TimelineServiceImpl implements TimelineService {
                 if (hasCancellationRequest) {
                     return Mono.just(new CancellationRequestResponse().timestamp(Instant.now()));
                 } else {
-                    return Mono.empty();
-                }
+                    return Mono.error(new PnNotFoundException(
+                            "Cancellation request not found",
+                            "No cancellation request element found for the given IUN",
+                            "ERROR_CODE_CANCELLATION_REQUEST_NOT_FOUND"
+                    ));                }
             });
     }
 

@@ -96,8 +96,7 @@ public class TimelineController implements TimelineControllerApi {
     @Override
     public Mono<ResponseEntity<CancellationRequestResponse>> getCancellationRequest(String iun, ServerWebExchange exchange) {
         return timelineService.getCancellationRequest(iun)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok);
     }
 
     @Override
