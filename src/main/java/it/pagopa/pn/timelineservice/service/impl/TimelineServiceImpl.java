@@ -50,8 +50,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED;
-import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED;
-import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.*;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
 import static it.pagopa.pn.timelineservice.utils.NotificationReworkUtils.checkReworkAttemptAndReturnSuffix;
 
@@ -390,7 +389,11 @@ public class TimelineServiceImpl implements TimelineService {
                         aarData.setNumberOfPages(aarDetails.getNumberOfPages());
                     }
                     return Mono.just(aarData);
-                });
+                }).switchIfEmpty(Mono.error(new PnNotFoundException(
+                        "AAR not found",
+                        "No AAR element found for the given IUN and recipient index",
+                        ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT
+                )));
     }
 
     private void checkTimelineForCurrentIun(List<TimelineElementInternal> timelineList) {

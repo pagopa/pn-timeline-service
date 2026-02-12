@@ -96,8 +96,7 @@ public class TimelineController implements TimelineControllerApi {
                     response.setUrl(aarDataInt.getUrl());
                     response.setNumberOfPages(aarDataInt.getNumberOfPages());
                     return ResponseEntity.ok(response);
-                })
-                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+                });
     }
 
     @Override
