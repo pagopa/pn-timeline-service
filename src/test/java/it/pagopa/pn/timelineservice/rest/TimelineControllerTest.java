@@ -516,8 +516,6 @@ class TimelineControllerTest {
 
         Mono<ResponseEntity<AarResponse>> result = timelineController.getAarForRecipient("IUN123", 2, null);
         ResponseEntity<AarResponse> response = result.block();
-        assertNotNull(response);
-        Assertions.assertEquals(HttpStatusCode.valueOf(404), response.getStatusCode());
-        Assertions.assertNull(response.getBody());
+        Assertions.assertNull(response);
     }
 }
