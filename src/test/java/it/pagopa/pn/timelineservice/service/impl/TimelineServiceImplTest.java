@@ -1850,8 +1850,11 @@ class TimelineServiceImplTest {
         Mono<CancellationRequestResponse> result = timeLineService.getCancellationRequest(iun);
 
         StepVerifier.create(result)
-                .expectNextCount(0)
-                .verifyComplete();
+                .expectErrorSatisfies(throwable -> {
+                    Assertions.assertTrue(throwable instanceof PnNotFoundException);
+                    Assertions.assertEquals("Cancellation request not found", throwable.getMessage());
+                })
+                .verify();
     }
 
     @Test
@@ -1862,8 +1865,11 @@ class TimelineServiceImplTest {
         Mono<CancellationRequestResponse> result = timeLineService.getCancellationRequest(iun);
 
         StepVerifier.create(result)
-                .expectNextCount(0)
-                .verifyComplete();
+                .expectErrorSatisfies(throwable -> {
+                    Assertions.assertTrue(throwable instanceof PnNotFoundException);
+                    Assertions.assertEquals("Cancellation request not found", throwable.getMessage());
+                })
+                .verify();
     }
 
 }
