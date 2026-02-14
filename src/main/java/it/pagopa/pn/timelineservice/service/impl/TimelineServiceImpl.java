@@ -17,13 +17,11 @@ import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.RequestRefusedResponse;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
@@ -373,6 +371,25 @@ public class TimelineServiceImpl implements TimelineService {
                 .doOnNext(this::checkTimelineForCurrentIun)
                 .map(timelineElements -> new TimelineDataExtractionEngine.EngineBuilder()
                         .executeAndMap(timelineElements, new DeliveryInfoMapper(recIndex)));
+    }
+
+    @Override
+    public Mono<RequestRefusedResponse> getRequestRefused(String iun) {
+        return this.timelineDao.getTimeline(iun)
+            .filter(element -> TimelineElementCategoryInt.REQUEST_REFUSED.equals(element.getCategory()))
+            .next()
+            .map(element -> {
+                RequestRefusedResponse response = new RequestRefusedResponse();
+                if (element.getDetails() instanceof RequestRefusedDetailsInt) {
+                    response=smartMapper.mapToClassWithObjectMapper(element.getDetails(), RequestRefusedResponse.class);
+                }
+                return response;
+            })
+            .switchIfEmpty(Mono.error(new PnNotFoundException(
+                "Request refused not found",
+                "No REQUEST_REFUSED element found for the given IUN",
+                "ERROR_CODE_REQUEST_REFUSED_NOT_FOUND"
+            )));
     }
 
     private void checkTimelineForCurrentIun(List<TimelineElementInternal> timelineList) {
