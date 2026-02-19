@@ -49,6 +49,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -1820,56 +1821,39 @@ class TimelineServiceImplTest {
     }
 
     @Test
-    void getCancellationRequestReturnsResponseWhenExists() {
+    void getCancellationRequest_returnsExpectedResponse() {
         String iun = "testIun";
-        TimelineElementInternal element = TimelineElementInternal.builder()
-                .category(TimelineElementCategoryInt.NOTIFICATION_CANCELLATION_REQUEST)
-                .build();
+        TimelineElementInternal elementInternal = new TimelineElementInternal();
+        elementInternal.setCategory(TimelineElementCategoryInt.NOTIFICATION_CANCELLATION_REQUEST);
+        Instant timestamp = Instant.now();
+        elementInternal.setTimestamp(timestamp);
 
-        when(timelineDao.getTimeline(iun)).thenReturn(Flux.just(element));
+        Mockito.when(timelineDao.getTimelineFilteredByElementId(anyString(), anyString(), Mockito.anyBoolean()))
+                .thenReturn(Flux.just(elementInternal));
 
         Mono<CancellationRequestResponse> result = timeLineService.getCancellationRequest(iun);
 
         StepVerifier.create(result)
-                .assertNext(response -> {
-                    // Verifica che il timestamp sia valorizzato
-                    assert response.getTimestamp() != null;
-                })
+                .expectNextMatches(resp -> timestamp.equals(resp.getTimestamp()))
                 .verifyComplete();
+
+        Mockito.verify(timelineDao).getTimelineFilteredByElementId(iun, "NOTIFICATION_CANCELLATION_REQUEST", false);
     }
 
     @Test
-    void getCancellationRequestReturnsEmptyWhenNotExists() {
+    void getCancellationRequest_returnsNotFoundResponse() {
         String iun = "testIun";
-        TimelineElementInternal element = TimelineElementInternal.builder()
-                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
-                .build();
 
-        when(timelineDao.getTimeline(iun)).thenReturn(Flux.just(element));
+        Mockito.when(timelineDao.getTimelineFilteredByElementId(anyString(), anyString(), Mockito.anyBoolean()))
+                .thenReturn(Flux.empty());
 
         Mono<CancellationRequestResponse> result = timeLineService.getCancellationRequest(iun);
 
         StepVerifier.create(result)
-                .expectErrorSatisfies(throwable -> {
-                    Assertions.assertTrue(throwable instanceof PnNotFoundException);
-                    Assertions.assertEquals("Cancellation request not found", throwable.getMessage());
-                })
+                .expectError(PnNotFoundException.class)
                 .verify();
-    }
 
-    @Test
-    void getCancellationRequestReturnsEmptyWhenTimelineIsEmpty() {
-        String iun = "testIun";
-        when(timelineDao.getTimeline(iun)).thenReturn(Flux.empty());
-
-        Mono<CancellationRequestResponse> result = timeLineService.getCancellationRequest(iun);
-
-        StepVerifier.create(result)
-                .expectErrorSatisfies(throwable -> {
-                    Assertions.assertTrue(throwable instanceof PnNotFoundException);
-                    Assertions.assertEquals("Cancellation request not found", throwable.getMessage());
-                })
-                .verify();
+        Mockito.verify(timelineDao).getTimelineFilteredByElementId(iun, "NOTIFICATION_CANCELLATION_REQUEST", false);
     }
 
 }

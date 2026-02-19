@@ -13,10 +13,7 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
-import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
-import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
+import it.pagopa.pn.timelineservice.dto.timeline.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
@@ -378,19 +375,15 @@ public class TimelineServiceImpl implements TimelineService {
 
     @Override
     public Mono<CancellationRequestResponse> getCancellationRequest(String iun) {
-        return this.timelineDao.getTimeline(iun)
-            .filter(element -> element.getCategory() == TimelineElementCategoryInt.NOTIFICATION_CANCELLATION_REQUEST)
-            .hasElements()
-            .flatMap(hasCancellationRequest -> {
-                if (hasCancellationRequest) {
-                    return Mono.just(new CancellationRequestResponse().timestamp(Instant.now()));
-                } else {
-                    return Mono.error(new PnNotFoundException(
-                            "Cancellation request not found",
-                            "No cancellation request element found for the given IUN",
-                            "ERROR_CODE_CANCELLATION_REQUEST_NOT_FOUND"
-                    ));                }
-            });
+        return this.timelineDao.getTimelineFilteredByElementId(iun, ElementIdPrefix.NOTIFICATION_CANCELLATION_REQUEST.getValue(), false)
+                .filter(element -> element.getCategory() == TimelineElementCategoryInt.NOTIFICATION_CANCELLATION_REQUEST)
+                .next()
+                .map(element -> new CancellationRequestResponse().timestamp(element.getTimestamp()))
+                .switchIfEmpty(Mono.error(new PnNotFoundException(
+                        "Cancellation request not found",
+                        "No cancellation request element found for the given IUN",
+                        "ERROR_CODE_CANCELLATION_REQUEST_NOT_FOUND"
+                )));
     }
 
     private void checkTimelineForCurrentIun(List<TimelineElementInternal> timelineList) {

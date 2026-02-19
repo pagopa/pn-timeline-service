@@ -521,7 +521,7 @@ class TimelineControllerTest {
 
         StepVerifier.create(result)
                 .expectErrorSatisfies(throwable -> {
-                    assertTrue(throwable instanceof PnNotFoundException);
+                    assertInstanceOf(PnNotFoundException.class, throwable);
                     assertEquals("Cancellation request not found", throwable.getMessage());
                 })
                 .verify();
