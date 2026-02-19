@@ -375,20 +375,12 @@ public class TimelineServiceImpl implements TimelineService {
     @Override
     public Mono<AarResponse> getAarForRecipient(String iun, Integer recIndex) {
         return getTimelineElementForSpecificRecipient(iun, recIndex, TimelineElementCategoryInt.AAR_GENERATION)
-                .flatMap(timelineElement -> {
-                    if (timelineElement == null || !(timelineElement.getDetails() instanceof AarGenerationDetailsInt aarDetails)) {
-                        return Mono.empty();
-                    }
-                    String url = aarDetails.getGeneratedAarUrl();
-                    if (url == null) {
-                        return Mono.empty();
-                    }
+                .map(timelineElement -> {
+                    AarGenerationDetailsInt aarDetails = (AarGenerationDetailsInt) timelineElement.getDetails();
                     AarResponse aarData = new AarResponse();
-                    aarData.setUrl(url);
-                    if(aarDetails.getNumberOfPages() != null) {
-                        aarData.setNumberOfPages(aarDetails.getNumberOfPages());
-                    }
-                    return Mono.just(aarData);
+                    aarData.setUrl(aarDetails.getGeneratedAarUrl());
+                    aarData.setNumberOfPages(aarDetails.getNumberOfPages());
+                    return aarData;
                 }).switchIfEmpty(Mono.error(new PnNotFoundException(
                         "AAR not found",
                         "No AAR element found for the given IUN and recipient index",

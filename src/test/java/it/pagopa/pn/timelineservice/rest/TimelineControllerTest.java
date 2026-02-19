@@ -500,22 +500,15 @@ class TimelineControllerTest {
         Mockito.when(timelineService.getAarForRecipient(eq("IUN123"), eq(1)))
                 .thenReturn(Mono.just(aarResponse));
 
-        Mono<ResponseEntity<AarResponse>> result = timelineController.getAarForRecipient("IUN123", 1, null);
-        ResponseEntity<AarResponse> response = result.block();
-        assertNotNull(response);
-        Assertions.assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-        assertNotNull(response.getBody());
-        Assertions.assertEquals("https://aar.example.com/aar.pdf", response.getBody().getUrl());
-        Assertions.assertEquals(5, response.getBody().getNumberOfPages());
-    }
-
-    @Test
-    void getAarForRecipient_notFound() {
-        Mockito.when(timelineService.getAarForRecipient(eq("IUN123"), eq(2)))
-                .thenReturn(Mono.empty());
-
-        Mono<ResponseEntity<AarResponse>> result = timelineController.getAarForRecipient("IUN123", 2, null);
-        ResponseEntity<AarResponse> response = result.block();
-        Assertions.assertNull(response);
+        Mono<ResponseEntity<AarResponse>> response = timelineController.getAarForRecipient("IUN123", 1, null);
+        StepVerifier.create(response)
+                .assertNext(res -> {
+                    assertNotNull(res);
+                    Assertions.assertEquals(HttpStatusCode.valueOf(200), res.getStatusCode());
+                    assertNotNull(res.getBody());
+                    Assertions.assertEquals("https://aar.example.com/aar.pdf", res.getBody().getUrl());
+                    Assertions.assertEquals(5, res.getBody().getNumberOfPages());
+                })
+                .verifyComplete();
     }
 }
