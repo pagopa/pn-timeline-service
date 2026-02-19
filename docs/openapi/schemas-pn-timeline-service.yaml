@@ -1794,7 +1794,20 @@ components:
           format: date-time
         categoryType:
           type: string
-
+    RequestRefusedResponse:
+      type: object
+      properties:
+        refusalReasons:
+          type: array
+          description: Lista delle motivazioni di rifiuto
+          items:
+            $ref: '#/components/schemas/NotificationRefusedError'
+        numberOfRecipients:
+          type: integer
+          description: Numero di destinatari
+        notificationCost:
+          type: integer
+          description: Costo della notifica
     AnalogFailureWorkflowTimeoutDetails:
       x-discriminator-value: "ANALOG_FAILURE_WORKFLOW_TIMEOUT"
       type: object

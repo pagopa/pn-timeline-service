@@ -408,7 +408,95 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
-
+  /timeline-service-private/timelines/{iun}/recipient/{recIndex}/aar:
+    get:
+      summary: Recupera i dati salienti dell'AAR per un destinatario
+      description: >
+        Restituisce i dati salienti dell'AAR (Attestazione Avvenuta Ricezione) per il destinatario specificato.
+        Se non è presente l'elemento di timeline di tipo AAR_GENERATION, restituisce 404.
+      tags:
+        - timeline-controller
+      operationId: getAarForRecipient
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AarResponse'
+        '404':
+          description: Elemento di timeline di tipo AAR_GENERATION non trovato
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/timelines/{iun}/cancelled:
+    get:
+      summary: Verifica se la notifica è stata cancellata
+      description: >
+        Restituisce il timestamp della richiesta di cancellazione se presente l'elemento di NOTIFICATION_CANCELLATION_REQUEST.
+        Se non trovato, restituisce 404.
+      tags:
+        - timeline-controller
+      operationId: getCancellationRequest
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancellationRequestResponse'
+        '404':
+          description: Elemento NOTIFICATION_CANCELLATION_REQUEST non trovato
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/timelines/{iun}/refused:
+    get:
+      summary: Recupera i dati salienti del rifiuto della notifica
+      description: >
+        Restituisce i dati salienti del rifiuto (stato rifiuto, errori, costo notifica, numero destinatari) se presente l'elemento di REQUEST_REFUSED.
+        Se non trovato, restituisce 404.
+      tags:
+        - timeline-controller
+      operationId: getRequestRefused
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: './schemas-pn-timeline-service.yaml#/components/schemas/RequestRefusedResponse'
+        '404':
+          description: Elemento REQUEST_REFUSED non trovato
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
 components:
   schemas:
     NotificationInfo:
@@ -533,3 +621,22 @@ components:
           description: Eventi avvenuti nello stato
           items:
             $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
+    AarResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          description: URL dell'AAR
+        numberOfPages:
+          type: integer
+          description: Numero di pagine dell'AAR
+    CancellationRequestResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp della richiesta di cancellazione
+
+
+
