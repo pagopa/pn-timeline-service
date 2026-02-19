@@ -9,6 +9,7 @@ import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
+import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationRefusedErrorInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
@@ -18,9 +19,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.ExtendedDeliveryMode;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatus;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
@@ -48,6 +47,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -1815,6 +1815,64 @@ class TimelineServiceImplTest {
         StepVerifier.create(result)
                 .expectErrorMatches(throwable -> throwable instanceof PnNotFoundException &&
                         throwable.getMessage().contains("IUN not found"))
+                .verify();
+    }
+
+    @Test
+    void getRequestRefused_returnsExpectedResponse() {
+        String iun = "testIun";
+        String errorCode = "ERR_CODE";
+        String detail = "Some reason";
+        int recIndex = 0;
+
+        int notificationCost = 100;
+        int numberOfRecipients = 1;
+        NotificationRefusedErrorInt errorInt = NotificationRefusedErrorInt.builder()
+                .errorCode(errorCode)
+                .detail(detail)
+                .recIndex(recIndex)
+                .build();
+        TimelineElementInternal timelineElement = TimelineElementInternal.builder()
+                .elementId("elementId123")
+                .iun(iun)
+                .category(TimelineElementCategoryInt.REQUEST_REFUSED)
+                .details(RequestRefusedDetailsInt.builder()
+                        .refusalReasons(List.of(errorInt))
+                        .notificationCost(notificationCost)
+                        .numberOfRecipients(numberOfRecipients)
+                        .build())
+                .build();
+
+        Mockito.when(timelineDao.getTimelineFilteredByElementId(anyString(), anyString(), Mockito.anyBoolean()))
+                .thenReturn(Flux.just(timelineElement));
+
+        Mono<RequestRefusedResponse> result = timeLineService.getRequestRefused(iun);
+
+        StepVerifier.create(result)
+                .assertNext(resp -> {
+                    Assertions.assertEquals(1, resp.getRefusalReasons().size());
+                    NotificationRefusedError reason = resp.getRefusalReasons().getFirst();
+                    Assertions.assertEquals(errorCode, reason.getErrorCode());
+                    Assertions.assertEquals(detail, reason.getDetail());
+                    Assertions.assertEquals(recIndex, reason.getRecIndex());
+                    Assertions.assertEquals(notificationCost, resp.getNotificationCost());
+                    Assertions.assertEquals(numberOfRecipients, resp.getNumberOfRecipients());
+                })
+                .verifyComplete();
+
+        Mockito.verify(timelineDao).getTimelineFilteredByElementId(iun, "REQUEST_REFUSED", false);
+    }
+
+    @Test
+    void getRequestRefused_throwsNotFound() {
+        String iun = "testIun";
+        Mockito.when(timelineDao.getTimelineFilteredByElementId(anyString(), anyString(), Mockito.anyBoolean()))
+                .thenReturn(Flux.empty());
+
+        Mono<RequestRefusedResponse> result = timeLineService.getRequestRefused(iun);
+
+        StepVerifier.create(result)
+                .expectError(PnNotFoundException.class)
                 .verify();
     }
 
