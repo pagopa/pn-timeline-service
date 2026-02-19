@@ -437,6 +437,10 @@ paths:
                 $ref: '#/components/schemas/AarResponse'
         '404':
           description: Elemento di timeline di tipo AAR_GENERATION non trovato
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/timelines/{iun}/cancelled:
     get:
       summary: Verifica se la notifica è stata cancellata
@@ -461,11 +465,15 @@ paths:
                 $ref: '#/components/schemas/CancellationRequestResponse'
         '404':
           description: Elemento NOTIFICATION_CANCELLATION_REQUEST non trovato
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
   /timeline-service-private/timelines/{iun}/refused:
     get:
       summary: Recupera i dati salienti del rifiuto della notifica
       description: >
-        Restituisce i dati salienti del rifiuto (stato rifiuto, errori, costo notifica, numero destinatari) se presente l'elemento di NOTIFICATION_REFUSED.
+        Restituisce i dati salienti del rifiuto (stato rifiuto, errori, costo notifica, numero destinatari) se presente l'elemento di REQUEST_REFUSED.
         Se non trovato, restituisce 404.
       tags:
         - timeline-controller
@@ -482,10 +490,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestRefusedResponse'
+                $ref: './schemas-pn-timeline-service.yaml#/components/schemas/RequestRefusedResponse'
         '404':
           description: Elemento REQUEST_REFUSED non trovato
-
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
 components:
   schemas:
     NotificationInfo:
@@ -626,21 +637,6 @@ components:
           type: string
           format: date-time
           description: Timestamp della richiesta di cancellazione
-    RequestRefusedResponse:
-      type: object
-      properties:
-        refusedStatus:
-          type: string
-          description: Stato del rifiuto
-        errors:
-          type: array
-          items:
-            type: string
-          description: Elenco degli errori che hanno portato al rifiuto
-        notificationCost:
-          type: number
-          format: double
-          description: Costo della notifica
-        numberOfRecipients:
-          type: integer
-          description: Numero destinatari
+
+
+
