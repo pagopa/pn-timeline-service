@@ -13,6 +13,14 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
+import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.CancellationRequestResponse;
 import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
@@ -373,6 +381,18 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
+    public Mono<CancellationRequestResponse> getCancellationRequest(String iun) {
+        return this.timelineDao.getTimelineFilteredByElementId(iun, ElementIdPrefix.NOTIFICATION_CANCELLATION_REQUEST.getValue(), false)
+                .filter(element -> element.getCategory() == TimelineElementCategoryInt.NOTIFICATION_CANCELLATION_REQUEST)
+                .next()
+                .map(element -> new CancellationRequestResponse().timestamp(element.getTimestamp()))
+                .switchIfEmpty(Mono.error(new PnNotFoundException(
+                        "Cancellation request not found",
+                        "No cancellation request element found for the given IUN",
+                        "ERROR_CODE_CANCELLATION_REQUEST_NOT_FOUND"
+                  )));
+    }
+  
     public Mono<AarResponse> getAarForRecipient(String iun, Integer recIndex) {
         return getTimelineElementForSpecificRecipient(iun, recIndex, TimelineElementCategoryInt.AAR_GENERATION)
                 .map(timelineElement -> {
