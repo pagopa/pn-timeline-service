@@ -17,12 +17,10 @@ import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.AarResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -52,8 +50,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED;
-import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED;
-import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.*;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
 import static it.pagopa.pn.timelineservice.utils.NotificationReworkUtils.checkReworkAttemptAndReturnSuffix;
 
@@ -373,6 +370,22 @@ public class TimelineServiceImpl implements TimelineService {
                 .doOnNext(this::checkTimelineForCurrentIun)
                 .map(timelineElements -> new TimelineDataExtractionEngine.EngineBuilder()
                         .executeAndMap(timelineElements, new DeliveryInfoMapper(recIndex)));
+    }
+
+    @Override
+    public Mono<AarResponse> getAarForRecipient(String iun, Integer recIndex) {
+        return getTimelineElementForSpecificRecipient(iun, recIndex, TimelineElementCategoryInt.AAR_GENERATION)
+                .map(timelineElement -> {
+                    AarGenerationDetailsInt aarDetails = (AarGenerationDetailsInt) timelineElement.getDetails();
+                    AarResponse aarData = new AarResponse();
+                    aarData.setUrl(aarDetails.getGeneratedAarUrl());
+                    aarData.setNumberOfPages(aarDetails.getNumberOfPages());
+                    return aarData;
+                }).switchIfEmpty(Mono.error(new PnNotFoundException(
+                        "AAR not found",
+                        "No AAR element found for the given IUN and recipient index",
+                        ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT
+                )));
     }
 
     private void checkTimelineForCurrentIun(List<TimelineElementInternal> timelineList) {

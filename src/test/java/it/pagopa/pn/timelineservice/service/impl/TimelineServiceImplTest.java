@@ -18,6 +18,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.AarResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.ExtendedDeliveryMode;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.NotificationStatus;
@@ -1815,6 +1816,52 @@ class TimelineServiceImplTest {
         StepVerifier.create(result)
                 .expectErrorMatches(throwable -> throwable instanceof PnNotFoundException &&
                         throwable.getMessage().contains("IUN not found"))
+                .verify();
+    }
+
+    @Test
+    void getAarForRecipientReturnsAarResponse() {
+        String iun = "testIun";
+        int recIndex = 0;
+        String url = "http://aar-url";
+        Integer numberOfPages = 5;
+
+        AarGenerationDetailsInt details = AarGenerationDetailsInt.builder()
+                .generatedAarUrl(url)
+                .numberOfPages(numberOfPages)
+                .build();
+
+        TimelineElementInternal timelineElement = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.AAR_GENERATION)
+                .details(details)
+                .build();
+
+        Mockito.when(timelineDao.getTimeline(iun))
+                .thenReturn(Flux.just(timelineElement));
+
+        Mono<AarResponse> result = timeLineService.getAarForRecipient(iun, recIndex);
+
+        StepVerifier.create(result)
+                .assertNext(aarResponse -> {
+                    Assertions.assertEquals(url, aarResponse.getUrl());
+                    Assertions.assertEquals(numberOfPages, aarResponse.getNumberOfPages());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getAarForRecipientReturnsNotFoundWhenElementMissing() {
+        String iun = "testIun";
+        int recIndex = 0;
+
+        Mockito.when(timelineDao.getTimeline(iun))
+                .thenReturn(Flux.empty());
+
+        Mono<AarResponse> result = timeLineService.getAarForRecipient(iun, recIndex);
+
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof PnNotFoundException &&
+                        throwable.getMessage().contains("AAR not found"))
                 .verify();
     }
 

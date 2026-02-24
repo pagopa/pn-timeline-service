@@ -22,7 +22,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
@@ -33,9 +35,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -247,7 +249,7 @@ class TimelineControllerTest {
 
     @Test
     void getTimelineAndStatusHistory(){
-        Integer numberOfRecipients = 1;
+        int numberOfRecipients = 1;
         String iun = "testIun";
         Instant now = Instant.now();
 
@@ -338,6 +340,7 @@ class TimelineControllerTest {
                 .assertNext(entity -> {
                     var body = entity.getBody();
                     assertNotNull(entity.getBody());
+                    assertNotNull(body);
                     Assertions.assertEquals("testIun", body.getIun());
                     Assertions.assertEquals("testElementId", body.getElementId());
                     Assertions.assertEquals(TimelineCategory.AAR_CREATION_REQUEST, body.getCategory());
@@ -354,7 +357,7 @@ class TimelineControllerTest {
     @Test
     void getTimelineElementDetailForSpecificRecipient(){
         String iun = "testIun";
-        Integer recIndex = 1;
+        int recIndex = 1;
 
         AarCreationRequestDetailsInt aarCreationRequestDetailsInt = new AarCreationRequestDetailsInt();
         aarCreationRequestDetailsInt.setAarKey("safestorage://PN_AAR-e12466f63b8e49a49150383ad3d2a009.pdf");
@@ -419,7 +422,7 @@ class TimelineControllerTest {
     @Test
     void getTimelineElementForSpecificRecipient(){
 
-        Integer recIndex = 0;
+        int recIndex = 0;
         String iun = "testIun";
 
         AarCreationRequestDetailsInt aarCreationRequestDetailsInt = new AarCreationRequestDetailsInt();
@@ -448,6 +451,7 @@ class TimelineControllerTest {
                 .assertNext(entity -> {
                     var body = entity.getBody();
                     assertNotNull(entity.getBody());
+                    assertNotNull(body);
                     Assertions.assertEquals("testIun", body.getIun());
                     Assertions.assertEquals("testElementId", body.getElementId());
                     Assertions.assertEquals(TimelineCategory.AAR_CREATION_REQUEST, body.getCategory());
@@ -484,6 +488,26 @@ class TimelineControllerTest {
                     Assertions.assertEquals(expectedResponse.getIsNotificationCancelled(), body.getIsNotificationCancelled());
                     Assertions.assertEquals(expectedResponse.getRefinementOrViewedDate(), body.getRefinementOrViewedDate());
                     Assertions.assertEquals(expectedResponse.getSchedulingAnalogDate(), body.getSchedulingAnalogDate());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getAarForRecipient_found() {
+        AarResponse aarResponse = new AarResponse();
+        aarResponse.setUrl("https://aar.example.com/aar.pdf");
+        aarResponse.setNumberOfPages(5);
+        Mockito.when(timelineService.getAarForRecipient(eq("IUN123"), eq(1)))
+                .thenReturn(Mono.just(aarResponse));
+
+        Mono<ResponseEntity<AarResponse>> response = timelineController.getAarForRecipient("IUN123", 1, null);
+        StepVerifier.create(response)
+                .assertNext(res -> {
+                    assertNotNull(res);
+                    Assertions.assertEquals(HttpStatusCode.valueOf(200), res.getStatusCode());
+                    assertNotNull(res.getBody());
+                    Assertions.assertEquals("https://aar.example.com/aar.pdf", res.getBody().getUrl());
+                    Assertions.assertEquals(5, res.getBody().getNumberOfPages());
                 })
                 .verifyComplete();
     }
