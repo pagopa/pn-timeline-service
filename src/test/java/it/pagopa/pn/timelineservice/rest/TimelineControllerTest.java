@@ -11,6 +11,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.AarCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogProgressDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
 import it.pagopa.pn.timelineservice.service.TimelineService;
@@ -22,7 +23,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
@@ -34,8 +37,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -247,7 +251,7 @@ class TimelineControllerTest {
 
     @Test
     void getTimelineAndStatusHistory(){
-        Integer numberOfRecipients = 1;
+        int numberOfRecipients = 1;
         String iun = "testIun";
         Instant now = Instant.now();
 
@@ -302,7 +306,7 @@ class TimelineControllerTest {
                     Assertions.assertEquals(timeline.getFirst().getIngestionTimestamp(), timelineElementInternal.getIngestionTimestamp());
                     Assertions.assertEquals(timeline.getFirst().getEventTimestamp(), timelineElementInternal.getEventTimestamp());
                     Assertions.assertEquals(timeline.getFirst().getNotificationSentAt(), timelineElementInternal.getNotificationSentAt());
-                    Assertions.assertTrue(CollectionUtils.isEmpty(timeline.getFirst().getLegalFactsIds()));
+                    assertTrue(CollectionUtils.isEmpty(timeline.getFirst().getLegalFactsIds()));
                 })
                 .verifyComplete();
     }
@@ -338,6 +342,7 @@ class TimelineControllerTest {
                 .assertNext(entity -> {
                     var body = entity.getBody();
                     assertNotNull(entity.getBody());
+                    assertNotNull(body);
                     Assertions.assertEquals("testIun", body.getIun());
                     Assertions.assertEquals("testElementId", body.getElementId());
                     Assertions.assertEquals(TimelineCategory.AAR_CREATION_REQUEST, body.getCategory());
@@ -346,7 +351,7 @@ class TimelineControllerTest {
                     Assertions.assertEquals(body.getIngestionTimestamp(), timelineElementInternal.getIngestionTimestamp());
                     Assertions.assertEquals(body.getEventTimestamp(), timelineElementInternal.getEventTimestamp());
                     Assertions.assertEquals( body.getNotificationSentAt(), timelineElementInternal.getNotificationSentAt());
-                    Assertions.assertTrue(CollectionUtils.isEmpty(body.getLegalFactsIds()));
+                    assertTrue(CollectionUtils.isEmpty(body.getLegalFactsIds()));
                 })
                 .verifyComplete();
     }
@@ -354,7 +359,7 @@ class TimelineControllerTest {
     @Test
     void getTimelineElementDetailForSpecificRecipient(){
         String iun = "testIun";
-        Integer recIndex = 1;
+        int recIndex = 1;
 
         AarCreationRequestDetailsInt aarCreationRequestDetailsInt = new AarCreationRequestDetailsInt();
         aarCreationRequestDetailsInt.setAarKey("safestorage://PN_AAR-e12466f63b8e49a49150383ad3d2a009.pdf");
@@ -372,7 +377,7 @@ class TimelineControllerTest {
                 .assertNext(entity -> {
                     assertNotNull(entity.getBody());
                     var detail = entity.getBody();
-                    Assertions.assertTrue(detail.getCategoryType().equalsIgnoreCase("AAR_CREATION_REQUEST"));
+                    assertTrue(detail.getCategoryType().equalsIgnoreCase("AAR_CREATION_REQUEST"));
                     Assertions.assertInstanceOf(AarCreationRequestDetails.class, detail);
                     AarCreationRequestDetails aarCreationRequestDetails = ((AarCreationRequestDetails) detail);
                     Assertions.assertEquals(2, aarCreationRequestDetails.getNumberOfPages());
@@ -404,7 +409,7 @@ class TimelineControllerTest {
                 .assertNext(entity -> {
                     assertNotNull(entity.getBody());
                     var detail = entity.getBody();
-                    Assertions.assertTrue(detail.getCategoryType().equalsIgnoreCase("AAR_CREATION_REQUEST"));
+                    assertTrue(detail.getCategoryType().equalsIgnoreCase("AAR_CREATION_REQUEST"));
                     Assertions.assertInstanceOf(AarCreationRequestDetails.class, detail);
                     AarCreationRequestDetails aarCreationRequestDetails = ((AarCreationRequestDetails) detail);
                     Assertions.assertEquals(2, aarCreationRequestDetails.getNumberOfPages());
@@ -419,7 +424,7 @@ class TimelineControllerTest {
     @Test
     void getTimelineElementForSpecificRecipient(){
 
-        Integer recIndex = 0;
+        int recIndex = 0;
         String iun = "testIun";
 
         AarCreationRequestDetailsInt aarCreationRequestDetailsInt = new AarCreationRequestDetailsInt();
@@ -448,6 +453,7 @@ class TimelineControllerTest {
                 .assertNext(entity -> {
                     var body = entity.getBody();
                     assertNotNull(entity.getBody());
+                    assertNotNull(body);
                     Assertions.assertEquals("testIun", body.getIun());
                     Assertions.assertEquals("testElementId", body.getElementId());
                     Assertions.assertEquals(TimelineCategory.AAR_CREATION_REQUEST, body.getCategory());
@@ -456,7 +462,7 @@ class TimelineControllerTest {
                     Assertions.assertEquals(body.getIngestionTimestamp(), timelineElementInternal.getIngestionTimestamp());
                     Assertions.assertEquals(body.getEventTimestamp(), timelineElementInternal.getEventTimestamp());
                     Assertions.assertEquals( body.getNotificationSentAt(), timelineElementInternal.getNotificationSentAt());
-                    Assertions.assertTrue(CollectionUtils.isEmpty(body.getLegalFactsIds()));
+                    assertTrue(CollectionUtils.isEmpty(body.getLegalFactsIds()));
                 })
                 .verifyComplete();
     }
@@ -484,6 +490,63 @@ class TimelineControllerTest {
                     Assertions.assertEquals(expectedResponse.getIsNotificationCancelled(), body.getIsNotificationCancelled());
                     Assertions.assertEquals(expectedResponse.getRefinementOrViewedDate(), body.getRefinementOrViewedDate());
                     Assertions.assertEquals(expectedResponse.getSchedulingAnalogDate(), body.getSchedulingAnalogDate());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getCancellationRequestReturnsOkWhenExists() {
+        CancellationRequestResponse response = new CancellationRequestResponse();
+        response.setTimestamp(Instant.now());
+
+        when(timelineService.getCancellationRequest("testIun")).thenReturn(Mono.just(response));
+
+        Mono<ResponseEntity<CancellationRequestResponse>> result = timelineController.getCancellationRequest("testIun", null);
+
+        StepVerifier.create(result)
+                .assertNext(entity -> {
+                    assertEquals(HttpStatusCode.valueOf(200), entity.getStatusCode());
+                    assertNotNull(entity.getBody());
+                    assertNotNull(entity.getBody().getTimestamp());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getCancellationRequestReturnsNotFoundWhenNotExists() {
+        when(timelineService.getCancellationRequest("testIun"))
+                .thenReturn(Mono.error(new PnNotFoundException(
+                        "Cancellation request not found",
+                        "No cancellation request element found for the given IUN",
+                        "ERROR_CODE_CANCELLATION_REQUEST_NOT_FOUND"
+                )));
+
+        Mono<ResponseEntity<CancellationRequestResponse>> result = timelineController.getCancellationRequest("testIun", null);
+
+        StepVerifier.create(result)
+                .expectErrorSatisfies(throwable -> {
+                    assertInstanceOf(PnNotFoundException.class, throwable);
+                    assertEquals("Cancellation request not found", throwable.getMessage());
+                })
+                .verify();
+    }
+  
+    @Test
+    void getAarForRecipient_found() {
+        AarResponse aarResponse = new AarResponse();
+        aarResponse.setUrl("https://aar.example.com/aar.pdf");
+        aarResponse.setNumberOfPages(5);
+        Mockito.when(timelineService.getAarForRecipient(eq("IUN123"), eq(1)))
+                .thenReturn(Mono.just(aarResponse));
+
+        Mono<ResponseEntity<AarResponse>> response = timelineController.getAarForRecipient("IUN123", 1, null);
+        StepVerifier.create(response)
+                .assertNext(res -> {
+                    assertNotNull(res);
+                    Assertions.assertEquals(HttpStatusCode.valueOf(200), res.getStatusCode());
+                    assertNotNull(res.getBody());
+                    Assertions.assertEquals("https://aar.example.com/aar.pdf", res.getBody().getUrl());
+                    Assertions.assertEquals(5, res.getBody().getNumberOfPages());
                 })
                 .verifyComplete();
     }
