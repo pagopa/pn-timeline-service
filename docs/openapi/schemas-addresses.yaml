@@ -28,13 +28,10 @@ components:
       description: Indirizzo di invio della notifica senza address obbligatorio
       required:
         - type
-      
 
-    PhysicalAddress:
+
+    PhysicalAddressBase:
       type: object
-      required:
-        - address
-        - municipality
       properties:
         fullname:
           x-field-extra-annotation: "@lombok.ToString.Exclude" # NO EXTERNAL
@@ -72,5 +69,20 @@ components:
           type: string
           description: Denominazione paese estero
       description: Indirizzo fisico scoperto durante fase di consegna
-    
+      
+
+    PhysicalAddress:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PhysicalAddressBase'
+      required:
+        - address
+        - municipality
+
+    PhysicalAddressOptionalMunicipality:
+      allOf:
+        - $ref: '#/components/schemas/PhysicalAddressBase'
+      required:
+        - address
+      description: Indirizzo fisico senza obbligo di municipality
 
