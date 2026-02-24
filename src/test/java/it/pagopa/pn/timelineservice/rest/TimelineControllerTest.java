@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +39,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -340,6 +342,7 @@ class TimelineControllerTest {
                 .assertNext(entity -> {
                     var body = entity.getBody();
                     assertNotNull(entity.getBody());
+                    assertNotNull(body);
                     Assertions.assertEquals("testIun", body.getIun());
                     Assertions.assertEquals("testElementId", body.getElementId());
                     Assertions.assertEquals(TimelineCategory.AAR_CREATION_REQUEST, body.getCategory());
@@ -450,6 +453,7 @@ class TimelineControllerTest {
                 .assertNext(entity -> {
                     var body = entity.getBody();
                     assertNotNull(entity.getBody());
+                    assertNotNull(body);
                     Assertions.assertEquals("testIun", body.getIun());
                     Assertions.assertEquals("testElementId", body.getElementId());
                     Assertions.assertEquals(TimelineCategory.AAR_CREATION_REQUEST, body.getCategory());
@@ -525,5 +529,25 @@ class TimelineControllerTest {
                     assertEquals("Cancellation request not found", throwable.getMessage());
                 })
                 .verify();
+    }
+  
+    @Test
+    void getAarForRecipient_found() {
+        AarResponse aarResponse = new AarResponse();
+        aarResponse.setUrl("https://aar.example.com/aar.pdf");
+        aarResponse.setNumberOfPages(5);
+        Mockito.when(timelineService.getAarForRecipient(eq("IUN123"), eq(1)))
+                .thenReturn(Mono.just(aarResponse));
+
+        Mono<ResponseEntity<AarResponse>> response = timelineController.getAarForRecipient("IUN123", 1, null);
+        StepVerifier.create(response)
+                .assertNext(res -> {
+                    assertNotNull(res);
+                    Assertions.assertEquals(HttpStatusCode.valueOf(200), res.getStatusCode());
+                    assertNotNull(res.getBody());
+                    Assertions.assertEquals("https://aar.example.com/aar.pdf", res.getBody().getUrl());
+                    Assertions.assertEquals(5, res.getBody().getNumberOfPages());
+                })
+                .verifyComplete();
     }
 }
