@@ -102,6 +102,7 @@ public class TimelineController implements TimelineControllerApi {
 
     @Override
     public Mono<ResponseEntity<RequestRefusedResponse>> getRequestRefused(String iun, ServerWebExchange exchange) {
-        return Mono.just(ResponseEntity.ok(null));
+        return timelineService.getRequestRefused(iun)
+                .map(ResponseEntity::ok);
     }
 }

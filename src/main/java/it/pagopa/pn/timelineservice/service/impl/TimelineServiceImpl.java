@@ -14,6 +14,7 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHi
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
@@ -30,6 +31,7 @@ import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.AarResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.RequestRefusedResponse;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
@@ -381,6 +383,19 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
+    public Mono<RequestRefusedResponse> getRequestRefused(String iun) {
+        return this.timelineDao.getTimelineFilteredByElementId(iun, ElementIdPrefix.REQUEST_REFUSED.getValue(), false)
+            .filter(element -> TimelineElementCategoryInt.REQUEST_REFUSED.equals(element.getCategory()))
+            .next()
+            .map(element -> SmartMapper.mapToClass(element.getDetails(), RequestRefusedResponse.class))
+            .switchIfEmpty(Mono.error(new PnNotFoundException(
+                "Request refused not found",
+                "No REQUEST_REFUSED element found for the given IUN",
+                ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT
+            )));
+    }
+  
+    @Override
     public Mono<CancellationRequestResponse> getCancellationRequest(String iun) {
         return this.timelineDao.getTimelineFilteredByElementId(iun, ElementIdPrefix.NOTIFICATION_CANCELLATION_REQUEST.getValue(), false)
                 .filter(element -> element.getCategory() == TimelineElementCategoryInt.NOTIFICATION_CANCELLATION_REQUEST)
@@ -393,6 +408,7 @@ public class TimelineServiceImpl implements TimelineService {
                   )));
     }
   
+    @Override
     public Mono<AarResponse> getAarForRecipient(String iun, Integer recIndex) {
         return getTimelineElementForSpecificRecipient(iun, recIndex, TimelineElementCategoryInt.AAR_GENERATION)
                 .map(timelineElement -> {
