@@ -1894,3 +1894,20 @@ components:
           format: date-time
         numberOfRecipients:
           type: integer
+
+    LegalFactWithRecIndex:
+      allOf:
+        - $ref: '#/components/schemas/LegalFactsId'
+        - type: object
+          properties:
+            recIndex:
+              type: integer
+              description: Index destinatario notifica digitale
+              format: int32
+    LegalFactsResponse:
+      type: object
+      properties:
+        legalFacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/LegalFactWithRecIndex'

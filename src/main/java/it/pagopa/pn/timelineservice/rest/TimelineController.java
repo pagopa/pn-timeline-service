@@ -105,4 +105,8 @@ public class TimelineController implements TimelineControllerApi {
         return timelineService.getRequestRefused(iun)
                 .map(ResponseEntity::ok);
     }
+
+    public Mono<ResponseEntity<LegalFactsResponse>> getLegalFacts(String iun, Integer recIndex,  final ServerWebExchange exchange) {
+        return null;
+    }
 }
