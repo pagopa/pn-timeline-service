@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.api.TimelineControllerApi;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
+import it.pagopa.pn.timelineservice.service.LegalFactService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineElementMapper;
@@ -23,6 +24,7 @@ import java.time.Instant;
 public class TimelineController implements TimelineControllerApi {
 
     private final TimelineService timelineService;
+    private final LegalFactService legalFactService;
     private final SmartMapper smartMapper;
     private final TimelineElementMapper timelineElementMapper;
 
@@ -107,6 +109,7 @@ public class TimelineController implements TimelineControllerApi {
     }
 
     public Mono<ResponseEntity<LegalFactsResponse>> getLegalFacts(String iun, Integer recIndex,  final ServerWebExchange exchange) {
-        return null;
+        return legalFactService.getLegalFacts(iun, recIndex)
+                .map(ResponseEntity::ok);
     }
 }
