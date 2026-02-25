@@ -497,6 +497,39 @@ paths:
             application/problem+json:
               schema:
                 $ref: 'remote-refs.yaml#/components/schemas/Problem'
+  /timeline-service-private/timelines/{iun}/legal-facts:
+    get:
+      summary: Recupera i legal facts legati ad una notifica
+      description: >
+        Restituisce i legal facts legati ad una notifica, in caso sia fornito in input anche il query parameter recIndex, 
+        restituisce solo i legal facts legati alla notifica per il destinatario specificato.
+      tags:
+        - timeline-controller
+      operationId: getLegalFacts
+      parameters:
+        - name: iun
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recIndex
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: './schemas-pn-timeline-service.yaml#/components/schemas/LegalFactsResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'remote-refs.yaml#/components/schemas/Problem'
 components:
   schemas:
     NotificationInfo:
