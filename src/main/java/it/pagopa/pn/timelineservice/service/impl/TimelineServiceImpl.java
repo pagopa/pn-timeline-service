@@ -404,7 +404,7 @@ public class TimelineServiceImpl implements TimelineService {
                 .switchIfEmpty(Mono.error(new PnNotFoundException(
                         "Cancellation request not found",
                         "No cancellation request element found for the given IUN",
-                        "ERROR_CODE_CANCELLATION_REQUEST_NOT_FOUND"
+                        ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT
                   )));
     }
   
