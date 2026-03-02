@@ -502,7 +502,8 @@ paths:
       summary: Recupera i legal facts legati ad una notifica
       description: >
         Restituisce i legal facts legati ad una notifica, in caso sia fornito in input anche il query parameter recIndex, 
-        restituisce solo i legal facts legati alla notifica per il destinatario specificato.
+        restituisce solo i legal facts legati alla notifica per il destinatario specificato. 
+        Tra questi rientrano anche i legal facts che non sono legati ad uno specifico destinatario poichè relativi alla notifica in modo generale (es. presa in carico, cancellazione notifica).
       tags:
         - timeline-controller
       operationId: getLegalFacts
