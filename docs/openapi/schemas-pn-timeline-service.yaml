@@ -1710,22 +1710,31 @@ components:
 
     PublicRegistryValidationResponseDetails:
       x-discriminator-value: "PUBLIC_REGISTRY_VALIDATION_RESPONSE"
-      allOf:
-        - $ref: '#/components/schemas/PublicRegistryResponseDetails'
-        - type: object
-          required:
-            - categoryType
-          properties:
-            categoryType:
-              type: string
-            registry:
-              type: string
-              description: >
-                Rappresenta il registro consultato per ottenere l'indirizzo.
-                Può assumere i seguenti valori:
-                  - ANPR
-                  - REGISTRO_IMPRESE
-              maxLength: 128
+      type: object
+      required:
+        - categoryType
+        - recIndex
+      properties:
+        categoryType:
+          type: string
+        recIndex:
+          type: integer
+          description: Index destinatario notifica digitale
+          format: int32
+        digitalAddress:
+          $ref: "./schemas-addresses.yaml#/components/schemas/DigitalAddress"
+        physicalAddress:
+          $ref: "./schemas-addresses.yaml#/components/schemas/PhysicalAddressOptionalMunicipality"
+        requestTimelineId:
+          type: string
+        registry:
+          type: string
+          description: >
+            Rappresenta il registro consultato per ottenere l'indirizzo.
+            Può assumere i seguenti valori:
+              - ANPR
+              - REGISTRO_IMPRESE
+          maxLength: 128
 
     SendAnalogTimeoutCreationRequestDetails:
       x-discriminator-value: "SEND_ANALOG_TIMEOUT_CREATION_REQUEST"
