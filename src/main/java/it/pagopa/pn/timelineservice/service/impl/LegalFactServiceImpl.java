@@ -24,11 +24,12 @@ import java.util.Objects;
 public class LegalFactServiceImpl implements LegalFactService {
     private final TimelineDao timelineDao;
 
+    @Override
     public Mono<LegalFactsResponse> getLegalFacts(String iun, Integer recIndex) {
         log.debug("getLegalFacts - IUN={} recIndex={}", iun, recIndex);
         return timelineDao.getTimeline(iun)
                 .filter(element -> hasLegalFacts(element, recIndex))
-                .collectSortedList(Comparator.comparing(TimelineElementInternal::getTimestamp))
+                .collectSortedList(Comparator.naturalOrder())
                 .map(this::mapToLegalFactsResponse)
                 .doOnError(e -> log.error("getLegalFacts error - IUN={} recIndex={}", iun, recIndex, e));
     }

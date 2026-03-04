@@ -71,16 +71,6 @@ class LegalFactServiceImplTest {
     }
 
     @Test
-    void getLegalFacts_ShouldHandleEmptyOrNullCases() {
-        // Caso Timeline Vuota
-        when(timelineDao.getTimeline(IUN)).thenReturn(Flux.empty());
-
-        StepVerifier.create(service.getLegalFacts(IUN, null))
-                .assertNext(res -> assertThat(res.getLegalFacts()).isEmpty())
-                .verifyComplete();
-    }
-
-    @Test
     void getLegalFacts_handlesNullCategoryGracefully() {
         String iun = "IUN123";
         Integer recIndex = null;

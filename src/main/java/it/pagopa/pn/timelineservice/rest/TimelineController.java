@@ -108,6 +108,7 @@ public class TimelineController implements TimelineControllerApi {
                 .map(ResponseEntity::ok);
     }
 
+    @Override
     public Mono<ResponseEntity<LegalFactsResponse>> getLegalFacts(String iun, Integer recIndex,  final ServerWebExchange exchange) {
         return legalFactService.getLegalFacts(iun, recIndex)
                 .map(ResponseEntity::ok);
