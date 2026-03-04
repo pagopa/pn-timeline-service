@@ -14,6 +14,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
+import it.pagopa.pn.timelineservice.service.LegalFactService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineElementMapper;
@@ -48,6 +49,8 @@ class TimelineControllerTest {
 
     private static TimelineService timelineService;
 
+    private static LegalFactService legalFactService;
+
     private static TimelineController timelineController;
 
     private static ObjectMapper objectMapper;
@@ -57,9 +60,10 @@ class TimelineControllerTest {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         timelineService = mock(TimelineService.class);
+        legalFactService = mock(LegalFactService.class);
         TimelineElementMapper timelineElementMapper = new TimelineElementMapper();
         SmartMapper smartMapper = new SmartMapper(mock(TimelineMapperFactory.class), objectMapper, mock(FeatureEnabledUtils.class));
-        timelineController = new TimelineController(timelineService, smartMapper, timelineElementMapper);
+        timelineController = new TimelineController(timelineService, legalFactService, smartMapper, timelineElementMapper);
     }
 
 
@@ -547,6 +551,34 @@ class TimelineControllerTest {
                     assertNotNull(res.getBody());
                     Assertions.assertEquals("https://aar.example.com/aar.pdf", res.getBody().getUrl());
                     Assertions.assertEquals(5, res.getBody().getNumberOfPages());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getLegalFacts_success() {
+        String iun = "testIun";
+        Integer recIndex = null;
+
+        LegalFactsResponse response = new LegalFactsResponse();
+        LegalFactWithRecIndex legalFact = new LegalFactWithRecIndex();
+        legalFact.setRecIndex(0);
+        legalFact.setKey("key");
+        legalFact.setCategory(LegalFactWithRecIndex.CategoryEnum.RECIPIENT_ACCESS);
+        response.setLegalFacts(List.of(legalFact));
+
+        Mockito.when(legalFactService.getLegalFacts(iun, recIndex)).thenReturn(Mono.just(response));
+        Mono<ResponseEntity<LegalFactsResponse>> responseMono = timelineController.getLegalFacts(iun, recIndex, null);
+        StepVerifier.create(responseMono)
+                .assertNext(res -> {
+                    assertNotNull(res);
+                    Assertions.assertEquals(HttpStatusCode.valueOf(200), res.getStatusCode());
+                    assertNotNull(res.getBody());
+                    assertEquals(1, res.getBody().getLegalFacts().size());
+                    LegalFactWithRecIndex fact = res.getBody().getLegalFacts().getFirst();
+                    Assertions.assertEquals(0, fact.getRecIndex());
+                    Assertions.assertEquals("key", fact.getKey());
+                    Assertions.assertEquals(LegalFactWithRecIndex.CategoryEnum.RECIPIENT_ACCESS, fact.getCategory());
                 })
                 .verifyComplete();
     }
