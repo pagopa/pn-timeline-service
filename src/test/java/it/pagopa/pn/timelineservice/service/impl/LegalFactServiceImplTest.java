@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationViewedDetailsInt;
+import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.LegalFactWithRecIndex;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,15 +93,15 @@ class LegalFactServiceImplTest {
     }
 
     @Test
-    void getLegalFacts_returnsEmpty_whenTimelineIsEmpty() {
+    void getLegalFacts_throwsError_whenTimelineIsEmpty() {
         String iun = "IUN123";
         Integer recIndex = null;
 
         when(timelineDao.getTimeline(iun)).thenReturn(Flux.empty());
 
         StepVerifier.create(service.getLegalFacts(iun, recIndex))
-                .expectNextMatches(response -> response.getLegalFacts().isEmpty())
-                .verifyComplete();
+                .expectError(PnNotFoundException.class)
+                .verify();
     }
 
     private TimelineElementInternal createTimelineElement(String key, Instant timestamp) {

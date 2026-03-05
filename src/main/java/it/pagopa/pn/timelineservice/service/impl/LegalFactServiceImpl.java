@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.LegalFactWithRecIndex;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.LegalFactsResponse;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
@@ -18,6 +19,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -28,6 +31,13 @@ public class LegalFactServiceImpl implements LegalFactService {
     public Mono<LegalFactsResponse> getLegalFacts(String iun, Integer recIndex) {
         log.debug("getLegalFacts - IUN={} recIndex={}", iun, recIndex);
         return timelineDao.getTimeline(iun)
+                .switchIfEmpty(
+                    Mono.error(new PnNotFoundException(
+                        "Timeline not found",
+                        "No timeline element found for IUN: " + iun,
+                        ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN
+                    ))
+                )
                 .filter(element -> hasLegalFacts(element, recIndex))
                 .collectSortedList(Comparator.naturalOrder())
                 .map(this::mapToLegalFactsResponse)
