@@ -205,14 +205,14 @@ public class TimelineServiceImpl implements TimelineService {
         log.debug("GetTimelineElement - IUN={} and timelineId={}", iun, timelineId);
 
         return timelineDao.getTimelineElement(iun, timelineId, strongly)
-                .flatMap(timelineElement -> addConfidentialInformationIfTimelineElementIsPresent(iun, timelineId, timelineElement));
+                .flatMap(timelineElement -> addConfidentialInformationIfTimelineElementIsPresent(iun, timelineElement));
     }
 
-    private Mono<TimelineElementInternal> addConfidentialInformationIfTimelineElementIsPresent(String iun, String timelineId, TimelineElementInternal timelineElement) {
+    private Mono<TimelineElementInternal> addConfidentialInformationIfTimelineElementIsPresent(String iun, TimelineElementInternal timelineElement) {
         if (NOTIFICATION_TIMELINE_REWORKED.equals(timelineElement.getCategory()) && timelineElement.getDetails() instanceof NotificationTimelineReworkedDetailsInt) {
             return setConfidentialInfo(iun, timelineElement);
         } else {
-            return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineId)
+            return confidentialInformationService.getTimelineElementConfidentialInformation(iun, timelineElement.getElementId())
                     .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                             timelineElement.getDetails(), confidentialDto
                     ))
@@ -236,7 +236,7 @@ public class TimelineServiceImpl implements TimelineService {
                                 .map(TimelineElementInternal::getDetails);
                     } else {
                         return confidentialInformationService
-                                .getTimelineElementConfidentialInformation(iun, timelineId)
+                                .getTimelineElementConfidentialInformation(iun, timelineElement.getElementId())
                                 .map(confidentialDto -> enrichTimelineElementWithConfidentialInformation(
                                         timelineElement.getDetails(), confidentialDto
                                 ))
