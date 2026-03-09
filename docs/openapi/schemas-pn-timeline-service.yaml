@@ -1803,7 +1803,20 @@ components:
           format: date-time
         categoryType:
           type: string
-
+    RequestRefusedResponse:
+      type: object
+      properties:
+        refusalReasons:
+          type: array
+          description: Lista delle motivazioni di rifiuto
+          items:
+            $ref: '#/components/schemas/NotificationRefusedError'
+        numberOfRecipients:
+          type: integer
+          description: Numero di destinatari
+        notificationCost:
+          type: integer
+          description: Costo della notifica
     AnalogFailureWorkflowTimeoutDetails:
       x-discriminator-value: "ANALOG_FAILURE_WORKFLOW_TIMEOUT"
       type: object
@@ -1890,3 +1903,20 @@ components:
           format: date-time
         numberOfRecipients:
           type: integer
+
+    LegalFactWithRecIndex:
+      allOf:
+        - $ref: '#/components/schemas/LegalFactsId'
+        - type: object
+          properties:
+            recIndex:
+              type: integer
+              description: Index destinatario notifica digitale
+              format: int32
+    LegalFactsResponse:
+      type: object
+      properties:
+        legalFacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/LegalFactWithRecIndex'

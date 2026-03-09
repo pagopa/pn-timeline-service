@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.api.TimelineControllerApi;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
+import it.pagopa.pn.timelineservice.service.LegalFactService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineElementMapper;
@@ -23,6 +24,7 @@ import java.time.Instant;
 public class TimelineController implements TimelineControllerApi {
 
     private final TimelineService timelineService;
+    private final LegalFactService legalFactService;
     private final SmartMapper smartMapper;
     private final TimelineElementMapper timelineElementMapper;
 
@@ -85,6 +87,30 @@ public class TimelineController implements TimelineControllerApi {
     @Override
     public Mono<ResponseEntity<DeliveryInformationResponse>> getDeliveryInformation(String iun, Integer recIndex, final ServerWebExchange exchange) {
         return timelineService.getDeliveryInformation(iun, recIndex)
+                .map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<AarResponse>> getAarForRecipient(String iun, Integer recIndex, ServerWebExchange exchange) {
+        return timelineService.getAarForRecipient(iun, recIndex)
+                .map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<CancellationRequestResponse>> getCancellationRequest(String iun, ServerWebExchange exchange) {
+        return timelineService.getCancellationRequest(iun)
+                .map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<RequestRefusedResponse>> getRequestRefused(String iun, ServerWebExchange exchange) {
+        return timelineService.getRequestRefused(iun)
+                .map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<LegalFactsResponse>> getLegalFacts(String iun, Integer recIndex,  final ServerWebExchange exchange) {
+        return legalFactService.getLegalFacts(iun, recIndex)
                 .map(ResponseEntity::ok);
     }
 }
