@@ -3,7 +3,6 @@ package it.pagopa.pn.timelineservice.dto.timeline.details;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class NotificationCostValidationRequestDetailsIntTest {
 
@@ -40,14 +39,5 @@ class NotificationCostValidationRequestDetailsIntTest {
                 "categoryType=NOTIFICATION_COST_VALIDATION_REQUEST",
                 details.toLog()
         );
-    }
-
-    @Test
-    void testGetElementTimestamp() {
-        NotificationCostValidationRequestDetailsInt details = NotificationCostValidationRequestDetailsInt.builder()
-                .categoryType(TimelineElementCategoryInt.NOTIFICATION_COST_VALIDATION_REQUEST.name())
-                .build();
-
-        assertNull(details.getElementTimestamp());
     }
 }

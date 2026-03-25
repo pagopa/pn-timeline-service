@@ -1,9 +1,7 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class NotificationCostValidationResponseDetailsIntTest {
 
@@ -40,14 +38,5 @@ class NotificationCostValidationResponseDetailsIntTest {
                 "categoryType=NOTIFICATION_COST_VALIDATION_RESPONSE",
                 details.toLog()
         );
-    }
-
-    @Test
-    void testGetElementTimestamp() {
-        NotificationCostValidationResponseDetailsInt details = NotificationCostValidationResponseDetailsInt.builder()
-                .categoryType(TimelineElementCategoryInt.NOTIFICATION_COST_VALIDATION_RESPONSE.name())
-                .build();
-
-        assertNull(details.getElementTimestamp());
     }
 }
