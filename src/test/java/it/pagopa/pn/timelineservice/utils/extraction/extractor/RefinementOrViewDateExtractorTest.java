@@ -42,9 +42,11 @@ class RefinementOrViewDateExtractorTest {
         extractor.process(element);
         extractor.postProcess();
 
-        Optional<Instant> result = extractor.getResult();
+        Optional<RefinementOrViewDateExtractor.Result> result = extractor.getResult();
         Assertions.assertTrue(result.isPresent());
-        Assertions.assertEquals(viewDate, result.get());
+        Assertions.assertEquals(viewDate, result.get().getLowestDate());
+        Assertions.assertNull(result.get().getRefinementDate());
+        Assertions.assertEquals(viewDate, result.get().getViewDate());
     }
 
     @Test
@@ -65,9 +67,11 @@ class RefinementOrViewDateExtractorTest {
         extractor.process(element);
         extractor.postProcess();
 
-        Optional<Instant> result = extractor.getResult();
+        Optional<RefinementOrViewDateExtractor.Result> result = extractor.getResult();
         Assertions.assertTrue(result.isPresent());
-        Assertions.assertEquals(refinementDate, result.get());
+        Assertions.assertEquals(refinementDate, result.get().getLowestDate());
+        Assertions.assertEquals(refinementDate, result.get().getRefinementDate());
+        Assertions.assertNull(result.get().getViewDate());
     }
 
     @Test
@@ -82,6 +86,7 @@ class RefinementOrViewDateExtractorTest {
 
         RefinementDetailsInt refinementDetails = mock(RefinementDetailsInt.class);
         when(refinementDetails.getEventTimestamp()).thenReturn(refinementDate);
+        when(refinementDetails.getRecIndex()).thenReturn(recIndex);
 
         TimelineElementInternal viewElement = TimelineElementInternal.builder()
                 .details(viewDetails)
@@ -97,9 +102,11 @@ class RefinementOrViewDateExtractorTest {
         extractor.process(refinementElement);
         extractor.postProcess();
 
-        Optional<Instant> result = extractor.getResult();
+        Optional<RefinementOrViewDateExtractor.Result> result = extractor.getResult();
         Assertions.assertTrue(result.isPresent());
-        Assertions.assertEquals(viewDate, result.get());
+        Assertions.assertEquals(viewDate, result.get().getLowestDate());
+        Assertions.assertEquals(refinementDate, result.get().getRefinementDate());
+        Assertions.assertEquals(viewDate, result.get().getViewDate());
     }
 
     @Test
@@ -114,7 +121,7 @@ class RefinementOrViewDateExtractorTest {
         extractor.process(element);
         extractor.postProcess();
 
-        Optional<Instant> result = extractor.getResult();
+        Optional<RefinementOrViewDateExtractor.Result> result = extractor.getResult();
         Assertions.assertTrue(result.isEmpty());
     }
 
@@ -134,6 +141,4 @@ class RefinementOrViewDateExtractorTest {
         extractor.postProcess();
         Assertions.assertTrue(extractor.getResult().isEmpty());
     }
-
-
 }

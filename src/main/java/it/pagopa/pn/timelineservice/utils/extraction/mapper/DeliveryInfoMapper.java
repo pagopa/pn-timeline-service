@@ -3,6 +3,7 @@ package it.pagopa.pn.timelineservice.utils.extraction.mapper;
 import it.pagopa.pn.timelineservice.dto.timeline.details.ExtendedDeliveryModeInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.ExtendedDeliveryMode;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.RefinementOrViewedDateDetail;
 import it.pagopa.pn.timelineservice.utils.extraction.extractor.*;
 import it.pagopa.pn.timelineservice.utils.extraction.model.ExtractionResult;
 
@@ -20,8 +21,16 @@ public class DeliveryInfoMapper implements ExtractionMapper<DeliveryInformationR
         DeliveryInformationResponse deliveryInformationResponse = new DeliveryInformationResponse();
         deliveryInformationResponse.schedulingAnalogDate(result.get(SchedulingAnalogDateExtractor.KEY).orElse(null));
         deliveryInformationResponse.isNotificationCancelled(result.get(IsCancelledExtractor.KEY).orElse(false));
-        deliveryInformationResponse.refinementOrViewedDate(result.get(RefinementOrViewDateExtractor.KEY).orElse(null));
+        RefinementOrViewDateExtractor.Result extraction = result.get(RefinementOrViewDateExtractor.KEY).orElse(null);
+        if (extraction != null) {
+            deliveryInformationResponse.refinementOrViewedDate(extraction.getLowestDate());
+            RefinementOrViewedDateDetail refinementOrViewedDateDetail = new RefinementOrViewedDateDetail()
+                    .refinementDate(extraction.getRefinementDate())
+                    .viewedDate(extraction.getViewDate());
+            deliveryInformationResponse.refinementOrViewedDateDetail(refinementOrViewedDateDetail);
+        }
         deliveryInformationResponse.deliveryMode(mapToExtendedDeliveryMode(result.get(DeliveryModeExtractor.KEY).orElse(null)));
+        deliveryInformationResponse.isNotificationAccepted(result.get(IsAcceptedExtractor.KEY).orElse(false));
         return deliveryInformationResponse;
     }
 
@@ -31,7 +40,8 @@ public class DeliveryInfoMapper implements ExtractionMapper<DeliveryInformationR
                 new RefinementOrViewDateExtractor(recIndex),
                 new SchedulingAnalogDateExtractor(recIndex),
                 new DeliveryModeExtractor(recIndex),
-                new IsCancelledExtractor()
+                new IsCancelledExtractor(),
+                new IsAcceptedExtractor()
         );
     }
 
