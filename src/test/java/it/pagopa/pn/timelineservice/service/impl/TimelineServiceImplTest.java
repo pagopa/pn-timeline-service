@@ -1792,6 +1792,7 @@ class TimelineServiceImplTest {
         expectedResponse.setSchedulingAnalogDate(null);
         expectedResponse.setRefinementOrViewedDate(null);
         expectedResponse.setIsNotificationCancelled(false);
+        expectedResponse.isNotificationAccepted(false);
 
         Set<TimelineElementInternal> timelineElements = getSendPaperDetailsList(iun, elementId);
 

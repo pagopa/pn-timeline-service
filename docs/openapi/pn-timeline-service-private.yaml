@@ -567,18 +567,35 @@ components:
           type: array
           items:
             $ref: './schemas-pn-timeline-service.yaml#/components/schemas/TimelineElement'
+    RefinementOrViewedDateDetail:
+      type: object
+      description: Dettaglio della data di perfezionamento per decorrenza termini o per visualizzazione
+      properties:
+        refinementDate:
+          type: string
+          description: Data e ora di perfezionamento per decorrenza termini
+          format: date-time
+        viewedDate:
+          type: string
+          description: Data e ora di presa visione della notifica
+          format: date-time
+
+
     DeliveryInformationResponse:
       type: object
       required:
         - deliveryMode
         - isNotificationCancelled
+        - isNotificationAccepted
       properties:
         deliveryMode:
           $ref: './schemas-pn-timeline-service.yaml#/components/schemas/ExtendedDeliveryMode'
         refinementOrViewedDate:
           type: string
-          description: Data e ora di perfezionamento per decorrenza termini o per presa visione della notifica
+          description: Data e ora di perfezionamento per decorrenza termini o per presa visione della notifica (in caso siano presenti entrambi gli eventi, viene restituita la data minore)
           format: date-time
+        refinementOrViewedDateDetail:
+          $ref: '#/components/schemas/RefinementOrViewedDateDetail'
         schedulingAnalogDate:
           type: string
           description: Data e ora di schedulazione invio analogico
@@ -586,6 +603,9 @@ components:
         isNotificationCancelled:
           type: boolean
           description: Indica se la notifica è stata cancellata
+        isNotificationAccepted:
+          type: boolean
+          description: Indica se la notifica è stata accettata
     NotificationStatus:
       type: string
       description: >
