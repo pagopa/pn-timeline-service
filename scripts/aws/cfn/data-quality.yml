@@ -16,7 +16,7 @@ Parameters:
     Description: Name of the Glue Database
   TimelinesDynamoTableName:
     Type: String
-    Description: DynamoDb table name for pn-delivery
+    Description: DynamoDb table name for pn-timelines
   TimelinesGlueTableName:
     Type: String
     AllowedPattern: ^[a-z_]+$
