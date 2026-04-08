@@ -116,7 +116,7 @@ Outputs:
     Description: Name of dynamodb used by application to access the key-value store of CounterTable
     Value: !Ref TimelinesCounterTable
   TimelinesCounterTableArn:
-    Description: ARN Dynamo Name used by application to access the key-value store of CounterTable
+    Description: ARN of dynamodb table used by application to access the key-value store of CounterTable
     Value: !Sub '${TimelinesCounterTable.Arn}'
 
   PnDeliveryPushShedLockDynamoTableName:
