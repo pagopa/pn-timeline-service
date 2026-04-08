@@ -120,8 +120,8 @@ Outputs:
     Value: !Sub '${TimelinesCounterTable.Arn}'
 
   PnDeliveryPushShedLockDynamoTableName:
-    Description: Name of dynamodb table containing
+    Description: Name of dynamodb table containing shedlock locks
     Value: !Ref PnDeliveryPushShedLockTable
   PnDeliveryPushShedLockDynamoTableArn:
-    Description: ARN of dynamodb table containing
+    Description: ARN of dynamodb table containing shedlock locks
     Value: !Sub '${PnDeliveryPushShedLockTable.Arn}'
