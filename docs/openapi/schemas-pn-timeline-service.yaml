@@ -76,6 +76,8 @@ components:
         - SEND_ANALOG_TIMEOUT
         - ANALOG_FAILURE_WORKFLOW_TIMEOUT
         - NOTIFICATION_TIMELINE_REWORKED
+        - NOTIFICATION_COST_VALIDATION_REQUEST
+        - NOTIFICATION_COST_VALIDATION_RESPONSE
     StatusInfo:
       type: object
       properties:
@@ -189,8 +191,28 @@ components:
         - "$ref": "#/components/schemas/SendAnalogTimeoutDetails"
         - "$ref": "#/components/schemas/AnalogFailureWorkflowTimeoutDetails"
         - "$ref": "#/components/schemas/NotificationTimelineReworkedDetails"
+        - "$ref": "#/components/schemas/NotificationCostValidationRequestDetails"
+        - "$ref": "#/components/schemas/NotificationCostValidationResponseDetails"
       discriminator:
         propertyName: "categoryType"
+
+    NotificationCostValidationRequestDetails:
+      x-discriminator-value: "NOTIFICATION_COST_VALIDATION_REQUEST"
+      type: object
+      required:
+        - categoryType
+      properties:
+        categoryType:
+           type: string
+
+    NotificationCostValidationResponseDetails:
+      x-discriminator-value: "NOTIFICATION_COST_VALIDATION_RESPONSE"
+      type: object
+      required:
+        - categoryType
+      properties:
+        categoryType:
+           type: string
 
     ValidateNormalizeAddressDetails:
         x-discriminator-value: "VALIDATE_NORMALIZE_ADDRESSES_REQUEST"
