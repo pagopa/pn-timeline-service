@@ -98,7 +98,9 @@ class CheckInternalExternalDetailsTest {
             new Pair(SendAnalogTimeoutCreationRequestDetailsInt.class, SendAnalogTimeoutCreationRequestDetails.class),
             new Pair(SendAnalogTimeoutDetailsInt.class, SendAnalogTimeoutDetails.class),
             new Pair(AnalogFailureWorkflowTimeoutDetailsInt.class, AnalogFailureWorkflowTimeoutDetails.class),
-            new Pair(NotificationTimelineReworkedDetailsInt.class, NotificationTimelineReworkedDetails.class)
+            new Pair(NotificationTimelineReworkedDetailsInt.class, NotificationTimelineReworkedDetails.class),
+            new Pair(NotificationCostValidationRequestDetailsInt.class, NotificationCostValidationRequestDetails.class),
+            new Pair(NotificationCostValidationResponseDetailsInt.class, NotificationCostValidationResponseDetails.class)
         );
     }
 
