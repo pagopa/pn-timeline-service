@@ -93,6 +93,10 @@ components:
       properties:
         elementId:
           type: string
+    CommunicationType:
+      type: string
+      enum:
+        - INFORMAL
     TimelineElement:
       type: object
       required:
@@ -134,6 +138,8 @@ components:
         eventTimestamp:
           type: string
           format: date-time
+        communicationType:
+          $ref: '#/components/schemas/CommunicationType'
     TimelineElementDetails:
       description: The raw event payload that will be different based on the event.
       oneOf:
