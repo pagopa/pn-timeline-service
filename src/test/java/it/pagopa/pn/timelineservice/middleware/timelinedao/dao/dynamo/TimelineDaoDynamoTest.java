@@ -3,7 +3,6 @@ package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.dynamo;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
-import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -564,6 +564,59 @@ class TimelineDaoDynamoTest {
         Assertions.assertEquals(row1.getTimestamp(), retrievedRow1.getTimestamp());
         Assertions.assertEquals(row1.getBusinessTimestamp(), retrievedRow1.getEventTimestamp());
         Assertions.assertInstanceOf(BaseAnalogDetailsInt.class, retrievedRow1.getDetails());
+    }
+
+    @Test
+    void addTimelineElementIfAbsent_visibilityCheckSensitiveAddressFields() {
+        TimelineElementInternal row = TimelineElementInternal.builder()
+                .iun("iun")
+                .elementId("id1")
+                .category(TimelineElementCategoryInt.SEND_SIMPLE_REGISTERED_LETTER)
+                .details(SimpleRegisteredLetterDetailsInt.builder()
+                        .physicalAddress(PhysicalAddressInt.builder()
+                                .foreignState("IT")
+                                .zip("12345")
+                                .address("via esempio 123")
+                                .addressDetails("addressDetails")
+                                .municipalityDetails("municipalityDetails")
+                                .municipality("Roma")
+                                .province("RM")
+                                .at("at")
+                                .build())
+                        .build())
+                .timestamp(Instant.now())
+                .statusInfo(StatusInfoInternal.builder().build())
+                .build();
+
+        when(table.putItem(any(PutItemEnhancedRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        ArgumentCaptor<PutItemEnhancedRequest> requestCaptor =
+                ArgumentCaptor.forClass(PutItemEnhancedRequest.class);
+
+        StepVerifier.create(dao.addTimelineElementIfAbsent(row))
+                .verifyComplete();
+
+        verify(table, times(1)).putItem(requestCaptor.capture());
+
+        PutItemEnhancedRequest captured = requestCaptor.getValue();
+        Assertions.assertNotNull(captured);
+
+        TimelineElementEntity saved = (TimelineElementEntity) captured.item();
+        Assertions.assertNotNull(saved);
+        Assertions.assertNotNull(saved.getDetails());
+        Assertions.assertNotNull(saved.getDetails().getPhysicalAddress());
+
+        PhysicalAddressEntity physicalAddress = saved.getDetails().getPhysicalAddress();
+        Assertions.assertNull(physicalAddress.getAt());
+        Assertions.assertNull(physicalAddress.getMunicipalityDetails());
+        Assertions.assertNull(physicalAddress.getAddressDetails());
+        Assertions.assertNull(physicalAddress.getProvince());
+        Assertions.assertNull(physicalAddress.getAddress());
+
+        Assertions.assertEquals("Roma", physicalAddress.getMunicipality());
+        Assertions.assertEquals("12345", physicalAddress.getZip());
+        Assertions.assertEquals("IT", physicalAddress.getForeignState());
     }
 
     public static <T> void mockPutItem(DynamoDbAsyncTable<T> dynamoDbAsyncTable) {
