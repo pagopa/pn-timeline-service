@@ -567,8 +567,8 @@ class TimelineDaoDynamoTest {
     }
 
     @Test
-    void addTimelineElementIfAbsent_visibilityCheckSensitiveAddressFields() {
-        TimelineElementInternal row = TimelineElementInternal.builder()
+    void addTimelineElementIfAbsent_visibilityCheckSensitiveAddressFields_SEND_SIMPLE_REGISTERED_LETTER() {
+        TimelineElementInternal element = TimelineElementInternal.builder()
                 .iun("iun")
                 .elementId("id1")
                 .category(TimelineElementCategoryInt.SEND_SIMPLE_REGISTERED_LETTER)
@@ -594,7 +594,7 @@ class TimelineDaoDynamoTest {
         ArgumentCaptor<PutItemEnhancedRequest> requestCaptor =
                 ArgumentCaptor.forClass(PutItemEnhancedRequest.class);
 
-        StepVerifier.create(dao.addTimelineElementIfAbsent(row))
+        StepVerifier.create(dao.addTimelineElementIfAbsent(element))
                 .verifyComplete();
 
         verify(table, times(1)).putItem(requestCaptor.capture());
@@ -617,6 +617,98 @@ class TimelineDaoDynamoTest {
         Assertions.assertEquals("Roma", physicalAddress.getMunicipality());
         Assertions.assertEquals("12345", physicalAddress.getZip());
         Assertions.assertEquals("IT", physicalAddress.getForeignState());
+    }
+
+    @Test
+    void addTimelineElementIfAbsent_visibilityCheckSensitiveAddressField_SEND_ANALOG_DOMICILE() {
+        when(table.putItem(any(PutItemEnhancedRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        TimelineElementInternal element = TimelineElementInternal.builder()
+                .iun("iun")
+                .elementId("id1")
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(BaseAnalogDetailsInt.builder()
+                        .recIndex(0)
+                        .physicalAddress(PhysicalAddressInt.builder()
+                                .foreignState("IT").zip("12345").municipality("Roma")
+                                .province("RM").address("via esempio 123")
+                                .addressDetails("addressDetails")
+                                .municipalityDetails("municipalityDetails")
+                                .at("at")
+                                .build())
+                        .build())
+                .timestamp(Instant.now())
+                .statusInfo(StatusInfoInternal.builder().build())
+                .build();
+
+        ArgumentCaptor<PutItemEnhancedRequest> captor =
+                ArgumentCaptor.forClass(PutItemEnhancedRequest.class);
+
+        StepVerifier.create(dao.addTimelineElementIfAbsent(element))
+                .verifyComplete();
+
+        verify(table, times(1)).putItem(captor.capture());
+
+        PhysicalAddressEntity saved = ((TimelineElementEntity) captor
+                .getValue().item()).getDetails().getPhysicalAddress();
+
+        Assertions.assertNotNull(saved);
+        Assertions.assertNull(saved.getAt());
+        Assertions.assertNull(saved.getMunicipalityDetails());
+        Assertions.assertNull(saved.getAddressDetails());
+        Assertions.assertNull(saved.getProvince());
+        Assertions.assertNull(saved.getAddress());
+
+        Assertions.assertEquals("Roma",  saved.getMunicipality());
+        Assertions.assertEquals("12345", saved.getZip());
+        Assertions.assertEquals("IT",    saved.getForeignState());
+    }
+
+    @Test
+    void addTimelineElementIfAbsent_visibilityCheckSensitiveAddressField_NORMALIZED_ADDRESS() {
+        when(table.putItem(any(PutItemEnhancedRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        TimelineElementInternal element = TimelineElementInternal.builder()
+                .iun("iun")
+                .elementId("id2")
+                .category(TimelineElementCategoryInt.NORMALIZED_ADDRESS)
+                .details(NormalizedAddressDetailsInt.builder()
+                        .recIndex(0)
+                        .normalizedAddress(PhysicalAddressInt.builder()
+                                .foreignState("FR").zip("75001").municipality("Paris")
+                                .province("PA").address("Rue de Exemple 10")
+                                .addressDetails("Batiment B")
+                                .municipalityDetails("Paris details")
+                                .at("Chez Dupont")
+                                .build())
+                        .build())
+                .timestamp(Instant.now())
+                .statusInfo(StatusInfoInternal.builder().build())
+                .build();
+
+        ArgumentCaptor<PutItemEnhancedRequest> captor =
+                ArgumentCaptor.forClass(PutItemEnhancedRequest.class);
+
+        StepVerifier.create(dao.addTimelineElementIfAbsent(element))
+                .verifyComplete();
+
+        verify(table, times(1)).putItem(captor.capture());
+
+        PhysicalAddressEntity saved = ((TimelineElementEntity) captor
+                .getValue().item()).getDetails().getNewAddress();
+
+        Assertions.assertNotNull(saved);
+        Assertions.assertNull(saved.getAt());
+        Assertions.assertNull(saved.getMunicipalityDetails());
+        Assertions.assertNull(saved.getAddressDetails());
+        Assertions.assertNull(saved.getProvince());
+        Assertions.assertNull(saved.getAddress());
+
+        Assertions.assertEquals("Paris",  saved.getMunicipality());
+        Assertions.assertEquals("75001",  saved.getZip());
+        Assertions.assertEquals("FR",     saved.getForeignState());
     }
 
     public static <T> void mockPutItem(DynamoDbAsyncTable<T> dynamoDbAsyncTable) {
