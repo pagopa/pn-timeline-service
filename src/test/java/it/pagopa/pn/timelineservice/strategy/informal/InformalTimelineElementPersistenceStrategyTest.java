@@ -90,7 +90,7 @@ class InformalTimelineElementPersistenceStrategyTest {
     }
 
     @Test
-    void applyBusinessTimestampPreservesOriginalTimestamp() {
+    void applyBusinessTimestampPreservesOriginalTimestampAndSetEventTimestamp() {
         Instant originalTimestamp = Instant.now();
         TimelineElementInternal dto = TimelineElementInternal.builder()
                 .iun("iun_123")
@@ -104,27 +104,14 @@ class InformalTimelineElementPersistenceStrategyTest {
                 .category(TimelineElementCategoryInt.AAR_GENERATION)
                 .timestamp(originalTimestamp.plusSeconds(10))
                 .build();
-        when(smartMapper.mapTimelineInternal(Mockito.any())).thenReturn(mappedDto);
+        when(smartMapper.mapTimelineInternalWithEventTimestamp(Mockito.any())).thenReturn(mappedDto);
         Set<TimelineElementInternal> currentTimeline = new HashSet<>();
 
         TimelineElementInternal result = strategy.applyBusinessTimestamp(dto, currentTimeline);
 
+        Mockito.verify(smartMapper).mapTimelineInternalWithEventTimestamp(dto);
         Assertions.assertEquals(originalTimestamp, result.getTimestamp());
-    }
-
-    @Test
-    void applyBusinessTimestampInvokesSmartMapper() {
-        Instant originalTimestamp = Instant.now();
-        TimelineElementInternal dto = TimelineElementInternal.builder()
-                .iun("iun_123")
-                .elementId("elementId_123")
-                .timestamp(originalTimestamp)
-                .build();
-        when(smartMapper.mapTimelineInternal(Mockito.any())).thenReturn(dto);
-
-        strategy.applyBusinessTimestamp(dto, new HashSet<>());
-
-        Mockito.verify(smartMapper).mapTimelineInternal(dto);
+        Assertions.assertEquals(mappedDto.getEventTimestamp(), result.getEventTimestamp());
     }
 
     @Test

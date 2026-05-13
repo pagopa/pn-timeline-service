@@ -32,7 +32,7 @@ import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceException
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AddTimelineElementServiceImpl {
+public class AddTimelineElementServiceImpl implements AddTimelineElementService {
     private final TimelineService timelineService;
     private final TimelineDao timelineDao;
     private final ConfidentialInformationService confidentialInformationService;

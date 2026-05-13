@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.Set;
 
 @Component
@@ -44,11 +43,8 @@ public class InformalTimelineElementPersistenceStrategy implements TimelineEleme
 
     @Override
     public TimelineElementInternal applyBusinessTimestamp(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
-        Instant cachedTimestamp = dto.getTimestamp();
         // calcolo e aggiungo il businessTimestamp
-        dto = smartMapper.mapTimelineInternal(dto);
-        dto.setTimestamp(cachedTimestamp);
-        return dto;
+        return smartMapper.mapTimelineInternalWithEventTimestamp(dto);
     }
 
     @Override
