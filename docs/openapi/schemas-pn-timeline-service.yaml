@@ -96,6 +96,7 @@ components:
     CommunicationType:
       type: string
       enum:
+        - LEGAL
         - INFORMAL
     TimelineElement:
       type: object
