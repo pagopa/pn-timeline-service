@@ -1,6 +1,7 @@
 package it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper;
 
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
@@ -26,8 +27,11 @@ public class DtoToEntityTimelineMapper {
                 .statusInfo(dtoToStatusInfoEntity(dto.getStatusInfo()))
                 .notificationSentAt(dto.getNotificationSentAt())
                 .businessTimestamp(dto.getEventTimestamp())
+                .communicationType(mapCommunicationType(dto.getCommunicationType()))
                 .build();
     }
+
+
 
     private List<LegalFactsIdEntity> convertLegalFactsToEntity(List<LegalFactsIdInt>  dto ) {
         List<LegalFactsIdEntity> legalFactsIds = null;
@@ -57,5 +61,17 @@ public class DtoToEntityTimelineMapper {
                 .statusChanged(statusInfoInternal.isStatusChanged())
                 .actual(statusInfoInternal.getActual())
                 .build();
+    }
+
+    /**
+     * Mappatura che evita di salvare il campo communicationType per gli eventi di categoria LEGAL,
+     * Invece se il communicationType è definito e ha un altro valore allora viene persistito normalmente.
+     * @param communicationType il communicationType da mappare
+     * @return null se communicationType è null o LEGAL, altrimenti communicationType stesso
+     */
+    private CommunicationType mapCommunicationType(CommunicationType communicationType) {
+        if(communicationType == null || communicationType == CommunicationType.LEGAL) return null;
+
+        return communicationType;
     }
 }

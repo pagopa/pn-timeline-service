@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.api.TimelineControllerApi;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
+import it.pagopa.pn.timelineservice.service.AddTimelineElementService;
 import it.pagopa.pn.timelineservice.service.LegalFactService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
@@ -24,13 +25,14 @@ import java.time.Instant;
 public class TimelineController implements TimelineControllerApi {
 
     private final TimelineService timelineService;
+    private final AddTimelineElementService addTimelineElementService;
     private final LegalFactService legalFactService;
     private final SmartMapper smartMapper;
     private final TimelineElementMapper timelineElementMapper;
 
     @Override
     public Mono<ResponseEntity<TimelineElementIdResponse>> addTimelineElement(Mono<NewTimelineElement> newTimelineElementRequest, final ServerWebExchange exchange) {
-        return newTimelineElementRequest.flatMap(request -> timelineService.addTimelineElement(timelineElementMapper.externalToInternal(request.getTimelineElement()),
+        return newTimelineElementRequest.flatMap(request -> addTimelineElementService.addTimelineElement(timelineElementMapper.externalToInternal(request.getTimelineElement()),
                         SmartMapper.mapToClass(request.getNotificationInfo(), NotificationInfoInt.class)))
                 .map(elementId -> new TimelineElementIdResponse().elementId(elementId))
                 .map(ResponseEntity::ok);

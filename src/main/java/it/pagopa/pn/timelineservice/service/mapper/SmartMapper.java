@@ -67,7 +67,7 @@ public class SmartMapper {
         }
     }
 
-    private  TimelineElementInternal mapTimelineInternal(TimelineElementInternal source ){
+    public TimelineElementInternal mapTimelineInternal(TimelineElementInternal source ){
         TimelineElementInternal result;
         if( source != null) {
             TimelineElementInternal elementToMap = source.toBuilder().build();

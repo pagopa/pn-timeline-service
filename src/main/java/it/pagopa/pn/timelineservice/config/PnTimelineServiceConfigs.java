@@ -30,10 +30,6 @@ public class PnTimelineServiceConfigs {
 
     private Instant featureUnreachableRefinementPostAARStartDate;
 
-    private Instant startWriteBusinessTimestamp;
-
-    private Instant stopWriteBusinessTimestamp;
-
     private String pfNewWorkflowStart;
 
     private String pfNewWorkflowStop;

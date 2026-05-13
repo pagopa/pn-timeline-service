@@ -1,5 +1,6 @@
 package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.mapper;
 
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.AarCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.PublicRegistryCallDetailsInt;
@@ -9,10 +10,14 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.*;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.EntityToDtoTimelineMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 class EntityToDtoTimelineMapperTest {
     private final EntityToDtoTimelineMapper mapper = new EntityToDtoTimelineMapper();
@@ -90,9 +95,18 @@ class EntityToDtoTimelineMapperTest {
 
         Assertions.assertEquals( entity.getDetails().getRefusalReasons().getFirst().getErrorCode(), requestRefusedDetailsInt.getRefusalReasons().getFirst().getErrorCode() );
     }
-    
-    @Test
-    void entityToDto() {
+
+    private static Stream<Arguments> provideCommunicationTypeArgs() {
+        return Stream.of(
+                Arguments.of(null, CommunicationType.LEGAL),
+                Arguments.of(CommunicationType.INFORMAL, CommunicationType.INFORMAL),
+                Arguments.of(CommunicationType.LEGAL, CommunicationType.LEGAL) // Caso impossibile vista la logica di business in fase di mapping tra Dto e Entity
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideCommunicationTypeArgs")
+    void entityToDto(CommunicationType entityCommunicationType, CommunicationType expectedCommunicationType) {
 
         TimelineElementEntity entity = TimelineElementEntity.builder()
                 .paId("PaId")
@@ -113,6 +127,7 @@ class EntityToDtoTimelineMapperTest {
                                 .aarTemplateType(AarTemplateTypeEntity.AAR_NOTIFICATION)
                                 .build()
                 )
+                .communicationType(entityCommunicationType)
                 .build();
         
         TimelineElementInternal internal = mapper.entityToDto(entity, Map.of());
@@ -123,6 +138,7 @@ class EntityToDtoTimelineMapperTest {
         Assertions.assertEquals(entity.getDetails().getSentAttemptMade(), details.getSentAttemptMade());
         Assertions.assertEquals(entity.getDetails().getDeliveryMode().getValue(), details.getDeliveryMode().getValue());
         Assertions.assertEquals("reworkId", entity.getReworkId());
+        Assertions.assertEquals(expectedCommunicationType, internal.getCommunicationType());
     }
 
     @Test
