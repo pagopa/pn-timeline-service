@@ -10,10 +10,16 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class InformalTimelineStrategyBundle implements TimelineStrategyBundle {
     private final InformalTimelineElementPersistenceStrategy informalTimelineElementPersistenceStrategy;
+    private final InformalTimelineStatusHistoryStrategy informalTimelineStatusHistoryStrategy;
 
     @Override
     public TimelineElementPersistenceStrategy persistence() {
         return informalTimelineElementPersistenceStrategy;
+    }
+
+    @Override
+    public InformalTimelineStatusHistoryStrategy statusHistory() {
+        return informalTimelineStatusHistoryStrategy;
     }
 
     @Override

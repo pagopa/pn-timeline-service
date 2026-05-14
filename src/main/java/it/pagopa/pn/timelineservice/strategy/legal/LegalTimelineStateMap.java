@@ -1,23 +1,13 @@
-package it.pagopa.pn.timelineservice.utils;
+package it.pagopa.pn.timelineservice.strategy.legal;
 
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
-import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
+import it.pagopa.pn.timelineservice.strategy.common.AbstractStateMap;
 
-import java.util.HashMap;
-import java.util.Map;
+public class LegalTimelineStateMap extends AbstractStateMap {
 
-@Slf4j
-class StateMap {
-    private static final boolean ONLY_MULTI_RECIPIENT = true; // il multi-destinatario comprende transizioni di stato AGGIUNTIVI al singolo destinatario
-    private static final boolean SINGLE_RECIPINET = false;
-
-    private final Map<MapKey, MapValue> mappings = new HashMap<>();
-
-    public StateMap() {
-
+    @Override
+    protected void configureTransitions() {
         // Received state
         this.fromState(NotificationStatusInt.IN_VALIDATION)
                 //STATE UNCHANGE
@@ -379,73 +369,6 @@ class StateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST, NotificationStatusInt.RETURNED_TO_SENDER, SINGLE_RECIPINET)
                 // STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_CANCELLED, NotificationStatusInt.CANCELLED, SINGLE_RECIPINET);
-    }
 
-    NotificationStatusInt getStateTransition(TransitionRequest transitionRequest) {
-        NotificationStatusInt fromStatus = transitionRequest.getFromStatus();
-        TimelineElementCategoryInt timelineRowType = transitionRequest.getTimelineRowType();
-
-        return handleStateTransition(transitionRequest, fromStatus, timelineRowType);
-    }
-
-    private NotificationStatusInt handleStateTransition(TransitionRequest transitionRequest, NotificationStatusInt fromStatus, TimelineElementCategoryInt timelineRowType) {
-        boolean multiRecipient = transitionRequest.isMultiRecipient();
-        MapKey key = new MapKey(fromStatus, timelineRowType, multiRecipient);
-
-        if (isValidTransition(key)) {
-            return this.mappings.get(key).getStatus();
-        } else {
-            // se non è stata trovata la transizione nella mappa degli stati, controllo se siamo nel caso del multiRecipient,
-            // perché potrebbe essere il caso in cui l'elemento è presente nella mappa con chiave multiRecipient = false
-            // (StatiMultiDestinatario = StatiMonoDestinatario + statiAdHocMultiDestinatario)
-            if (multiRecipient == ONLY_MULTI_RECIPIENT) {
-                log.trace("Transition for only multiRecipient not found, trying for singleRecipient key");
-                TransitionRequest transitionRequestForSingleRecipient = TransitionRequest.builder()
-                        .fromStatus(transitionRequest.getFromStatus())
-                        .timelineRowType(transitionRequest.getTimelineRowType())
-                        .multiRecipient(SINGLE_RECIPINET)
-                        .build();
-                return getStateTransition(transitionRequestForSingleRecipient);
-            }
-
-            log.error("Illegal input \"" + timelineRowType + "\" in state \"" + fromStatus + "\"");
-            return fromStatus;
-        }
-    }
-
-    private boolean isValidTransition(MapKey mapKey) {
-        return this.mappings.containsKey(mapKey);
-    }
-
-    private InputMapper fromState(NotificationStatusInt fromStatus) {
-        return new InputMapper(fromStatus);
-    }
-
-
-    private class InputMapper {
-
-        private final NotificationStatusInt fromStatus;
-
-        public InputMapper(NotificationStatusInt fromStatus) {
-            this.fromStatus = fromStatus;
-        }
-
-        public InputMapper withTimelineGoToState(TimelineElementCategoryInt timelineRowType, NotificationStatusInt destinationStatus, boolean multiRecipient) {
-            StateMap.this.mappings.put(new MapKey(fromStatus, timelineRowType, multiRecipient), new MapValue(destinationStatus));
-            return this;
-        }
-    }
-
-    @Value
-    private static class MapKey {
-        NotificationStatusInt status;
-        TimelineElementCategoryInt timelineElementCategory;
-        boolean multiRecipient;
-
-    }
-
-    @Value
-    private static class MapValue {
-        NotificationStatusInt status;
     }
 }

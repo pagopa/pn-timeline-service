@@ -10,10 +10,16 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LegalTimelineStrategyBundle implements TimelineStrategyBundle {
     private final LegalTimelineElementPersistenceStrategy legalTimelineElementPersistenceStrategy;
+    private final LegalTimelineStatusHistoryStrategy legalTimelineStatusHistoryStrategy;
 
     @Override
     public TimelineElementPersistenceStrategy persistence() {
         return legalTimelineElementPersistenceStrategy;
+    }
+
+    @Override
+    public LegalTimelineStatusHistoryStrategy statusHistory() {
+        return legalTimelineStatusHistoryStrategy;
     }
 
     @Override

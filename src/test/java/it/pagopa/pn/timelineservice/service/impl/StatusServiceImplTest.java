@@ -8,8 +8,8 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationRequestAcceptedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.service.StatusHistoryService;
 import it.pagopa.pn.timelineservice.service.StatusService;
-import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,15 +22,15 @@ import java.util.List;
 import java.util.Set;
 
 class StatusServiceImplTest {
-    private StatusUtils statusUtils;
+    private StatusHistoryService statusHistoryService;
     
     private StatusService statusService;
     
     @BeforeEach
     void setup() {
-        statusUtils = Mockito.mock( StatusUtils.class );
+        statusHistoryService = Mockito.mock( StatusHistoryService.class );
 
-        statusService = new StatusServiceImpl(statusUtils);
+        statusService = new StatusServiceImpl(statusHistoryService);
     }
 
     @Test
@@ -50,7 +50,7 @@ class StatusServiceImplTest {
         List<NotificationStatusHistoryElementInt> secondListReturn = new ArrayList<>(firstListReturn);
         secondListReturn.add(element2);
 
-        Mockito.when(statusUtils.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any()))
+        Mockito.when(statusHistoryService.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any()))
                 .thenReturn(firstListReturn)
                 .thenReturn(secondListReturn);
 
@@ -89,7 +89,7 @@ class StatusServiceImplTest {
         List<NotificationStatusHistoryElementInt> secondListReturn = new ArrayList<>(firstListReturn);
         secondListReturn.add(element2);
 
-        Mockito.when(statusUtils.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any()))
+        Mockito.when(statusHistoryService.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any()))
                 .thenReturn(firstListReturn)
                 .thenReturn(secondListReturn);
 

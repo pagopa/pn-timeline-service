@@ -7,19 +7,22 @@ import org.mockito.Mockito;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InformalTimelineStrategyBundleTest {
+    private final InformalTimelineStatusHistoryStrategy statusHistoryStrategy = Mockito.mock(InformalTimelineStatusHistoryStrategy.class);
+    private final InformalTimelineElementPersistenceStrategy persistenceStrategy = Mockito.mock(InformalTimelineElementPersistenceStrategy.class);
+    private final InformalTimelineStrategyBundle bundle = new InformalTimelineStrategyBundle(persistenceStrategy, statusHistoryStrategy);
+
     @Test
     void persistenceReturnsDelegatedStrategy() {
-        InformalTimelineElementPersistenceStrategy strategy = Mockito.mock(InformalTimelineElementPersistenceStrategy.class);
-        InformalTimelineStrategyBundle bundle = new InformalTimelineStrategyBundle(strategy);
+        assertEquals(persistenceStrategy, bundle.persistence());
+    }
 
-        assertEquals(strategy, bundle.persistence());
+    @Test
+    void statusHistoryReturnsDelegatedStrategy() {
+        assertEquals(statusHistoryStrategy, bundle.statusHistory());
     }
 
     @Test
     void supportedTypeIsInformal() {
-        InformalTimelineElementPersistenceStrategy strategy = Mockito.mock(InformalTimelineElementPersistenceStrategy.class);
-        InformalTimelineStrategyBundle bundle = new InformalTimelineStrategyBundle(strategy);
-
         assertEquals(CommunicationType.INFORMAL, bundle.supportedType());
     }
 }

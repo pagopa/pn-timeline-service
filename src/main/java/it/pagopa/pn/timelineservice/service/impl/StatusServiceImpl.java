@@ -1,25 +1,24 @@
 package it.pagopa.pn.timelineservice.service.impl;
 
-    import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
-    import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
-    import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
-    import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-    import it.pagopa.pn.timelineservice.service.StatusService;
-    import it.pagopa.pn.timelineservice.utils.StatusUtils;
-    import lombok.extern.slf4j.Slf4j;
-    import org.springframework.stereotype.Service;
-    import java.time.Instant;
-    import java.util.List;
-    import java.util.Set;
+import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.service.StatusHistoryService;
+import it.pagopa.pn.timelineservice.service.StatusService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
-    @Slf4j
-    @Service
-    public class StatusServiceImpl implements StatusService {
-        private final StatusUtils statusUtils;
+import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 
-        public StatusServiceImpl(StatusUtils statusUtils) {
-            this.statusUtils = statusUtils;
-        }
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class StatusServiceImpl implements StatusService {
+    private final StatusHistoryService statusHistoryService;
 
     @Override
     public NotificationStatusUpdate computeStatusChange(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline, NotificationInfoInt notification) {
@@ -56,11 +55,11 @@ package it.pagopa.pn.timelineservice.service.impl;
     private NotificationStatusHistoryElementInt computeLastStatusHistoryElement(NotificationInfoInt notification, Set<TimelineElementInternal> currentTimeline) {
         int numberOfRecipient = notification.getNumberOfRecipients();
         Instant notificationCreatedAt = notification.getSentAt();
-        List<NotificationStatusHistoryElementInt> historyElementList = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> historyElementList = statusHistoryService.getStatusHistory(
                 currentTimeline,
                 numberOfRecipient,
                 notificationCreatedAt);
 
             return historyElementList.getLast();
-        }
     }
+}

@@ -7,19 +7,22 @@ import org.mockito.Mockito;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LegalTimelineStrategyBundleTest {
+    private final LegalTimelineStatusHistoryStrategy statusHistoryStrategy = Mockito.mock(LegalTimelineStatusHistoryStrategy.class);
+    private final LegalTimelineElementPersistenceStrategy persistenceStrategy = Mockito.mock(LegalTimelineElementPersistenceStrategy.class);
+    private final LegalTimelineStrategyBundle bundle = new LegalTimelineStrategyBundle(persistenceStrategy, statusHistoryStrategy);
+
     @Test
     void persistenceReturnsDelegatedStrategy() {
-        LegalTimelineElementPersistenceStrategy strategy = Mockito.mock(LegalTimelineElementPersistenceStrategy.class);
-        LegalTimelineStrategyBundle bundle = new LegalTimelineStrategyBundle(strategy);
+        assertEquals(persistenceStrategy, bundle.persistence());
+    }
 
-        assertEquals(strategy, bundle.persistence());
+    @Test
+    void statusHistoryReturnsDelegatedStrategy() {
+        assertEquals(statusHistoryStrategy, bundle.statusHistory());
     }
 
     @Test
     void supportedTypeIsLegal() {
-        LegalTimelineElementPersistenceStrategy strategy = Mockito.mock(LegalTimelineElementPersistenceStrategy.class);
-        LegalTimelineStrategyBundle bundle = new LegalTimelineStrategyBundle(strategy);
-
         assertEquals(CommunicationType.LEGAL, bundle.supportedType());
     }
 }
