@@ -67,7 +67,11 @@ public class SmartMapper {
         }
     }
 
-    private  TimelineElementInternal mapTimelineInternal(TimelineElementInternal source ){
+    /*
+        Metodo interno che per i details che lo prevedono (quelli che implementano l'interfaccia ElementTimestampTimelineElementDetails)
+        sovrascrive con il timestamp presente nei details (elementTimestamp) il campo timestamp dell'elemento di timeline.
+    */
+    private TimelineElementInternal mapTimelineInternal(TimelineElementInternal source ){
         TimelineElementInternal result;
         if( source != null) {
             TimelineElementInternal elementToMap = source.toBuilder().build();
@@ -90,6 +94,24 @@ public class SmartMapper {
         boolean isPfNewWorkflowEnabled = featureEnabledUtils.isPfNewWorkflowEnabled(source.getNotificationSentAt());
         timelineMapper.remapSpecificTimelineElementData(timelineElementInternalSet, result, ingestionTimestamp, isPfNewWorkflowEnabled);
 
+        return result;
+    }
+
+    public TimelineElementInternal mapTimelineInternalWithEventTimestamp(TimelineElementInternal source) {
+        if(source == null) return null;
+
+        //Viene recuperato il timestamp originale, prima di effettuare un qualsiasi remapping
+        Instant ingestionTimestamp = source.getTimestamp();
+
+        // Viene effettuato il mapping dell'elemento di timeline per andare a leggere l'eventuale eventTimestamp presente nei dettagli e sovrascrivere il timestamp dell'elemento di timeline con questo valore.
+        // Se non è presente un eventTimestamp nei dettagli, il timestamp rimane invariato.
+        TimelineElementInternal result = mapTimelineInternal(source);
+
+        //Se è presente un eventTimestamp nei dettagli, questo è stato mappato nel campo timestamp del risultato, altrimenti è rimasto invariato.
+        //In entrambi i casi, per sicurezza, sovrascriviamo l'eventTimestamp con il timestamp originale dell'evento. E rimettiamo il timestamp originale nel rispettivo campo.
+        result.setEventTimestamp(result.getTimestamp());
+        result.setTimestamp(ingestionTimestamp);
+        result.setIngestionTimestamp(ingestionTimestamp);
         return result;
     }
 

@@ -2,6 +2,7 @@ package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.mapper;
 
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
@@ -10,20 +11,35 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElement
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DtoToEntityTimelineMapperTest {
 
     private final DtoToEntityTimelineMapper mapper = new DtoToEntityTimelineMapper();
 
-    @Test
-    void dtoToEntity() {
-        TimelineElementInternal timelineElementInternal = buildTimelineElementInternal();
+    /* Attenzione è un vincolo importante che se l'oggetto interno ha communicationType LEGAL non sia persistito nulla sul DB */
+    private static Stream<Arguments> provideCommunicationTypeArgs() {
+        return Stream.of(
+                Arguments.of(CommunicationType.LEGAL, null),
+                Arguments.of(CommunicationType.INFORMAL, CommunicationType.INFORMAL),
+                Arguments.of(null, null)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideCommunicationTypeArgs")
+    void dtoToEntity(CommunicationType domainCommunicationType, CommunicationType expectedCommunicationType) {
+        TimelineElementInternal timelineElementInternal = buildTimelineElementInternal(domainCommunicationType);
         TimelineElementEntity actual = mapper.dtoToEntity(timelineElementInternal);
 
         assertThat(actual).isNotNull();
@@ -42,9 +58,12 @@ class DtoToEntityTimelineMapperTest {
 
         // verifica legalFacts
         assertThat(actual.getLegalFactIds()).isNotNull().hasSize(timelineElementInternal.getLegalFactsIds().size());
-        assertThat(actual.getLegalFactIds().get(0).getKey()).isEqualTo(timelineElementInternal.getLegalFactsIds().get(0).getKey());
-        assertThat(actual.getLegalFactIds().get(0).getCategory().name()).isEqualTo(timelineElementInternal.getLegalFactsIds().get(0).getCategory().name());
+        assertThat(actual.getLegalFactIds().getFirst().getKey()).isEqualTo(timelineElementInternal.getLegalFactsIds().getFirst().getKey());
+        assertThat(actual.getLegalFactIds().getFirst().getCategory().name()).isEqualTo(timelineElementInternal.getLegalFactsIds().getFirst().getCategory().name());
         assertThat(actual.getReworkId()).isEqualTo(timelineElementInternal.getReworkId());
+
+        // verifica communicationType
+        assertEquals(expectedCommunicationType, actual.getCommunicationType());
     }
 
     @Test
@@ -192,7 +211,7 @@ class DtoToEntityTimelineMapperTest {
         assertThat(actual.getDetails().getAarTemplateType().name()).isEqualTo(details.getAarTemplateType().name());
     }
 
-    private TimelineElementInternal buildTimelineElementInternal() {
+    private TimelineElementInternal buildTimelineElementInternal(CommunicationType communicationType) {
         Instant instant = Instant.parse("2021-09-16T15:23:00.00Z");
         TimelineElementDetailsInt elementDetailsInt = parseDetailsFromEntity(TimelineElementDetailsEntity.builder()
                 .recIndex(0)
@@ -213,6 +232,7 @@ class DtoToEntityTimelineMapperTest {
                 .legalFactsIds(legalFactsIdInts)
                 .notificationSentAt(Instant.now())
                 .reworkId("reworkId")
+                .communicationType(communicationType)
                 .build();
     }
 

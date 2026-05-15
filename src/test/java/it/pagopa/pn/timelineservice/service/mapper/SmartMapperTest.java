@@ -9,7 +9,6 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
-import it.pagopa.pn.timelineservice.utils.NotificationReworkUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -654,5 +653,96 @@ class SmartMapperTest {
         Assertions.assertEquals(eventTimestamp, ret.getTimestamp());
     }
 
+    @Test
+    void mapTimelineInternalWithEventTimestampReturnsNullWhenSourceIsNull() {
+        TimelineElementInternal result = smartMapper.mapTimelineInternalWithEventTimestamp(null);
+
+        Assertions.assertNull(result);
+    }
+
+    @Test
+    void mapTimelineInternalWithEventTimestampSetsIngestionTimestampFromOriginalTimestamp() {
+        Instant originalTimestamp = Instant.now();
+
+        TimelineElementInternal source = TimelineElementInternal.builder()
+                .elementId("elementid")
+                .iun("iun")
+                .timestamp(originalTimestamp)
+                .details(AarGenerationDetailsInt.builder().build())
+                .build();
+
+        TimelineElementInternal result = smartMapper.mapTimelineInternalWithEventTimestamp(source);
+
+        Assertions.assertEquals(originalTimestamp, result.getIngestionTimestamp());
+        Assertions.assertEquals(originalTimestamp, result.getTimestamp());
+    }
+
+    @Test
+    void mapTimelineInternalWithEventTimestampSetsEventTimestampFromDetailsWhenPresent() {
+        Instant ingestionTimestamp = Instant.now();
+        Instant eventTimestamp = Instant.EPOCH;
+
+        TimelineElementInternal source = TimelineElementInternal.builder()
+                .elementId("elementid")
+                .iun("iun")
+                .timestamp(ingestionTimestamp)
+                .details(SendDigitalFeedbackDetailsInt.builder()
+                        .recIndex(0)
+                        .digitalAddress(LegalDigitalAddressInt.builder()
+                                .type(LegalDigitalAddressInt.LEGAL_DIGITAL_ADDRESS_TYPE.PEC)
+                                .build())
+                        .notificationDate(eventTimestamp)
+                        .build())
+                .build();
+
+        TimelineElementInternal result = smartMapper.mapTimelineInternalWithEventTimestamp(source);
+
+        Assertions.assertEquals(eventTimestamp, result.getEventTimestamp());
+        Assertions.assertEquals(ingestionTimestamp, result.getTimestamp());
+        Assertions.assertEquals(ingestionTimestamp, result.getIngestionTimestamp());
+    }
+
+    @Test
+    void mapTimelineInternalWithEventTimestampSetsEventTimestampEqualToIngestionWhenDetailsHaveNoEventTimestamp() {
+        Instant ingestionTimestamp = Instant.now();
+
+        TimelineElementInternal source = TimelineElementInternal.builder()
+                .elementId("elementid")
+                .iun("iun")
+                .timestamp(ingestionTimestamp)
+                .details(AarGenerationDetailsInt.builder().build())
+                .build();
+
+        TimelineElementInternal result = smartMapper.mapTimelineInternalWithEventTimestamp(source);
+
+        Assertions.assertEquals(ingestionTimestamp, result.getEventTimestamp());
+        Assertions.assertEquals(ingestionTimestamp, result.getTimestamp());
+        Assertions.assertEquals(ingestionTimestamp, result.getIngestionTimestamp());
+    }
+
+    @Test
+    void mapTimelineInternalWithEventTimestampDoesNotModifyOriginalSource() {
+        Instant ingestionTimestamp = Instant.now();
+        Instant eventTimestamp = Instant.EPOCH;
+
+        TimelineElementInternal source = TimelineElementInternal.builder()
+                .elementId("elementid")
+                .iun("iun")
+                .timestamp(ingestionTimestamp)
+                .details(SendDigitalFeedbackDetailsInt.builder()
+                        .recIndex(0)
+                        .digitalAddress(LegalDigitalAddressInt.builder()
+                                .type(LegalDigitalAddressInt.LEGAL_DIGITAL_ADDRESS_TYPE.PEC)
+                                .build())
+                        .notificationDate(eventTimestamp)
+                        .build())
+                .build();
+
+        smartMapper.mapTimelineInternalWithEventTimestamp(source);
+
+        Assertions.assertEquals(ingestionTimestamp, source.getTimestamp());
+        Assertions.assertNull(source.getIngestionTimestamp());
+        Assertions.assertNull(source.getEventTimestamp());
+    }
 
 }

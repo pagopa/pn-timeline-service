@@ -2,6 +2,7 @@ package it.pagopa.pn.timelineservice.service.mapper;
 
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
@@ -33,6 +34,7 @@ public class TimelineElementMapper {
                 .notificationSentAt(timelineElement.getNotificationSentAt())
                 .paId(timelineElement.getPaId())
                 .reworkId(timelineElement.getReworkId())
+                .communicationType(mapCommunicationTypeFromExternal(timelineElement.getCommunicationType()))
                 .build();
     }
 
@@ -71,5 +73,10 @@ public class TimelineElementMapper {
                 .build();
     }
 
+    private CommunicationType mapCommunicationTypeFromExternal(it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.CommunicationType communicationType) {
+        if(communicationType == null) return CommunicationType.LEGAL;
+
+        return CommunicationType.valueOf(communicationType.getValue());
+    }
 
 }
