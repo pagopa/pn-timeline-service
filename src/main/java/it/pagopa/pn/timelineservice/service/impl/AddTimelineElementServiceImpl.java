@@ -12,8 +12,8 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.service.*;
-import it.pagopa.pn.timelineservice.strategy.TimelineStrategyResolver;
-import it.pagopa.pn.timelineservice.strategy.common.TimelineElementPersistenceStrategy;
+import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
+import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockConfiguration;
@@ -39,12 +39,12 @@ public class AddTimelineElementServiceImpl implements AddTimelineElementService 
     private final StatusService statusService;
     private final LockProvider lockProvider;
     private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
-    private final TimelineStrategyResolver strategyResolver;
+    private final TimelineOperationsResolver strategyResolver;
 
     public Mono<String> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
         log.debug("addTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
 
-        TimelineElementPersistenceStrategy strategy = strategyResolver.resolve(dto.getCommunicationType()).persistence();
+        TimelineElementPersistenceStrategy strategy = strategyResolver.resolve(dto.getCommunicationType()).persistenceStrategy();
         PnAuditLogEvent logEvent = strategy.buildAuditLogEvent(dto, new PnAuditLogBuilder());
         logEvent.log();
 

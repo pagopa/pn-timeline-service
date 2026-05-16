@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.informal;
+package it.pagopa.pn.timelineservice.operations.informal;
 
 import it.pagopa.pn.commons.log.PnAuditLogBuilder;
 import it.pagopa.pn.commons.log.PnAuditLogEvent;
@@ -98,11 +98,13 @@ class InformalTimelineElementPersistenceStrategyTest {
                 .category(TimelineElementCategoryInt.AAR_GENERATION)
                 .timestamp(originalTimestamp)
                 .build();
+        Instant eventTimestamp = originalTimestamp.plusSeconds(10);
         TimelineElementInternal mappedDto = TimelineElementInternal.builder()
                 .iun("iun_123")
                 .elementId("elementId_123")
                 .category(TimelineElementCategoryInt.AAR_GENERATION)
-                .timestamp(originalTimestamp.plusSeconds(10))
+                .timestamp(originalTimestamp)
+                .eventTimestamp(eventTimestamp)
                 .build();
         when(smartMapper.mapTimelineInternalWithEventTimestamp(Mockito.any())).thenReturn(mappedDto);
         Set<TimelineElementInternal> currentTimeline = new HashSet<>();
@@ -111,7 +113,7 @@ class InformalTimelineElementPersistenceStrategyTest {
 
         Mockito.verify(smartMapper).mapTimelineInternalWithEventTimestamp(dto);
         Assertions.assertEquals(originalTimestamp, result.getTimestamp());
-        Assertions.assertEquals(mappedDto.getEventTimestamp(), result.getEventTimestamp());
+        Assertions.assertEquals(eventTimestamp, result.getEventTimestamp());
     }
 
     @Test

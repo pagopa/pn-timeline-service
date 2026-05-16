@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.informal;
+package it.pagopa.pn.timelineservice.operations.informal;
 
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
@@ -6,7 +6,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
-import it.pagopa.pn.timelineservice.strategy.common.StatusHistoryStrategy;
+import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ import static it.pagopa.pn.timelineservice.utils.StatusUtils.INITIAL_STATUS;
 
 @Component
 @RequiredArgsConstructor
-public class InformalTimelineStatusHistoryStrategy implements StatusHistoryStrategy {
+public class InformalTimelineStatusHistoryCalculator implements StatusHistoryCalculator {
 
     private final InformalTimelineStateMap stateMap = new InformalTimelineStateMap();
     private final SmartMapper smartMapper;

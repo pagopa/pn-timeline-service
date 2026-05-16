@@ -4,9 +4,9 @@ import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.strategy.TimelineStrategyBundle;
-import it.pagopa.pn.timelineservice.strategy.TimelineStrategyResolver;
-import it.pagopa.pn.timelineservice.strategy.common.StatusHistoryStrategy;
+import it.pagopa.pn.timelineservice.operations.TimelineOperations;
+import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
+import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,13 +30,13 @@ import static org.mockito.Mockito.*;
 class StatusHistoryServiceImplTest {
 
     @Mock
-    private TimelineStrategyResolver timelineStrategyResolver;
+    private TimelineOperationsResolver timelineOperationsResolver;
 
     @Mock
-    private TimelineStrategyBundle timelineStrategyBundle;
+    private TimelineOperations timelineOperations;
 
     @Mock
-    private StatusHistoryStrategy statusHistoryStrategy;
+    private StatusHistoryCalculator statusHistoryCalculator;
 
     @InjectMocks
     private StatusHistoryServiceImpl statusHistoryService;
@@ -54,9 +54,9 @@ class StatusHistoryServiceImplTest {
         when(element.getCommunicationType()).thenReturn(CommunicationType.INFORMAL);
 
         List<NotificationStatusHistoryElementInt> expected = List.of(mock(NotificationStatusHistoryElementInt.class));
-        when(timelineStrategyResolver.resolve(CommunicationType.INFORMAL)).thenReturn(timelineStrategyBundle);
-        when(timelineStrategyBundle.statusHistory()).thenReturn(statusHistoryStrategy);
-        when(statusHistoryStrategy.getStatusHistory(Set.of(element), 1, notificationCreatedAt)).thenReturn(expected);
+        when(timelineOperationsResolver.resolve(CommunicationType.INFORMAL)).thenReturn(timelineOperations);
+        when(timelineOperations.statusHistoryCalculator()).thenReturn(statusHistoryCalculator);
+        when(statusHistoryCalculator.getStatusHistory(Set.of(element), 1, notificationCreatedAt)).thenReturn(expected);
 
         List<NotificationStatusHistoryElementInt> result = statusHistoryService.getStatusHistory(Set.of(element), 1, notificationCreatedAt);
 
@@ -72,12 +72,12 @@ class StatusHistoryServiceImplTest {
 
         Set<TimelineElementInternal> elements = new java.util.LinkedHashSet<>(List.of(elementWithNull, elementWithType));
 
-        when(timelineStrategyResolver.resolve(CommunicationType.INFORMAL)).thenReturn(timelineStrategyBundle);
-        when(timelineStrategyBundle.statusHistory()).thenReturn(statusHistoryStrategy);
-        when(statusHistoryStrategy.getStatusHistory(elements, 2, notificationCreatedAt)).thenReturn(List.of());
+        when(timelineOperationsResolver.resolve(CommunicationType.INFORMAL)).thenReturn(timelineOperations);
+        when(timelineOperations.statusHistoryCalculator()).thenReturn(statusHistoryCalculator);
+        when(statusHistoryCalculator.getStatusHistory(elements, 2, notificationCreatedAt)).thenReturn(List.of());
 
         assertDoesNotThrow(() -> statusHistoryService.getStatusHistory(elements, 2, notificationCreatedAt));
-        verify(timelineStrategyResolver).resolve(CommunicationType.INFORMAL);
+        verify(timelineOperationsResolver).resolve(CommunicationType.INFORMAL);
     }
 
     @Test
@@ -91,12 +91,12 @@ class StatusHistoryServiceImplTest {
 
     @Test
     void getStatusHistory_usesLegalCommunicationStrategyWhenTimelineElementListIsEmpty() {
-        when(timelineStrategyResolver.resolve(CommunicationType.LEGAL)).thenReturn(timelineStrategyBundle);
-        when(timelineStrategyBundle.statusHistory()).thenReturn(statusHistoryStrategy);
-        when(statusHistoryStrategy.getStatusHistory(Set.of(), 1, notificationCreatedAt)).thenReturn(List.of());
+        when(timelineOperationsResolver.resolve(CommunicationType.LEGAL)).thenReturn(timelineOperations);
+        when(timelineOperations.statusHistoryCalculator()).thenReturn(statusHistoryCalculator);
+        when(statusHistoryCalculator.getStatusHistory(Set.of(), 1, notificationCreatedAt)).thenReturn(List.of());
 
         assertDoesNotThrow(() -> statusHistoryService.getStatusHistory(Set.of(), 1, notificationCreatedAt));
-        verify(timelineStrategyResolver).resolve(CommunicationType.LEGAL);
+        verify(timelineOperationsResolver).resolve(CommunicationType.LEGAL);
     }
 
     private static Stream<Arguments> provideTimelineElementLists() {
@@ -109,11 +109,11 @@ class StatusHistoryServiceImplTest {
     @ParameterizedTest
     @MethodSource("provideTimelineElementLists")
     void getStatusHistory_usesLegalCommunicationStrategyWhenTimelineElementListIsEmpty(Set<TimelineElementInternal> timelineElementList) {
-        when(timelineStrategyResolver.resolve(CommunicationType.LEGAL)).thenReturn(timelineStrategyBundle);
-        when(timelineStrategyBundle.statusHistory()).thenReturn(statusHistoryStrategy);
-        when(statusHistoryStrategy.getStatusHistory(timelineElementList, 1, notificationCreatedAt)).thenReturn(List.of());
+        when(timelineOperationsResolver.resolve(CommunicationType.LEGAL)).thenReturn(timelineOperations);
+        when(timelineOperations.statusHistoryCalculator()).thenReturn(statusHistoryCalculator);
+        when(statusHistoryCalculator.getStatusHistory(timelineElementList, 1, notificationCreatedAt)).thenReturn(List.of());
 
         assertDoesNotThrow(() -> statusHistoryService.getStatusHistory(timelineElementList, 1, notificationCreatedAt));
-        verify(timelineStrategyResolver).resolve(CommunicationType.LEGAL);
+        verify(timelineOperationsResolver).resolve(CommunicationType.LEGAL);
     }
 }

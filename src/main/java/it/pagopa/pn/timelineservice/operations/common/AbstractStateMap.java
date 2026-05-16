@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.common;
+package it.pagopa.pn.timelineservice.operations.common;
 
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;

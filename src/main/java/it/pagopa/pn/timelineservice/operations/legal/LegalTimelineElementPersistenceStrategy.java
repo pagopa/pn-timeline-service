@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.legal;
+package it.pagopa.pn.timelineservice.operations.legal;
 
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.commons.log.PnAuditLogBuilder;
@@ -9,7 +9,7 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
-import it.pagopa.pn.timelineservice.strategy.common.TimelineElementPersistenceStrategy;
+import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.utils.CompletedDeliveryWorkflowCategory;
 import lombok.RequiredArgsConstructor;

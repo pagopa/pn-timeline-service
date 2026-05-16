@@ -1,8 +1,8 @@
-package it.pagopa.pn.timelineservice.strategy.legal;
+package it.pagopa.pn.timelineservice.operations.legal;
 
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.strategy.common.AbstractStateMap;
+import it.pagopa.pn.timelineservice.operations.common.AbstractStateMap;
 
 public class LegalTimelineStateMap extends AbstractStateMap {
 

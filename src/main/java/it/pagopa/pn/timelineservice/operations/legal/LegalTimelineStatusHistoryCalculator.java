@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.legal;
+package it.pagopa.pn.timelineservice.operations.legal;
 
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
@@ -9,7 +9,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
-import it.pagopa.pn.timelineservice.strategy.common.StatusHistoryStrategy;
+import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
 import it.pagopa.pn.timelineservice.utils.CompletedDeliveryWorkflowCategory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ import static it.pagopa.pn.timelineservice.utils.StatusUtils.INITIAL_STATUS;
 
 @Component
 @RequiredArgsConstructor
-public class LegalTimelineStatusHistoryStrategy implements StatusHistoryStrategy {
+public class LegalTimelineStatusHistoryCalculator implements StatusHistoryCalculator {
 
     private final LegalTimelineStateMap stateMap = new LegalTimelineStateMap();
     private final SmartMapper smartMapper;

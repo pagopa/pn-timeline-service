@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.common;
+package it.pagopa.pn.timelineservice.operations.common;
 
 import it.pagopa.pn.commons.log.PnAuditLogBuilder;
 import it.pagopa.pn.commons.log.PnAuditLogEvent;

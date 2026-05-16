@@ -17,9 +17,9 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.service.*;
-import it.pagopa.pn.timelineservice.strategy.legal.LegalTimelineElementPersistenceStrategy;
-import it.pagopa.pn.timelineservice.strategy.TimelineStrategyBundle;
-import it.pagopa.pn.timelineservice.strategy.TimelineStrategyResolver;
+import it.pagopa.pn.timelineservice.operations.legal.LegalTimelineElementPersistenceStrategy;
+import it.pagopa.pn.timelineservice.operations.TimelineOperations;
+import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
 import org.junit.jupiter.api.Assertions;
@@ -66,10 +66,10 @@ class AddTimelineElementServiceImplTest {
 
         // In questi junit testiamo l'orchestrazione, dunque mockiamo il resolver per restituire sempre la strategia legale, in modo da testare la logica di persistenza più complessa.
         legalTimelineElementPersistenceStrategy = Mockito.mock(LegalTimelineElementPersistenceStrategy.class);
-        TimelineStrategyBundle legalTimelineStrategyBundle = Mockito.mock(TimelineStrategyBundle.class);
-        when(legalTimelineStrategyBundle.persistence()).thenReturn(legalTimelineElementPersistenceStrategy);
-        TimelineStrategyResolver strategyResolver = Mockito.mock(TimelineStrategyResolver.class);
-        when(strategyResolver.resolve(Mockito.any())).thenReturn(legalTimelineStrategyBundle);
+        TimelineOperations legalTimelineOperations = Mockito.mock(TimelineOperations.class);
+        when(legalTimelineOperations.persistenceStrategy()).thenReturn(legalTimelineElementPersistenceStrategy);
+        TimelineOperationsResolver strategyResolver = Mockito.mock(TimelineOperationsResolver.class);
+        when(strategyResolver.resolve(Mockito.any())).thenReturn(legalTimelineOperations);
         // Mock della strategia legale, che restituisce sempre l'elemento con lo stesso timestamp (senza applicare la logica di business timestamp) e che non richiede il percorso critico, in modo da testare la logica di persistenza standard.
         when(legalTimelineElementPersistenceStrategy.applyBusinessTimestamp(Mockito.any(), Mockito.any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(legalTimelineElementPersistenceStrategy.requiresCriticalPath(Mockito.any(), Mockito.any())).thenReturn(false);

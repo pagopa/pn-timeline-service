@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.legal;
+package it.pagopa.pn.timelineservice.operations.legal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 
 class LegalTimelineStatusHistoryMultiRecipientTest {
 
-    private LegalTimelineStatusHistoryStrategy legalStatusHistory;
+    private LegalTimelineStatusHistoryCalculator legalStatusHistory;
     private static final String SERCQ_ADDRESS = "x-pagopa-pn-sercq:send-self:notification-already-delivered";
     private static final String PEC_ADDRESS = "test@pec.it";
 
@@ -34,7 +34,7 @@ class LegalTimelineStatusHistoryMultiRecipientTest {
         PnTimelineServiceConfigs pnDeliveryPushConfigs = mock(PnTimelineServiceConfigs.class);
         FeatureEnabledUtils featureEnabledUtils = mock(FeatureEnabledUtils.class);
         ObjectMapper objectMapper = new ObjectMapper();
-        this.legalStatusHistory = new LegalTimelineStatusHistoryStrategy(new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfigs), objectMapper, featureEnabledUtils));
+        this.legalStatusHistory = new LegalTimelineStatusHistoryCalculator(new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfigs), objectMapper, featureEnabledUtils));
     }
     
     @Test

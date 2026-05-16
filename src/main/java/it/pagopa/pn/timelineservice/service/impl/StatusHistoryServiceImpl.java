@@ -5,8 +5,8 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHi
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.service.StatusHistoryService;
-import it.pagopa.pn.timelineservice.strategy.TimelineStrategyResolver;
-import it.pagopa.pn.timelineservice.strategy.common.StatusHistoryStrategy;
+import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
+import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceException
 @Service
 @RequiredArgsConstructor
 public class StatusHistoryServiceImpl implements StatusHistoryService {
-    private final TimelineStrategyResolver timelineStrategyResolver;
+    private final TimelineOperationsResolver timelineOperationsResolver;
 
     @Override
     public List<NotificationStatusHistoryElementInt> getStatusHistory(Set<TimelineElementInternal> timelineElementList, int numberOfRecipients, Instant notificationCreatedAt) {
@@ -35,8 +35,8 @@ public class StatusHistoryServiceImpl implements StatusHistoryService {
             communicationType = retrieveCommunicationTypeFromTimelineElementList(timelineElementList);
         }
 
-        StatusHistoryStrategy statusHistoryStrategy = timelineStrategyResolver.resolve(communicationType).statusHistory();
-        return statusHistoryStrategy.getStatusHistory(timelineElementList, numberOfRecipients, notificationCreatedAt);
+        StatusHistoryCalculator statusHistoryCalculator = timelineOperationsResolver.resolve(communicationType).statusHistoryCalculator();
+        return statusHistoryCalculator.getStatusHistory(timelineElementList, numberOfRecipients, notificationCreatedAt);
     }
 
     private CommunicationType retrieveCommunicationTypeFromTimelineElementList(Set<TimelineElementInternal> timelineElementList) {

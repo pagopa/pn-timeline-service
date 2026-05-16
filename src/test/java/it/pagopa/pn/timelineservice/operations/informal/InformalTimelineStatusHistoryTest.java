@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.informal;
+package it.pagopa.pn.timelineservice.operations.informal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
@@ -28,7 +28,7 @@ class InformalTimelineStatusHistoryTest {
     @Mock
     private TimelineService timelineService;
 
-    private InformalTimelineStatusHistoryStrategy informalTimelineStatusHistoryStrategy;
+    private InformalTimelineStatusHistoryCalculator informalTimelineStatusHistoryStrategy;
 
 
     @BeforeEach
@@ -36,7 +36,7 @@ class InformalTimelineStatusHistoryTest {
         PnTimelineServiceConfigs pnDeliveryPushConfigs = mock(PnTimelineServiceConfigs.class);
         FeatureEnabledUtils featureEnabledUtils = mock(FeatureEnabledUtils.class);
         ObjectMapper objectMapper = new ObjectMapper();
-        this.informalTimelineStatusHistoryStrategy = new InformalTimelineStatusHistoryStrategy(new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfigs), objectMapper, featureEnabledUtils));
+        this.informalTimelineStatusHistoryStrategy = new InformalTimelineStatusHistoryCalculator(new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfigs), objectMapper, featureEnabledUtils));
     }
 
     @Test

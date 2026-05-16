@@ -1,24 +1,24 @@
-package it.pagopa.pn.timelineservice.strategy.informal;
+package it.pagopa.pn.timelineservice.operations.informal;
 
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
-import it.pagopa.pn.timelineservice.strategy.common.TimelineElementPersistenceStrategy;
-import it.pagopa.pn.timelineservice.strategy.TimelineStrategyBundle;
+import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
+import it.pagopa.pn.timelineservice.operations.TimelineOperations;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class InformalTimelineStrategyBundle implements TimelineStrategyBundle {
+public class InformalTimelineOperations implements TimelineOperations {
     private final InformalTimelineElementPersistenceStrategy informalTimelineElementPersistenceStrategy;
-    private final InformalTimelineStatusHistoryStrategy informalTimelineStatusHistoryStrategy;
+    private final InformalTimelineStatusHistoryCalculator informalTimelineStatusHistoryStrategy;
 
     @Override
-    public TimelineElementPersistenceStrategy persistence() {
+    public TimelineElementPersistenceStrategy persistenceStrategy() {
         return informalTimelineElementPersistenceStrategy;
     }
 
     @Override
-    public InformalTimelineStatusHistoryStrategy statusHistory() {
+    public InformalTimelineStatusHistoryCalculator statusHistoryCalculator() {
         return informalTimelineStatusHistoryStrategy;
     }
 

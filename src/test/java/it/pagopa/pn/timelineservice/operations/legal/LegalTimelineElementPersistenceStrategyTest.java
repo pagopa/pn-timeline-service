@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.legal;
+package it.pagopa.pn.timelineservice.operations.legal;
 
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.commons.log.PnAuditLogBuilder;

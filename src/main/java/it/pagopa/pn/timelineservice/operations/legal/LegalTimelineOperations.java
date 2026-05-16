@@ -1,24 +1,24 @@
-package it.pagopa.pn.timelineservice.strategy.legal;
+package it.pagopa.pn.timelineservice.operations.legal;
 
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
-import it.pagopa.pn.timelineservice.strategy.common.TimelineElementPersistenceStrategy;
-import it.pagopa.pn.timelineservice.strategy.TimelineStrategyBundle;
+import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
+import it.pagopa.pn.timelineservice.operations.TimelineOperations;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class LegalTimelineStrategyBundle implements TimelineStrategyBundle {
+public class LegalTimelineOperations implements TimelineOperations {
     private final LegalTimelineElementPersistenceStrategy legalTimelineElementPersistenceStrategy;
-    private final LegalTimelineStatusHistoryStrategy legalTimelineStatusHistoryStrategy;
+    private final LegalTimelineStatusHistoryCalculator legalTimelineStatusHistoryStrategy;
 
     @Override
-    public TimelineElementPersistenceStrategy persistence() {
+    public TimelineElementPersistenceStrategy persistenceStrategy() {
         return legalTimelineElementPersistenceStrategy;
     }
 
     @Override
-    public LegalTimelineStatusHistoryStrategy statusHistory() {
+    public LegalTimelineStatusHistoryCalculator statusHistoryCalculator() {
         return legalTimelineStatusHistoryStrategy;
     }
 
