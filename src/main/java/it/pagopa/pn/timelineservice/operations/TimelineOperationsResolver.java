@@ -48,7 +48,7 @@ import static java.util.stream.Collectors.toMap;
  */
 @Component
 public class TimelineOperationsResolver {
-    private static final String CODE_ERROR = "TIMELINE_STRATEGY_RESOLUTION";
+    private static final String CODE_ERROR = "TIMELINE_OPERATIONS_RESOLVER";
     private final Map<CommunicationType, TimelineOperations> operationsMap;
 
     public TimelineOperationsResolver(List<TimelineOperations> timelineOperations) {
@@ -59,7 +59,7 @@ public class TimelineOperationsResolver {
                         identity(),
                         (existing, duplicate) -> {
                             String duplicateErrMsg = String.format(
-                                    "Duplicate TimelineStrategyBundle for communication type %s: %s and %s",
+                                    "Duplicate TimelineOperations for communication type %s: %s and %s",
                                     existing.supportedType(),
                                     existing.getClass().getName(),
                                     duplicate.getClass().getName()
