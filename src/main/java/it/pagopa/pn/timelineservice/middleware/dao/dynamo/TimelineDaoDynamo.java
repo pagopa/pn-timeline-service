@@ -184,7 +184,7 @@ public class TimelineDaoDynamo implements TimelineDao {
                     .municipalityDetails(null)
                     .addressDetails(null)
                     .province(null)
-                    .municipality(null)
+                    .municipality(physicalAddress.getMunicipality())
                     .address(null)
                     // NBBBB: zip e foreignState NON vanno eliminati, in quanto servono per la fatturazione
                     // li esplicito volutamente anche se non serve
@@ -198,11 +198,11 @@ public class TimelineDaoDynamo implements TimelineDao {
             newDetails.setNewAddress(newAddress.toBuilder()
                     .at(null)
                     .municipalityDetails(null)
-                    .zip(null)
+                    .zip(newAddress.getZip())
                     .addressDetails(null)
                     .province(null)
-                    .municipality(null)
-                    .foreignState(null)
+                    .municipality(newAddress.getMunicipality())
+                    .foreignState(newAddress.getForeignState())
                     .address(null)
                     .build());
         }
