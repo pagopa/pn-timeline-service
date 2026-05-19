@@ -6,6 +6,9 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusIn
 import java.util.List;
 
 public class StatusUtils {
+    private StatusUtils() {
+        // Utility class, no instantiation allowed
+    }
     
     public static final NotificationStatusInt INITIAL_STATUS = NotificationStatusInt.IN_VALIDATION;
 

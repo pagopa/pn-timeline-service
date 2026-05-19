@@ -33,8 +33,8 @@ class TimelineOperationsResolverTest {
         TimelineOperations bundle2 = Mockito.mock(TimelineOperations.class);
         Mockito.when(bundle1.supportedType()).thenReturn(CommunicationType.LEGAL);
         Mockito.when(bundle2.supportedType()).thenReturn(CommunicationType.LEGAL);
-
-        assertThrows(PnInternalException.class, () -> new TimelineOperationsResolver(List.of(bundle1, bundle2)));
+        List<TimelineOperations> bundles = List.of(bundle1, bundle2);
+        assertThrows(PnInternalException.class, () -> new TimelineOperationsResolver(bundles));
     }
 
     @Test

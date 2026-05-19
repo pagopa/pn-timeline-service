@@ -112,7 +112,8 @@ class LegalTimelineElementPersistenceStrategyTest {
                 .timestamp(Instant.now())
                 .build();
 
-        assertThrows(PnInternalException.class, () -> strategy.enrichWithRework(dto, Set.of(reworkElement)));
+        Set<TimelineElementInternal> reworkElements = Set.of(reworkElement);
+        assertThrows(PnInternalException.class, () -> strategy.enrichWithRework(dto, reworkElements));
     }
 
 

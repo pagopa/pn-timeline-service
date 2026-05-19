@@ -84,9 +84,9 @@ class StatusHistoryServiceImplTest {
     void getStatusHistory_throwsExceptionWhenAllCommunicationTypesAreNull() {
         TimelineElementInternal element = mock(TimelineElementInternal.class);
         when(element.getCommunicationType()).thenReturn(null);
-
+        Set<TimelineElementInternal> elements = Set.of(element);
         assertThrows(PnInternalException.class,
-                () -> statusHistoryService.getStatusHistory(Set.of(element), 1, notificationCreatedAt));
+                () -> statusHistoryService.getStatusHistory(elements, 1, notificationCreatedAt));
     }
 
     @Test
