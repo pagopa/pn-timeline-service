@@ -1,8 +1,10 @@
 package it.pagopa.pn.timelineservice.operations.informal;
 
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
+import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
 import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
 import it.pagopa.pn.timelineservice.operations.TimelineOperations;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class InformalTimelineOperations implements TimelineOperations {
     private final InformalTimelineElementPersistenceStrategy informalTimelineElementPersistenceStrategy;
     private final InformalTimelineStatusHistoryCalculator informalTimelineStatusHistoryStrategy;
+    private final InformalTimelineTimestampMapper informalTimelineTimestampMapper;
 
     @Override
     public TimelineElementPersistenceStrategy persistenceStrategy() {
@@ -18,8 +21,13 @@ public class InformalTimelineOperations implements TimelineOperations {
     }
 
     @Override
-    public InformalTimelineStatusHistoryCalculator statusHistoryCalculator() {
+    public StatusHistoryCalculator statusHistoryCalculator() {
         return informalTimelineStatusHistoryStrategy;
+    }
+
+    @Override
+    public TimelineTimestampMapper timelineTimestampMapper() {
+        return informalTimelineTimestampMapper;
     }
 
     @Override

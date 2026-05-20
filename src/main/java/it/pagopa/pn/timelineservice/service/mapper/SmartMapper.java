@@ -2,30 +2,21 @@ package it.pagopa.pn.timelineservice.service.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
-import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.ElementTimestampTimelineElementDetails;
-import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.Set;
 
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class SmartMapper {
-
-    private final TimelineMapperFactory timelineMapperFactory;
     private static ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
-    private final FeatureEnabledUtils featureEnabledUtils;
 
     public static <S,T> T mapToClass(S source, Class<T> destinationClass ){
         T result;
@@ -37,24 +28,9 @@ public class SmartMapper {
         return result;
     }
 
-    static Converter<TimelineElementInternal, TimelineElementInternal> timelineElementInternalTimestampConverter =
-            ctx -> {
-                // se il detail estende l'interfaccia e l'elementTimestamp non è nullo, lo sovrascrivo nel source originale
-                if (ctx.getSource().getDetails() instanceof ElementTimestampTimelineElementDetails elementTimestampTimelineElementDetails
-                        && elementTimestampTimelineElementDetails.getElementTimestamp() != null)
-                {
-                    return ctx.getSource().toBuilder()
-                            .timestamp(elementTimestampTimelineElementDetails.getElementTimestamp())
-                            .build();
-                }
-
-                return ctx.getSource();
-            };
-
     static{
         modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.createTypeMap(TimelineElementInternal.class, TimelineElementInternal.class).setPostConverter(timelineElementInternalTimestampConverter);
     }
 
 
@@ -65,54 +41,6 @@ public class SmartMapper {
         } catch (IOException e) {
             throw new PnInternalException("Errore durante il mapping del dettaglio", "MAPPING_ERROR", e);
         }
-    }
-
-    /*
-        Metodo interno che per i details che lo prevedono (quelli che implementano l'interfaccia ElementTimestampTimelineElementDetails)
-        sovrascrive con il timestamp presente nei details (elementTimestamp) il campo timestamp dell'elemento di timeline.
-    */
-    private TimelineElementInternal mapTimelineInternal(TimelineElementInternal source ){
-        TimelineElementInternal result;
-        if( source != null) {
-            TimelineElementInternal elementToMap = source.toBuilder().build();
-            result = modelMapper.map(elementToMap, TimelineElementInternal.class );
-        } else {
-            result = null;
-        }
-        return result;
-    }
-
-    public TimelineElementInternal mapTimelineInternal(TimelineElementInternal source, Set<TimelineElementInternal> timelineElementInternalSet) {
-        //Viene recuperato il timestamp originale, prima di effettuare un qualsiasi remapping
-        Instant ingestionTimestamp = source.getTimestamp();
-
-        //Viene effettuato un primo remapping degli elementi di timeline e dei relativi timestamp in particolare viene effettuato il remapping di tutti
-        // i timestamp che non dipendono da ulteriori elementi di timeline, cioè hanno l'eventTimestamp già storicizzato nei details
-        TimelineElementInternal result = mapTimelineInternal(source);
-
-        TimelineMapper timelineMapper = timelineMapperFactory.getTimelineMapper(source.getNotificationSentAt());
-        boolean isPfNewWorkflowEnabled = featureEnabledUtils.isPfNewWorkflowEnabled(source.getNotificationSentAt());
-        timelineMapper.remapSpecificTimelineElementData(timelineElementInternalSet, result, ingestionTimestamp, isPfNewWorkflowEnabled);
-
-        return result;
-    }
-
-    public TimelineElementInternal mapTimelineInternalWithEventTimestamp(TimelineElementInternal source) {
-        if(source == null) return null;
-
-        //Viene recuperato il timestamp originale, prima di effettuare un qualsiasi remapping
-        Instant ingestionTimestamp = source.getTimestamp();
-
-        // Viene effettuato il mapping dell'elemento di timeline per andare a leggere l'eventuale eventTimestamp presente nei dettagli e sovrascrivere il timestamp dell'elemento di timeline con questo valore.
-        // Se non è presente un eventTimestamp nei dettagli, il timestamp rimane invariato.
-        TimelineElementInternal result = mapTimelineInternal(source);
-
-        //Se è presente un eventTimestamp nei dettagli, questo è stato mappato nel campo timestamp del risultato, altrimenti è rimasto invariato.
-        //In entrambi i casi, per sicurezza, sovrascriviamo l'eventTimestamp con il timestamp originale dell'evento. E rimettiamo il timestamp originale nel rispettivo campo.
-        result.setEventTimestamp(result.getTimestamp());
-        result.setTimestamp(ingestionTimestamp);
-        result.setIngestionTimestamp(ingestionTimestamp);
-        return result;
     }
 
 }

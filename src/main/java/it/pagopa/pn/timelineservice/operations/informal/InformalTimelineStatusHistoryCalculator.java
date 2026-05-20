@@ -5,8 +5,8 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusIn
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +21,7 @@ import static it.pagopa.pn.timelineservice.utils.StatusUtils.INITIAL_STATUS;
 public class InformalTimelineStatusHistoryCalculator implements StatusHistoryCalculator {
 
     private final InformalTimelineStateMap stateMap = new InformalTimelineStateMap();
-    private final SmartMapper smartMapper;
+    private final InformalTimelineTimestampMapper timelineTimestampMapper;
 
     public List<NotificationStatusHistoryElementInt> getStatusHistory(Set<TimelineElementInternal> timelineElementList,
                                                                       int numberOfRecipients,
@@ -29,7 +29,8 @@ public class InformalTimelineStatusHistoryCalculator implements StatusHistoryCal
 
         //Map TimelineElementInternal per cambio timestamp con business timestamp
         Set<TimelineElementInternal> timelineElementListMapped = timelineElementList.stream()
-                .map(smartMapper::mapTimelineInternalWithEventTimestamp)
+                .map(el -> new TimelineTimestampMapper.TimestampMapperPayload(el, null))
+                .map(timelineTimestampMapper::mapTimelineTimestamps)
                 .collect(Collectors.toSet());
 
 

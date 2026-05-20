@@ -17,6 +17,9 @@ import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.RequestRefus
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
+import it.pagopa.pn.timelineservice.operations.CommunicationTypeClassifier;
+import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
 import it.pagopa.pn.timelineservice.service.StatusHistoryService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
@@ -49,7 +52,8 @@ public class TimelineServiceImpl implements TimelineService {
     private final TimelineCounterEntityDao timelineCounterEntityDao;
     private final StatusHistoryService statusHistoryService;
     private final ConfidentialInformationService confidentialInformationService;
-    private final SmartMapper smartMapper;
+    private final CommunicationTypeClassifier communicationTypeClassifier;
+    private final TimelineOperationsResolver timelineOperationsResolver;
 
     @Override
     public Mono<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly) {
@@ -206,14 +210,67 @@ public class TimelineServiceImpl implements TimelineService {
     @Override
     public Mono<NotificationHistoryInt> getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
         log.debug("getTimelineAndStatusHistory Start - iun={} ", iun);
-        NotificationHistoryInt notificationHistoryInt = new NotificationHistoryInt();
 
         return getTimeline(iun, null, true, false)
                 .collect(Collectors.toList())
-                .doOnNext(notificationHistoryInt::setTimeline)
-                .map(timelineElements -> getAndSetStatusHistory(timelineElements, numberOfRecipients, createdAt, notificationHistoryInt))
-                .map(this::getAndSetCurrentStatus)
-                .map(notificationStatusInt -> remapTimelineElements(notificationHistoryInt));
+                .map(this::classifyCommunicationType)
+                .map(timelineWithCommunicationType -> this.buildNotificationHistory(timelineWithCommunicationType, numberOfRecipients, createdAt));
+    }
+
+    public record TimelineElementsWithCommunicationType(List<TimelineElementInternal> timelineElements, CommunicationType communicationType) {}
+
+    private TimelineElementsWithCommunicationType classifyCommunicationType(List<TimelineElementInternal> timelineElements) {
+        CommunicationType communicationType = communicationTypeClassifier.resolveFromTimelineElements(timelineElements);
+        return new TimelineElementsWithCommunicationType(timelineElements, communicationType);
+    }
+
+    private NotificationHistoryInt buildNotificationHistory(TimelineElementsWithCommunicationType timelineElementsWithCommunicationType, int numberOfRecipients, Instant createdAt) {
+        List<TimelineElementInternal> elements = timelineElementsWithCommunicationType.timelineElements;
+        CommunicationType communicationType = timelineElementsWithCommunicationType.communicationType;
+
+        List<NotificationStatusHistoryElementInt> statusHistory = getStatusHistory(elements, numberOfRecipients, createdAt, communicationType);
+        List<TimelineElementInternal> remappedTimeline = remapAndSortTimelineElements(elements, communicationType);
+        NotificationStatusInt currentStatus = StatusUtils.getCurrentStatus(statusHistory);
+
+        NotificationHistoryInt result = new NotificationHistoryInt();
+        result.setTimeline(remappedTimeline);
+        result.setNotificationStatusHistory(statusHistory);
+        result.setNotificationStatus(currentStatus);
+        return result;
+    }
+
+    private List<NotificationStatusHistoryElementInt> getStatusHistory(List<TimelineElementInternal> timelineElements, int numberOfRecipients, Instant createdAt, CommunicationType communicationType) {
+        List<NotificationStatusHistoryElementInt> statusHistory = statusHistoryService.getStatusHistory(new HashSet<>(timelineElements), numberOfRecipients, createdAt, communicationType);
+        removeNotToBeReturnedElements(statusHistory);
+        return statusHistory;
+    }
+
+    private void removeNotToBeReturnedElements(List<NotificationStatusHistoryElementInt> statusHistory) {
+        // Viene eliminato l'elemento InValidation dalla response
+        Optional<NotificationStatusHistoryElementInt> inValidationElementOpt = statusHistory.stream()
+                .filter(element -> NotificationStatusInt.IN_VALIDATION.equals(element.getStatus()))
+                .findFirst();
+
+        if (inValidationElementOpt.isPresent()) {
+            NotificationStatusHistoryElementInt inValidationElement = inValidationElementOpt.get();
+            Instant inValidationStatusActiveFrom = inValidationElement.getActiveFrom();
+            statusHistory.remove(inValidationElement);
+
+            // Viene sostituito il campo ActiveFrom dell'elemento ACCEPTED con quella dell'elemento eliminato IN_VALIDATION
+            statusHistory.stream()
+                    .filter(statusHistoryElement -> NotificationStatusInt.ACCEPTED.equals(statusHistoryElement.getStatus()))
+                    .findFirst()
+                    .ifPresent(el -> el.setActiveFrom(inValidationStatusActiveFrom));
+        }
+    }
+
+    private List<TimelineElementInternal> remapAndSortTimelineElements(List<TimelineElementInternal> timelineElementInternals, CommunicationType communicationType) {
+        TimelineTimestampMapper timelineTimestampMapper = timelineOperationsResolver.resolve(communicationType).timelineTimestampMapper();
+        return timelineElementInternals.stream()
+                .map(timelineElement -> new TimelineTimestampMapper.TimestampMapperPayload(timelineElement, new HashSet<>(timelineElementInternals)))
+                .map(timelineTimestampMapper::mapTimelineTimestamps)
+                .sorted(Comparator.naturalOrder())
+                .toList();
     }
 
     @Override
@@ -271,48 +328,6 @@ public class TimelineServiceImpl implements TimelineService {
     private void checkTimelineForCurrentIun(List<TimelineElementInternal> timelineList) {
         if (timelineList.isEmpty()) {
             throw new PnNotFoundException("IUN not found", "No timeline elements found for the given IUN", ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN);
-        }
-    }
-
-    private NotificationHistoryInt getAndSetCurrentStatus(NotificationHistoryInt notificationHistoryInt) {
-        notificationHistoryInt.setNotificationStatus(StatusUtils.getCurrentStatus(notificationHistoryInt.getNotificationStatusHistory()));
-        return notificationHistoryInt;
-    }
-
-    private NotificationHistoryInt getAndSetStatusHistory(List<TimelineElementInternal> timelineElements, int numberOfRecipients, Instant createdAt, NotificationHistoryInt notificationHistoryInt) {
-        List<NotificationStatusHistoryElementInt> statusHistory = statusHistoryService.getStatusHistory(new HashSet<>(timelineElements), numberOfRecipients, createdAt, CommunicationType.LEGAL);
-        removeNotToBeReturnedElements(statusHistory);
-        notificationHistoryInt.setNotificationStatusHistory(statusHistory);
-        return notificationHistoryInt;
-    }
-
-
-    private NotificationHistoryInt remapTimelineElements(NotificationHistoryInt notificationHistoryInt) {
-
-        notificationHistoryInt.setTimeline(notificationHistoryInt.getTimeline().stream()
-                .map(t -> smartMapper.mapTimelineInternal(t, new HashSet<>(notificationHistoryInt.getTimeline())))
-                .sorted(Comparator.naturalOrder())
-                .toList());
-
-        return notificationHistoryInt;
-    }
-
-    private void removeNotToBeReturnedElements(List<NotificationStatusHistoryElementInt> statusHistory) {
-        // Viene eliminato l'elemento InValidation dalla response
-        Optional<NotificationStatusHistoryElementInt> inValidationElementOpt = statusHistory.stream()
-                .filter(element -> NotificationStatusInt.IN_VALIDATION.equals(element.getStatus()))
-                .findFirst();
-
-        if (inValidationElementOpt.isPresent()) {
-            NotificationStatusHistoryElementInt inValidationElement = inValidationElementOpt.get();
-            Instant inValidationStatusActiveFrom = inValidationElement.getActiveFrom();
-            statusHistory.remove(inValidationElement);
-
-            // Viene sostituito il campo ActiveFrom dell'elemento ACCEPTED con quella dell'elemento eliminato IN_VALIDATION
-            statusHistory.stream()
-                    .filter(statusHistoryElement -> NotificationStatusInt.ACCEPTED.equals(statusHistoryElement.getStatus()))
-                    .findFirst()
-                    .ifPresent(el -> el.setActiveFrom(inValidationStatusActiveFrom));
         }
     }
 }

@@ -19,8 +19,6 @@ import it.pagopa.pn.timelineservice.service.LegalFactService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineElementMapper;
-import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
-import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -66,7 +64,7 @@ class TimelineControllerTest {
         addTimelineElementService = mock(AddTimelineElementService.class);
         legalFactService = mock(LegalFactService.class);
         TimelineElementMapper timelineElementMapper = new TimelineElementMapper();
-        SmartMapper smartMapper = new SmartMapper(mock(TimelineMapperFactory.class), objectMapper, mock(FeatureEnabledUtils.class));
+        SmartMapper smartMapper = new SmartMapper(objectMapper);
         timelineController = new TimelineController(timelineService, addTimelineElementService, legalFactService, smartMapper, timelineElementMapper);
     }
 

@@ -6,7 +6,6 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.AarGenerationDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,12 +20,12 @@ import static org.mockito.Mockito.when;
 class InformalTimelineElementPersistenceStrategyTest {
 
     private InformalTimelineElementPersistenceStrategy strategy;
-    private SmartMapper smartMapper;
+    private InformalTimelineTimestampMapper timelineTimestampMapper;
 
     @BeforeEach
     void setup() {
-        smartMapper = Mockito.mock(SmartMapper.class);
-        strategy = new InformalTimelineElementPersistenceStrategy(smartMapper);
+        timelineTimestampMapper = Mockito.mock(InformalTimelineTimestampMapper.class);
+        strategy = new InformalTimelineElementPersistenceStrategy(timelineTimestampMapper);
     }
 
     @Test
@@ -106,12 +105,12 @@ class InformalTimelineElementPersistenceStrategyTest {
                 .timestamp(originalTimestamp)
                 .eventTimestamp(eventTimestamp)
                 .build();
-        when(smartMapper.mapTimelineInternalWithEventTimestamp(Mockito.any())).thenReturn(mappedDto);
+        when(timelineTimestampMapper.mapTimelineTimestamps(Mockito.any())).thenReturn(mappedDto);
         Set<TimelineElementInternal> currentTimeline = new HashSet<>();
 
         TimelineElementInternal result = strategy.applyBusinessTimestamp(dto, currentTimeline);
 
-        Mockito.verify(smartMapper).mapTimelineInternalWithEventTimestamp(dto);
+        Mockito.verify(timelineTimestampMapper).mapTimelineTimestamps(Mockito.any());
         Assertions.assertEquals(originalTimestamp, result.getTimestamp());
         Assertions.assertEquals(eventTimestamp, result.getEventTimestamp());
     }

@@ -10,7 +10,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
 import it.pagopa.pn.timelineservice.utils.CompletedDeliveryWorkflowCategory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import static it.pagopa.pn.timelineservice.utils.NotificationReworkUtils.checkRe
 @RequiredArgsConstructor
 @Slf4j
 public class LegalTimelineElementPersistenceStrategy implements TimelineElementPersistenceStrategy {
-    private final SmartMapper smartMapper;
+    private final LegalTimelineTimestampMapper timelineTimestampMapper;
     private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
 
     @Override
@@ -86,7 +86,8 @@ public class LegalTimelineElementPersistenceStrategy implements TimelineElementP
     public TimelineElementInternal applyBusinessTimestamp(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
         Instant cachedTimestamp = dto.getTimestamp();
         // calcolo e aggiungo il businessTimestamp
-        dto = smartMapper.mapTimelineInternal(dto, currentTimeline);
+        TimelineTimestampMapper.TimestampMapperPayload payload = new TimelineTimestampMapper.TimestampMapperPayload(dto, currentTimeline);
+        dto = timelineTimestampMapper.mapTimelineTimestamps(payload);
         dto.setTimestamp(cachedTimestamp);
         return dto;
     }

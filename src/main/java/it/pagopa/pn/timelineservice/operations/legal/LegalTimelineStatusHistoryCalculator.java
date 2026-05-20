@@ -8,8 +8,8 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationViewedDetai
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
 import it.pagopa.pn.timelineservice.utils.CompletedDeliveryWorkflowCategory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ import static it.pagopa.pn.timelineservice.utils.StatusUtils.INITIAL_STATUS;
 public class LegalTimelineStatusHistoryCalculator implements StatusHistoryCalculator {
 
     private final LegalTimelineStateMap stateMap = new LegalTimelineStateMap();
-    private final SmartMapper smartMapper;
+    private final LegalTimelineTimestampMapper timelineTimestampMapper;
 
     public List<NotificationStatusHistoryElementInt> getStatusHistory(Set<TimelineElementInternal> timelineElementList,
                                                                       int numberOfRecipients,
@@ -33,7 +33,9 @@ public class LegalTimelineStatusHistoryCalculator implements StatusHistoryCalcul
 
         //Map TimelineElementInternal per cambio timestamp con business timestamp
         Set<TimelineElementInternal> timelineElementListMapped = timelineElementList.stream()
-                .map(elem -> smartMapper.mapTimelineInternal(elem, timelineElementList)).collect(Collectors.toSet());
+                .map(el -> new TimelineTimestampMapper.TimestampMapperPayload(el, timelineElementList))
+                .map(timelineTimestampMapper::mapTimelineTimestamps)
+                .collect(Collectors.toSet());
 
 
         //La timeline ricevuta in ingresso è relativa a tutta la notifica e non al singolo recipient

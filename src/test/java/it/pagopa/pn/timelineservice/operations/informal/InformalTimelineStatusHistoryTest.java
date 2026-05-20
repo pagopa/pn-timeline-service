@@ -1,42 +1,28 @@
 package it.pagopa.pn.timelineservice.operations.informal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.service.TimelineService;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
-import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
-import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampBaseMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.mockito.Mockito.mock;
-
-@DirtiesContext
 class InformalTimelineStatusHistoryTest {
-    @Mock
-    private TimelineService timelineService;
 
     private InformalTimelineStatusHistoryCalculator informalTimelineStatusHistoryStrategy;
 
 
     @BeforeEach
     void setup() {
-        PnTimelineServiceConfigs pnDeliveryPushConfigs = mock(PnTimelineServiceConfigs.class);
-        FeatureEnabledUtils featureEnabledUtils = mock(FeatureEnabledUtils.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        this.informalTimelineStatusHistoryStrategy = new InformalTimelineStatusHistoryCalculator(new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfigs), objectMapper, featureEnabledUtils));
+        InformalTimelineTimestampMapper informalTimelineTimestampMapper = new InformalTimelineTimestampMapper(new TimelineTimestampBaseMapper());
+        this.informalTimelineStatusHistoryStrategy = new InformalTimelineStatusHistoryCalculator(informalTimelineTimestampMapper);
     }
 
     @Test
