@@ -110,7 +110,7 @@ public class AddTimelineElementServiceImpl implements AddTimelineElementService 
                 .collectList()
                 .flatMap(list -> {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
-                    StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
+                    StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification, dto.getCommunicationType());
                     TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
                     TimelineElementInternal enrichedDtoWithRework = strategy.enrichWithRework(enrichedDto, currentTimeline);
                     return confidentialInformationService.saveTimelineConfidentialInformation(enrichedDtoWithRework)

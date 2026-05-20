@@ -11,6 +11,7 @@ import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationRefusedErro
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
@@ -99,7 +100,7 @@ class TimelineServiceImplTest {
                         .timelineElementId("1")
                         .build())));
         Mockito.when(
-                statusHistoryService.getStatusHistory(Mockito.anySet(), Mockito.anyInt(), Mockito.any(Instant.class))
+                statusHistoryService.getStatusHistory(Mockito.anySet(), Mockito.anyInt(), Mockito.any(Instant.class), Mockito.any(CommunicationType.class))
         ).thenReturn(notificationStatusHistoryElements);
 
         // WHEN & THEN

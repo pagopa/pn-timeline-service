@@ -7,12 +7,8 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.operations.TimelineOperations;
 import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
 import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,10 +17,11 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class StatusHistoryServiceImplTest {
@@ -41,79 +38,48 @@ class StatusHistoryServiceImplTest {
     @InjectMocks
     private StatusHistoryServiceImpl statusHistoryService;
 
-    private Instant notificationCreatedAt;
-
-    @BeforeEach
-    void setUp() {
-        notificationCreatedAt = Instant.now();
-    }
+    private final Instant notificationCreatedAt = Instant.now();
 
     @Test
-    void getStatusHistory_returnsStatusHistoryFromStrategy() {
-        TimelineElementInternal element = mock(TimelineElementInternal.class);
-        when(element.getCommunicationType()).thenReturn(CommunicationType.INFORMAL);
-
+    void getStatusHistoryReturnsCalculatedHistory() {
+        Set<TimelineElementInternal> timelineElements = Set.of(TimelineElementInternal.builder().build());
+        int numberOfRecipients = 2;
+        CommunicationType communicationType = CommunicationType.LEGAL;
         List<NotificationStatusHistoryElementInt> expected = List.of(mock(NotificationStatusHistoryElementInt.class));
-        when(timelineOperationsResolver.resolve(CommunicationType.INFORMAL)).thenReturn(timelineOperations);
-        when(timelineOperations.statusHistoryCalculator()).thenReturn(statusHistoryCalculator);
-        when(statusHistoryCalculator.getStatusHistory(Set.of(element), 1, notificationCreatedAt)).thenReturn(expected);
 
-        List<NotificationStatusHistoryElementInt> result = statusHistoryService.getStatusHistory(Set.of(element), 1, notificationCreatedAt);
+        when(timelineOperationsResolver.resolve(communicationType)).thenReturn(timelineOperations);
+        when(timelineOperations.statusHistoryCalculator()).thenReturn(statusHistoryCalculator);
+        when(statusHistoryCalculator.getStatusHistory(timelineElements, numberOfRecipients, notificationCreatedAt)).thenReturn(expected);
+
+        List<NotificationStatusHistoryElementInt> result = statusHistoryService.getStatusHistory(timelineElements, numberOfRecipients, notificationCreatedAt, communicationType);
 
         assertEquals(expected, result);
     }
 
     @Test
-    void getStatusHistory_usesFirstNonNullCommunicationType() {
-        TimelineElementInternal elementWithNull = mock(TimelineElementInternal.class);
-        TimelineElementInternal elementWithType = mock(TimelineElementInternal.class);
-        when(elementWithNull.getCommunicationType()).thenReturn(null);
-        when(elementWithType.getCommunicationType()).thenReturn(CommunicationType.INFORMAL);
+    void getStatusHistoryPropagatesExceptionWhenResolverThrows() {
+        Set<TimelineElementInternal> timelineElements = Set.of(TimelineElementInternal.builder().build());
+        CommunicationType communicationType = CommunicationType.LEGAL;
 
-        Set<TimelineElementInternal> elements = new java.util.LinkedHashSet<>(List.of(elementWithNull, elementWithType));
+        when(timelineOperationsResolver.resolve(communicationType)).thenThrow(PnInternalException.class);
 
-        when(timelineOperationsResolver.resolve(CommunicationType.INFORMAL)).thenReturn(timelineOperations);
-        when(timelineOperations.statusHistoryCalculator()).thenReturn(statusHistoryCalculator);
-        when(statusHistoryCalculator.getStatusHistory(elements, 2, notificationCreatedAt)).thenReturn(List.of());
-
-        assertDoesNotThrow(() -> statusHistoryService.getStatusHistory(elements, 2, notificationCreatedAt));
-        verify(timelineOperationsResolver).resolve(CommunicationType.INFORMAL);
-    }
-
-    @Test
-    void getStatusHistory_throwsExceptionWhenAllCommunicationTypesAreNull() {
-        TimelineElementInternal element = mock(TimelineElementInternal.class);
-        when(element.getCommunicationType()).thenReturn(null);
-        Set<TimelineElementInternal> elements = Set.of(element);
         assertThrows(PnInternalException.class,
-                () -> statusHistoryService.getStatusHistory(elements, 1, notificationCreatedAt));
+                () -> statusHistoryService.getStatusHistory(timelineElements, 1, notificationCreatedAt, communicationType));
     }
 
     @Test
-    void getStatusHistory_usesLegalCommunicationStrategyWhenTimelineElementListIsEmpty() {
-        when(timelineOperationsResolver.resolve(CommunicationType.LEGAL)).thenReturn(timelineOperations);
+    void getStatusHistoryWithEmptyTimelineElements() {
+        Set<TimelineElementInternal> timelineElements = Collections.emptySet();
+        int numberOfRecipients = 1;
+        CommunicationType communicationType = CommunicationType.LEGAL;
+        List<NotificationStatusHistoryElementInt> expected = Collections.emptyList();
+
+        when(timelineOperationsResolver.resolve(communicationType)).thenReturn(timelineOperations);
         when(timelineOperations.statusHistoryCalculator()).thenReturn(statusHistoryCalculator);
-        when(statusHistoryCalculator.getStatusHistory(Set.of(), 1, notificationCreatedAt)).thenReturn(List.of());
+        when(statusHistoryCalculator.getStatusHistory(timelineElements, numberOfRecipients, notificationCreatedAt)).thenReturn(expected);
 
-        assertDoesNotThrow(() -> statusHistoryService.getStatusHistory(Set.of(), 1, notificationCreatedAt));
-        verify(timelineOperationsResolver).resolve(CommunicationType.LEGAL);
-    }
+        List<NotificationStatusHistoryElementInt> result = statusHistoryService.getStatusHistory(timelineElements, numberOfRecipients, notificationCreatedAt, communicationType);
 
-    private static Stream<Arguments> provideTimelineElementLists() {
-        return Stream.of(
-                null,
-                Arguments.of(Collections.emptySet())
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideTimelineElementLists")
-    void getStatusHistory_usesLegalCommunicationStrategyWhenTimelineElementListIsEmpty(Set<TimelineElementInternal> timelineElementList) {
-        when(timelineOperationsResolver.resolve(CommunicationType.LEGAL)).thenReturn(timelineOperations);
-        when(timelineOperations.statusHistoryCalculator()).thenReturn(statusHistoryCalculator);
-        when(statusHistoryCalculator.getStatusHistory(timelineElementList, 1, notificationCreatedAt)).thenReturn(List.of());
-
-        assertDoesNotThrow(() -> statusHistoryService.getStatusHistory(timelineElementList, 1, notificationCreatedAt));
-        verify(timelineOperationsResolver).resolve(CommunicationType.LEGAL);
+        assertEquals(expected, result);
     }
 }

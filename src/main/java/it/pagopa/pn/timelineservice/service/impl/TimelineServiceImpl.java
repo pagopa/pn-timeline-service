@@ -5,6 +5,7 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.ElementIdPrefix;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
@@ -279,7 +280,7 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     private NotificationHistoryInt getAndSetStatusHistory(List<TimelineElementInternal> timelineElements, int numberOfRecipients, Instant createdAt, NotificationHistoryInt notificationHistoryInt) {
-        List<NotificationStatusHistoryElementInt> statusHistory = statusHistoryService.getStatusHistory(new HashSet<>(timelineElements), numberOfRecipients, createdAt);
+        List<NotificationStatusHistoryElementInt> statusHistory = statusHistoryService.getStatusHistory(new HashSet<>(timelineElements), numberOfRecipients, createdAt, CommunicationType.LEGAL);
         removeNotToBeReturnedElements(statusHistory);
         notificationHistoryInt.setNotificationStatusHistory(statusHistory);
         return notificationHistoryInt;

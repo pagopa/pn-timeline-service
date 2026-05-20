@@ -8,6 +8,7 @@ import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.AarGenerationDetailsInt;
@@ -86,7 +87,7 @@ class AddTimelineElementServiceImplTest {
 
         NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
-        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
         Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any())).thenReturn(Mono.empty());
         Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
         Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId);
@@ -123,7 +124,7 @@ class AddTimelineElementServiceImplTest {
         NotificationInfoInt notification = getNotificationWithMultipleRecipients(iun);
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
         when(legalTimelineElementPersistenceStrategy.requiresCriticalPath(Mockito.any(), Mockito.any())).thenReturn(true);
-        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
         Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId2);
         Mockito.when(timelineService.getTimeline(iun,null, true, false)).thenReturn(Flux.fromIterable(setTimelineElement));
         Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any())).thenReturn(Mono.empty());
@@ -158,7 +159,7 @@ class AddTimelineElementServiceImplTest {
         Assertions.assertEquals(expectedStatusInfo.isStatusChanged(), actualStatusInfo.isStatusChanged());
         Assertions.assertNull(actualStatusInfo.getStatusChangeTimestamp());
         Mockito.verify(timelineDao).addTimelineElementIfAbsent(dtoWithStatusInfo);
-        Mockito.verify(statusService).getStatus(newElement, setTimelineElement, notification);
+        Mockito.verify(statusService).getStatus(newElement, setTimelineElement, notification, newElement.getCommunicationType());
     }
 
     @Test
@@ -173,7 +174,7 @@ class AddTimelineElementServiceImplTest {
         Mockito.when(timelineService.getTimeline(iun,null, true, false))
                 .thenReturn(Flux.empty());
         // Simula un errore nella generazione dello status
-        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenThrow(new PnInternalException("Error", "test"));
 
         // WHEN & THEN
@@ -181,7 +182,7 @@ class AddTimelineElementServiceImplTest {
                 .expectError(PnInternalException.class)
                 .verify();
 
-        Mockito.verify(statusService).getStatus(newElement, new HashSet<>(), notification);
+        Mockito.verify(statusService).getStatus(newElement, new HashSet<>(), notification, newElement.getCommunicationType());
     }
 
     @Test
@@ -193,7 +194,7 @@ class AddTimelineElementServiceImplTest {
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
 
         when(legalTimelineElementPersistenceStrategy.requiresCriticalPath(Mockito.any(), Mockito.any())).thenReturn(true);
-        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(notificationStatuses);
         String elementId2 = "elementId2";
         Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId2);
@@ -216,7 +217,7 @@ class AddTimelineElementServiceImplTest {
 
         NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
-        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
         Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any())).thenReturn(Mono.empty());
         Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.error(new PnIdConflictException(new HashMap<>())));
         Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId);
@@ -253,7 +254,7 @@ class AddTimelineElementServiceImplTest {
 
         when(legalTimelineElementPersistenceStrategy.requiresCriticalPath(Mockito.any(), Mockito.any())).thenReturn(true);
         Mockito.when(lockProvider.lock(Mockito.any())).thenReturn(Optional.of(simpleLock));
-        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED));
         Mockito.when(timelineService.getTimeline(iun,null, true, false))
                 .thenReturn(Flux.empty());
@@ -279,7 +280,7 @@ class AddTimelineElementServiceImplTest {
 
         when(legalTimelineElementPersistenceStrategy.requiresCriticalPath(Mockito.any(), Mockito.any())).thenReturn(true);
         Mockito.when(lockProvider.lock(Mockito.any())).thenReturn(Optional.of(simpleLock));
-        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED));
         Mockito.when(timelineService.getTimeline(iun,null, true, false))
                 .thenReturn(Flux.empty());
@@ -311,7 +312,7 @@ class AddTimelineElementServiceImplTest {
         TimelineElementInternal newElement = getSendPaperFeedbackTimelineElement(iun, elementId, Instant.now());
 
         Mockito.doThrow(new PnInternalException("error", "test")).when(statusService)
-                .getStatus(Mockito.any(TimelineElementInternal.class), Mockito.anySet(), Mockito.any(NotificationInfoInt.class));
+                .getStatus(Mockito.any(TimelineElementInternal.class), Mockito.anySet(), Mockito.any(NotificationInfoInt.class), Mockito.any(CommunicationType.class));
 
         // WHEN
         StepVerifier.create(addTimelineElementService.addTimelineElement(newElement, notification))
@@ -330,7 +331,7 @@ class AddTimelineElementServiceImplTest {
 
         NotificationInfoInt notification = getNotification(iun);
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.IN_VALIDATION, NotificationStatusInt.IN_VALIDATION);
-        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
         String elementId2 = "elementId2";
         Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId2);
         Flux<TimelineElementInternal> timelineElementsWithStatusInfo = Flux.fromIterable(setTimelineElement.stream().map(timelineElementInternal -> timelineElementInternal.toBuilder()
@@ -372,7 +373,7 @@ class AddTimelineElementServiceImplTest {
 
         NotificationInfoInt notification = getNotification(iun);
         StatusService.NotificationStatusUpdate notificationStatuses = new StatusService.NotificationStatusUpdate(NotificationStatusInt.IN_VALIDATION, NotificationStatusInt.ACCEPTED);
-        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
         String elementId2 = "elementId2";
         Set<TimelineElementInternal> setTimelineElement = getSendPaperDetailsList(iun, elementId2);
         Flux<TimelineElementInternal> timelineElementsWithStatusInfo = Flux.fromIterable(setTimelineElement.stream().map(timelineElementInternal -> timelineElementInternal.toBuilder()
