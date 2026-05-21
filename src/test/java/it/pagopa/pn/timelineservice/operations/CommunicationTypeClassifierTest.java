@@ -60,8 +60,10 @@ class CommunicationTypeClassifierTest {
                 .communicationType(null)
                 .build();
 
+        List<TimelineElementInternal> elements = List.of(element1, element2);
+
         assertThrows(PnInternalException.class,
-                () -> classifier.resolveFromTimelineElements(List.of(element1, element2)));
+                () -> classifier.resolveFromTimelineElements(elements));
     }
 
     @Test
