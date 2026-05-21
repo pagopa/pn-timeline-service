@@ -99,6 +99,7 @@ class AddTimelineElementServiceImplTest {
                 .elementId(elementId)
                 .iun(iun)
                 .timestamp(Instant.now())
+                .communicationType(CommunicationType.LEGAL)
                 .build();
 
         // WHEN
@@ -229,6 +230,7 @@ class AddTimelineElementServiceImplTest {
                 .elementId(elementId)
                 .iun(iun)
                 .timestamp(Instant.now())
+                .communicationType(CommunicationType.LEGAL)
                 .build();
 
         // WHEN
@@ -430,6 +432,7 @@ class AddTimelineElementServiceImplTest {
                 .category(TimelineElementCategoryInt.ANALOG_SUCCESS_WORKFLOW)
                 .iun(iun)
                 .details( details )
+                .communicationType(CommunicationType.LEGAL)
                 .build();
     }
 
@@ -445,6 +448,7 @@ class AddTimelineElementServiceImplTest {
                 .iun(iun)
                 .details( details )
                 .timestamp(Instant.now())
+                .communicationType(CommunicationType.LEGAL)
                 .build();
     }
 
@@ -474,7 +478,8 @@ class AddTimelineElementServiceImplTest {
                 .elementId(elementId)
                 .iun(iun)
                 .details( details )
-                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE )
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .communicationType(CommunicationType.LEGAL)
                 .build();
     }
 

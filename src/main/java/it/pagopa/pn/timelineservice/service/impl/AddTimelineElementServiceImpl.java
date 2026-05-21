@@ -14,6 +14,7 @@ import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.service.*;
 import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
 import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
+import it.pagopa.pn.timelineservice.utils.CommunicationTypeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockConfiguration;
@@ -110,6 +111,7 @@ public class AddTimelineElementServiceImpl implements AddTimelineElementService 
                 .collectList()
                 .flatMap(list -> {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
+                    CommunicationTypeUtils.validateCommunicationTypeConsistency(dto, currentTimeline);
                     StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification, dto.getCommunicationType());
                     TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
                     TimelineElementInternal enrichedDtoWithRework = strategy.enrichWithRework(enrichedDto, currentTimeline);
