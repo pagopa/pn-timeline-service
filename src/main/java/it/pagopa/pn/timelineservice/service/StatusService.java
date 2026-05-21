@@ -2,6 +2,7 @@ package it.pagopa.pn.timelineservice.service;
 
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,7 +26,10 @@ public interface StatusService {
      * @param notification notifica
      * @return entrambi i notificationstatus (old, new) - cambio di stato elaborato
      */
-    NotificationStatusUpdate getStatus(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline, NotificationInfoInt notification);
-
-    NotificationStatusUpdate computeStatusChange(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline, NotificationInfoInt notification);
+    NotificationStatusUpdate getStatus(
+            TimelineElementInternal dto,
+            Set<TimelineElementInternal> currentTimeline,
+            NotificationInfoInt notification,
+            CommunicationType communicationType
+    );
 }

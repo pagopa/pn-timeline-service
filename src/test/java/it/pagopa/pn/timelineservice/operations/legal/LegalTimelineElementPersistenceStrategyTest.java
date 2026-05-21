@@ -1,4 +1,4 @@
-package it.pagopa.pn.timelineservice.strategy.legal;
+package it.pagopa.pn.timelineservice.operations.legal;
 
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.commons.log.PnAuditLogBuilder;
@@ -112,7 +112,8 @@ class LegalTimelineElementPersistenceStrategyTest {
                 .timestamp(Instant.now())
                 .build();
 
-        assertThrows(PnInternalException.class, () -> strategy.enrichWithRework(dto, Set.of(reworkElement)));
+        Set<TimelineElementInternal> reworkElements = Set.of(reworkElement);
+        assertThrows(PnInternalException.class, () -> strategy.enrichWithRework(dto, reworkElements));
     }
 
 

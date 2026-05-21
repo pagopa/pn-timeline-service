@@ -1,11 +1,11 @@
-package it.pagopa.pn.timelineservice.strategy.informal;
+package it.pagopa.pn.timelineservice.operations.informal;
 
 import it.pagopa.pn.commons.log.PnAuditLogBuilder;
 import it.pagopa.pn.commons.log.PnAuditLogEvent;
 import it.pagopa.pn.commons.log.PnAuditLogEventType;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.strategy.common.TimelineElementPersistenceStrategy;
+import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

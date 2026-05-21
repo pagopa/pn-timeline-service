@@ -11,6 +11,7 @@ import it.pagopa.pn.timelineservice.dto.ext.notification.NotificationRefusedErro
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
@@ -19,10 +20,10 @@ import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
+import it.pagopa.pn.timelineservice.service.StatusHistoryService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
-import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 class TimelineServiceImplTest {
     private TimelineDao timelineDao;
     private TimelineCounterEntityDao timelineCounterDao;
-    private StatusUtils statusUtils;
+    private StatusHistoryService statusHistoryService;
     private TimelineServiceImpl timeLineService;
     private ConfidentialInformationService confidentialInformationService;
 
@@ -49,14 +50,14 @@ class TimelineServiceImplTest {
     void setup() {
         timelineDao = Mockito.mock( TimelineDao.class );
         timelineCounterDao = Mockito.mock( TimelineCounterEntityDao.class );
-        statusUtils = Mockito.mock( StatusUtils.class );
+        statusHistoryService = Mockito.mock( StatusHistoryService.class );
         FeatureEnabledUtils featureEnabledUtils = Mockito.mock(FeatureEnabledUtils.class);
         confidentialInformationService = Mockito.mock( ConfidentialInformationService.class );
         PnTimelineServiceConfigs pnTimelineServiceConfigs = Mockito.mock(PnTimelineServiceConfigs.class);
 
         ObjectMapper objectMapper = new ObjectMapper();
         SmartMapper smartMapper = Mockito.spy(new SmartMapper(new TimelineMapperFactory(pnTimelineServiceConfigs), objectMapper, featureEnabledUtils));
-        timeLineService = new TimelineServiceImpl(timelineDao , timelineCounterDao , statusUtils, confidentialInformationService, smartMapper);
+        timeLineService = new TimelineServiceImpl(timelineDao , timelineCounterDao , statusHistoryService, confidentialInformationService, smartMapper);
     }
 
     @Test
@@ -99,12 +100,8 @@ class TimelineServiceImplTest {
                         .timelineElementId("1")
                         .build())));
         Mockito.when(
-                statusUtils.getStatusHistory(Mockito.anySet(), Mockito.anyInt(), Mockito.any(Instant.class))
+                statusHistoryService.getStatusHistory(Mockito.anySet(), Mockito.anyInt(), Mockito.any(Instant.class), Mockito.any(CommunicationType.class))
         ).thenReturn(notificationStatusHistoryElements);
-
-        Mockito.when(
-                statusUtils.getCurrentStatus(Mockito.anyList())
-        ).thenReturn(currentStatus);
 
         // WHEN & THEN
         StepVerifier.create(timeLineService.getTimelineAndStatusHistory(iun, numberOfRecipients1, notificationCreatedAt))

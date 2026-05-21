@@ -6,20 +6,22 @@ import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
-import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
-import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.NotificationRefusedErrorEntity;
-import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,9 +31,19 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
     @Autowired
     private TimelineDao timelineEntityDao;
 
+    // Per le logiche di mapping quando si esegue una lettura dal DB (es: getTimelineElement), l'oggetto internal avrà sempre un communicationType valorizzato
+    // e in questi test noi usiamo sempre le letture per verificare l'avvenuta persistenza. Ma in realtà sul record fisico del DB non ci sarà mai un communicationType = LEGAL.
+    private static Stream<Arguments> provideCommunicationTypeArgs() {
+        return Stream.of(
+                Arguments.of(null, CommunicationType.LEGAL),
+                Arguments.of(CommunicationType.INFORMAL, CommunicationType.INFORMAL),
+                Arguments.of(CommunicationType.LEGAL, CommunicationType.LEGAL)
+        );
+    }
 
-    @Test
-    void put() {
+    @ParameterizedTest
+    @MethodSource("provideCommunicationTypeArgs")
+    void put(CommunicationType elementToInsertCommunicationType, CommunicationType expectedCommunicationType) {
         //GIVEN
         TimelineElementInternal elementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
@@ -53,6 +65,7 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                         .build()
                         )
                 )
+                .communicationType(elementToInsertCommunicationType)
                 .build();
 
         try{
@@ -60,12 +73,26 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
             timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
 
             TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
-            Assertions.assertEquals(elementToInsert.toString(), elementFromDbOpt.toString());
+            Assertions.assertNotNull(elementFromDbOpt);
+            checkPersistenceOfTimelineElement(elementToInsert, elementFromDbOpt, expectedCommunicationType);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private void checkPersistenceOfTimelineElement(TimelineElementInternal elementToInsert, TimelineElementInternal elementFromDb, CommunicationType expectedCommunicationType) {
+        Assertions.assertEquals(elementToInsert.getIun(), elementFromDb.getIun());
+        Assertions.assertEquals(elementToInsert.getElementId(), elementFromDb.getElementId());
+        Assertions.assertEquals(elementToInsert.getPaId(), elementFromDb.getPaId());
+        Assertions.assertEquals(elementToInsert.getTimestamp(), elementFromDb.getTimestamp());
+        Assertions.assertEquals(elementToInsert.getCategory(), elementFromDb.getCategory());
+        Assertions.assertEquals(elementToInsert.getDetails().toString(), elementFromDb.getDetails().toString());
+        if(elementToInsert.getLegalFactsIds() != null) {
+            Assertions.assertEquals(elementToInsert.getLegalFactsIds().toString(), elementFromDb.getLegalFactsIds().toString());
+        }
+        Assertions.assertEquals(expectedCommunicationType, elementFromDb.getCommunicationType());
     }
 
     @Test
@@ -95,7 +122,8 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
 
 
         TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
-        Assertions.assertEquals(elementToInsert.toString(), elementFromDbOpt.toString());
+        Assertions.assertNotNull(elementFromDbOpt);
+        checkPersistenceOfTimelineElement(elementToInsert, elementFromDbOpt, CommunicationType.LEGAL);
     }
 
     @Test
@@ -142,10 +170,12 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
 
         //THEN
         TimelineElementInternal firstElementFromDbOpt =  timelineEntityDao.getTimelineElement(firstElementToInsert.getIun(), firstElementToInsert.getElementId(), false).block();
-        Assertions.assertEquals(firstElementToInsert.toString(), firstElementFromDbOpt.toString());
+        Assertions.assertNotNull(firstElementFromDbOpt);
+        checkPersistenceOfTimelineElement(firstElementToInsert, firstElementFromDbOpt, CommunicationType.LEGAL);
 
         TimelineElementInternal secondElementFromDbOpt =  timelineEntityDao.getTimelineElement(secondElementToInsert.getIun(),secondElementToInsert.getElementId(), false).block();
-        Assertions.assertEquals(secondElementToInsert.toString(), secondElementFromDbOpt.toString());
+        Assertions.assertNotNull(secondElementFromDbOpt);
+        checkPersistenceOfTimelineElement(secondElementToInsert, secondElementFromDbOpt, CommunicationType.LEGAL);
     }
 
     @Test
@@ -191,12 +221,14 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
         //Check first element
         //WHEN
         TimelineElementInternal firstElementFromDbOpt =  timelineEntityDao.getTimelineElement(firstElementToInsert.getIun(), firstElementToInsert.getElementId(), false).block();
-        Assertions.assertEquals(firstElementToInsert.toString(), firstElementFromDbOpt.toString());
+        Assertions.assertNotNull(firstElementFromDbOpt);
+        checkPersistenceOfTimelineElement(firstElementToInsert, firstElementFromDbOpt, CommunicationType.LEGAL);
 
         //Check second element
         //WHEN
         TimelineElementInternal secondElementFromDbOpt =  timelineEntityDao.getTimelineElement(secondElementToInsert.getIun(), secondElementToInsert.getElementId(), false).block();
-        Assertions.assertEquals(secondElementToInsert.toString(), secondElementFromDbOpt.toString());
+        Assertions.assertNotNull(secondElementFromDbOpt);
+        checkPersistenceOfTimelineElement(secondElementToInsert, secondElementFromDbOpt, CommunicationType.LEGAL);
     }
 
     @Test
@@ -259,10 +291,17 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
         //THEN
         Assertions.assertNotNull(elementSet);
         Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
-                .anyMatch(s -> s.equals(firstElementToInsert.toString())));
-        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
-                .anyMatch(s -> s.equals(secondElementToInsert.toString())));
+        Optional<TimelineElementInternal> firstElementDbOpt = elementSet.stream()
+                .filter(el -> el.getElementId().equals(firstElementToInsert.getElementId()))
+                .findFirst();
+        Assertions.assertTrue(firstElementDbOpt.isPresent());
+        checkPersistenceOfTimelineElement(firstElementToInsert, firstElementDbOpt.get(), CommunicationType.LEGAL);
+
+        Optional<TimelineElementInternal> secondElementDbOpt = elementSet.stream()
+                .filter(el -> el.getElementId().equals(secondElementToInsert.getElementId()))
+                .findFirst();
+        Assertions.assertTrue(secondElementDbOpt.isPresent());
+        checkPersistenceOfTimelineElement(secondElementToInsert, secondElementDbOpt.get(), CommunicationType.LEGAL);
     }
 
     @Test
@@ -590,11 +629,19 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
         List<TimelineElementInternal> elementSet =  timelineEntityDao.getTimelineStrongly(iun).collectList().block();
 
         //THEN
+        Assertions.assertNotNull(elementSet);
         Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
-                .anyMatch(s -> s.equals(firstElementToInsert.toString())));
-        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
-                .anyMatch(s -> s.equals(secondElementToInsert.toString())));
+        Optional<TimelineElementInternal> firstElementDbOpt = elementSet.stream()
+                .filter(el -> el.getElementId().equals(firstElementToInsert.getElementId()))
+                .findFirst();
+        Assertions.assertTrue(firstElementDbOpt.isPresent());
+        checkPersistenceOfTimelineElement(firstElementToInsert, firstElementDbOpt.get(), CommunicationType.LEGAL);
+
+        Optional<TimelineElementInternal> secondElementDbOpt = elementSet.stream()
+                .filter(el -> el.getElementId().equals(secondElementToInsert.getElementId()))
+                .findFirst();
+        Assertions.assertTrue(secondElementDbOpt.isPresent());
+        checkPersistenceOfTimelineElement(secondElementToInsert, secondElementDbOpt.get(), CommunicationType.LEGAL);
     }
 
     @Test
@@ -643,13 +690,14 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
         TimelineElementInternal timelineElmentStrongly = timelineEntityDao.getTimelineElement(iun, elementIdToSearch, true).block();
 
         Assertions.assertNotNull(timelineElmentStrongly);
-        Assertions.assertEquals(timelineElmentStrongly.toString(), secondElementToInsert.toString());
+        checkPersistenceOfTimelineElement(secondElementToInsert, timelineElmentStrongly, CommunicationType.LEGAL);
     }
 
     @Test
     void findByIunNoElements() {
         String iun = "pa1-1";
         List<TimelineElementInternal> elementSet =  timelineEntityDao.getTimeline(iun).collectList().block();
+        Assertions.assertNotNull(elementSet);
         Assertions.assertTrue(elementSet.isEmpty());
     }
 
@@ -723,21 +771,22 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
         //THEN
         Assertions.assertNotNull(elementSet);
         Assertions.assertFalse(elementSet.isEmpty());
-        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
-                .anyMatch(s -> s.equals(firstElementToInsert.toString())));
-        Assertions.assertTrue(elementSet.stream().map(TimelineElementInternal::toString)
-                .anyMatch(s -> s.equals(secondElementToInsert.toString())));
+        Optional<TimelineElementInternal> firstElementDbOpt = elementSet.stream()
+                .filter(el -> el.getElementId().equals(firstElementToInsert.getElementId()))
+                .findFirst();
+        Assertions.assertTrue(firstElementDbOpt.isPresent());
+        checkPersistenceOfTimelineElement(firstElementToInsert, firstElementDbOpt.get(), CommunicationType.LEGAL);
+
+        Optional<TimelineElementInternal> secondElementDbOpt = elementSet.stream()
+                .filter(el -> el.getElementId().equals(secondElementToInsert.getElementId()))
+                .findFirst();
+        Assertions.assertTrue(secondElementDbOpt.isPresent());
+        checkPersistenceOfTimelineElement(secondElementToInsert, secondElementDbOpt.get(), CommunicationType.LEGAL);
         Assertions.assertEquals(2, elementSet.size());
     }
 
     @Test
     void checkSendDigitalProgress() {
-        List<NotificationRefusedErrorEntity> errors = new ArrayList<>();
-        NotificationRefusedErrorEntity notificationRefusedError = NotificationRefusedErrorEntity.builder()
-                .errorCode("FILE_NOTFOUND")
-                .detail("details")
-                .build();
-        errors.add(notificationRefusedError);
         //GIVEN
         TimelineElementInternal elementToInsert = TimelineElementInternal.builder()
                 .iun("pa1-1")
@@ -766,12 +815,12 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                                 .build()
                 )
                 .build();
-            //WHEN
-            timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
+        //WHEN
+        timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
 
-            TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
+        TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
         Assertions.assertNotNull(elementFromDbOpt);
-        Assertions.assertEquals(elementToInsert.toString(), elementFromDbOpt.toString());
+        checkPersistenceOfTimelineElement(elementToInsert, elementFromDbOpt, CommunicationType.LEGAL);
     }
 
     @Test
@@ -799,7 +848,10 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 )
                 .build();
 
-        checkElement(elementToInsert);
+        timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
+        TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
+        Assertions.assertNotNull(elementFromDbOpt);
+        checkPersistenceOfTimelineElement(elementToInsert, elementFromDbOpt, CommunicationType.LEGAL);
     }
 
     @Test
@@ -819,7 +871,10 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
                 )
                 .build();
 
-        checkElement(elementToInsert);
+        timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
+        TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
+        Assertions.assertNotNull(elementFromDbOpt);
+        checkPersistenceOfTimelineElement(elementToInsert, elementFromDbOpt, CommunicationType.LEGAL);
     }
 
     @Test
@@ -894,13 +949,6 @@ class TimelineEntityDaoDynamoTestIT extends BaseTest.WithLocalStack {
         TimelineElementInternal timelineElmentStrongly = timelineEntityDao.getTimelineElement(iun, elementIdToSearch, true).block();
 
         Assertions.assertNotNull(timelineElmentStrongly);
-    }
-
-    private void checkElement(TimelineElementInternal elementToInsert) {
-            //WHEN
-            timelineEntityDao.addTimelineElementIfAbsent(elementToInsert).block();
-            TimelineElementInternal elementFromDbOpt =  timelineEntityDao.getTimelineElement(elementToInsert.getIun(), elementToInsert.getElementId(), false).block();
-            Assertions.assertEquals(elementToInsert.toString(), elementFromDbOpt.toString());
     }
 
 }

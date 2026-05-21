@@ -5,6 +5,7 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.ElementIdPrefix;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
@@ -17,6 +18,7 @@ import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
+import it.pagopa.pn.timelineservice.service.StatusHistoryService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.utils.StatusUtils;
@@ -45,7 +47,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
-    private final StatusUtils statusUtils;
+    private final StatusHistoryService statusHistoryService;
     private final ConfidentialInformationService confidentialInformationService;
     private final SmartMapper smartMapper;
 
@@ -273,12 +275,12 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     private NotificationHistoryInt getAndSetCurrentStatus(NotificationHistoryInt notificationHistoryInt) {
-        notificationHistoryInt.setNotificationStatus(statusUtils.getCurrentStatus(notificationHistoryInt.getNotificationStatusHistory()));
+        notificationHistoryInt.setNotificationStatus(StatusUtils.getCurrentStatus(notificationHistoryInt.getNotificationStatusHistory()));
         return notificationHistoryInt;
     }
 
     private NotificationHistoryInt getAndSetStatusHistory(List<TimelineElementInternal> timelineElements, int numberOfRecipients, Instant createdAt, NotificationHistoryInt notificationHistoryInt) {
-        List<NotificationStatusHistoryElementInt> statusHistory = statusUtils.getStatusHistory(new HashSet<>(timelineElements), numberOfRecipients, createdAt);
+        List<NotificationStatusHistoryElementInt> statusHistory = statusHistoryService.getStatusHistory(new HashSet<>(timelineElements), numberOfRecipients, createdAt, CommunicationType.LEGAL);
         removeNotToBeReturnedElements(statusHistory);
         notificationHistoryInt.setNotificationStatusHistory(statusHistory);
         return notificationHistoryInt;
