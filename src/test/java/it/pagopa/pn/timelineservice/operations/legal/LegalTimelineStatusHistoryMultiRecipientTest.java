@@ -1,13 +1,12 @@
 package it.pagopa.pn.timelineservice.operations.legal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampBaseMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import org.junit.jupiter.api.Assertions;
@@ -33,8 +32,8 @@ class LegalTimelineStatusHistoryMultiRecipientTest {
     void setup() {
         PnTimelineServiceConfigs pnDeliveryPushConfigs = mock(PnTimelineServiceConfigs.class);
         FeatureEnabledUtils featureEnabledUtils = mock(FeatureEnabledUtils.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        this.legalStatusHistory = new LegalTimelineStatusHistoryCalculator(new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfigs), objectMapper, featureEnabledUtils));
+        LegalTimelineTimestampMapper legalTimelineTimestampMapper = new LegalTimelineTimestampMapper(new TimelineTimestampBaseMapper(), featureEnabledUtils, new TimelineMapperFactory(pnDeliveryPushConfigs));
+        this.legalStatusHistory = new LegalTimelineStatusHistoryCalculator(legalTimelineTimestampMapper);
     }
     
     @Test

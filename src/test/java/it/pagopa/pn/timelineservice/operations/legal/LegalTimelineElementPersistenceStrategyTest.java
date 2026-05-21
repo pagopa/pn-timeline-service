@@ -9,7 +9,6 @@ import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,15 +27,15 @@ import static org.mockito.Mockito.when;
 class LegalTimelineElementPersistenceStrategyTest {
 
     private LegalTimelineElementPersistenceStrategy strategy;
-    private SmartMapper smartMapper;
+    private LegalTimelineTimestampMapper timelineTimestampMapper;
     private PnTimelineServiceConfigs configs;
 
     @BeforeEach
     void setup() {
-        smartMapper = Mockito.mock(SmartMapper.class);
+        timelineTimestampMapper = Mockito.mock(LegalTimelineTimestampMapper.class);
         configs = Mockito.mock(PnTimelineServiceConfigs.class);
         when(configs.getInvalidableCategories()).thenReturn(List.of("PREPARE_ANALOG_DOMICILE","PREPARE_ANALOG_DOMICILE_FAILURE","SEND_ANALOG_DOMICILE","SEND_ANALOG_PROGRESS","SEND_ANALOG_FEEDBACK","ANALOG_SUCCESS_WORKFLOW","ANALOG_FAILURE_WORKFLOW","SCHEDULE_REFINEMENT","REFINEMENT","COMPLETELY_UNREACHABLE_CREATION_REQUEST","COMPLETELY_UNREACHABLE","ANALOG_WORKFLOW_RECIPIENT_DECEASED"));
-        strategy = new LegalTimelineElementPersistenceStrategy(smartMapper, configs);
+        strategy = new LegalTimelineElementPersistenceStrategy(timelineTimestampMapper, configs);
     }
 
     @Test
@@ -132,7 +131,7 @@ class LegalTimelineElementPersistenceStrategyTest {
                 .elementId("elementId_123")
                 .timestamp(originalTimestamp.plusSeconds(10))
                 .build();
-        when(smartMapper.mapTimelineInternal(any(), any())).thenReturn(mappedDto);
+        when(timelineTimestampMapper.mapTimelineTimestamps(any())).thenReturn(mappedDto);
 
         TimelineElementInternal result = strategy.applyBusinessTimestamp(dto, Set.of());
 

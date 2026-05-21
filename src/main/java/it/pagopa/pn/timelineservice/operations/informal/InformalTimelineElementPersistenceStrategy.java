@@ -6,18 +6,19 @@ import it.pagopa.pn.commons.log.PnAuditLogEventType;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class InformalTimelineElementPersistenceStrategy implements TimelineElementPersistenceStrategy {
-    private final SmartMapper smartMapper;
+    private final InformalTimelineTimestampMapper timelineTimestampMapper;
 
     @Override
     public PnAuditLogEvent buildAuditLogEvent(TimelineElementInternal dto, PnAuditLogBuilder builder) {
@@ -44,7 +45,11 @@ public class InformalTimelineElementPersistenceStrategy implements TimelineEleme
     @Override
     public TimelineElementInternal applyBusinessTimestamp(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
         // calcolo e aggiungo il businessTimestamp
-        return smartMapper.mapTimelineInternalWithEventTimestamp(dto);
+        Instant cachedTimestamp = dto.getTimestamp();
+        TimelineTimestampMapper.TimestampMapperPayload payload = new TimelineTimestampMapper.TimestampMapperPayload(dto, null);
+        TimelineElementInternal mappedDto = timelineTimestampMapper.mapTimelineTimestamps(payload);
+        mappedDto.setTimestamp(cachedTimestamp);
+        return mappedDto;
     }
 
     @Override

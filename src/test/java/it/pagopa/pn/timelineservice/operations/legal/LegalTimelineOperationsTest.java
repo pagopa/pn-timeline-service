@@ -9,7 +9,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class LegalTimelineOperationsTest {
     private final LegalTimelineStatusHistoryCalculator statusHistoryStrategy = Mockito.mock(LegalTimelineStatusHistoryCalculator.class);
     private final LegalTimelineElementPersistenceStrategy persistenceStrategy = Mockito.mock(LegalTimelineElementPersistenceStrategy.class);
-    private final LegalTimelineOperations bundle = new LegalTimelineOperations(persistenceStrategy, statusHistoryStrategy);
+    private final LegalTimelineTimestampMapper timestampMapper = Mockito.mock(LegalTimelineTimestampMapper.class);
+    private final LegalTimelineOperations bundle = new LegalTimelineOperations(persistenceStrategy, statusHistoryStrategy, timestampMapper);
 
     @Test
     void persistenceStrategyReturnsDelegatedStrategy() {
@@ -19,6 +20,11 @@ class LegalTimelineOperationsTest {
     @Test
     void statusHistoryCalculatorReturnsDelegatedStrategy() {
         assertEquals(statusHistoryStrategy, bundle.statusHistoryCalculator());
+    }
+
+    @Test
+    void timelineTimestampMapperReturnsDelegatedStrategy() {
+        assertEquals(timestampMapper, bundle.timelineTimestampMapper());
     }
 
     @Test

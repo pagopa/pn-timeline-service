@@ -3,6 +3,7 @@ package it.pagopa.pn.timelineservice.operations;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
 import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
 
 /**
  * Raggruppa l'insieme delle operazioni sulla timeline di una notifica che
@@ -38,5 +39,6 @@ import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistence
 public interface TimelineOperations {
     TimelineElementPersistenceStrategy persistenceStrategy();
     StatusHistoryCalculator statusHistoryCalculator();
+    TimelineTimestampMapper timelineTimestampMapper();
     CommunicationType supportedType();
 }

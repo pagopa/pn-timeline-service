@@ -1,21 +1,17 @@
 package it.pagopa.pn.timelineservice.operations.legal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
-import it.pagopa.pn.timelineservice.service.TimelineService;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampBaseMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
 import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -25,10 +21,7 @@ import java.util.Set;
 
 import static org.mockito.Mockito.mock;
 
-@DirtiesContext
 class LegalTimelineStatusHistoryTest {
-    @Mock
-    private TimelineService timelineService;
 
     private LegalTimelineStatusHistoryCalculator legalTimelineStatusHistory;
 
@@ -40,8 +33,8 @@ class LegalTimelineStatusHistoryTest {
     void setup() {
         PnTimelineServiceConfigs pnDeliveryPushConfigs = mock(PnTimelineServiceConfigs.class);
         FeatureEnabledUtils featureEnabledUtils = mock(FeatureEnabledUtils.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        this.legalTimelineStatusHistory = new LegalTimelineStatusHistoryCalculator(new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfigs), objectMapper, featureEnabledUtils));
+        LegalTimelineTimestampMapper legalTimelineTimestampMapper = new LegalTimelineTimestampMapper(new TimelineTimestampBaseMapper(), featureEnabledUtils, new TimelineMapperFactory(pnDeliveryPushConfigs));
+        this.legalTimelineStatusHistory = new LegalTimelineStatusHistoryCalculator(legalTimelineTimestampMapper);
     }
 
     @Test
