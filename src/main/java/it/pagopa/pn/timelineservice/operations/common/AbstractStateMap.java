@@ -12,7 +12,7 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractStateMap {
     protected static final boolean ONLY_MULTI_RECIPIENT = true; // il multi-destinatario comprende transizioni di stato AGGIUNTIVI al singolo destinatario
-    protected static final boolean SINGLE_RECIPINET = false;
+    protected static final boolean SINGLE_RECIPIENT = false;
 
     private final Map<MapKey, MapValue> mappings = new HashMap<>();
 
@@ -40,7 +40,7 @@ public abstract class AbstractStateMap {
                 TransitionRequest transitionRequestForSingleRecipient = TransitionRequest.builder()
                         .fromStatus(transitionRequest.getFromStatus())
                         .timelineRowType(transitionRequest.getTimelineRowType())
-                        .multiRecipient(SINGLE_RECIPINET)
+                        .multiRecipient(SINGLE_RECIPIENT)
                         .build();
                 return getStateTransition(transitionRequestForSingleRecipient);
             }
