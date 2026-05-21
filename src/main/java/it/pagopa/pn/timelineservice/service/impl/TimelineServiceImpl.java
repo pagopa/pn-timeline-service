@@ -265,9 +265,10 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     private List<TimelineElementInternal> remapAndSortTimelineElements(List<TimelineElementInternal> timelineElementInternals, CommunicationType communicationType) {
+        Set<TimelineElementInternal> timelineElementsSet = new HashSet<>(timelineElementInternals);
         TimelineTimestampMapper timelineTimestampMapper = timelineOperationsResolver.resolve(communicationType).timelineTimestampMapper();
         return timelineElementInternals.stream()
-                .map(timelineElement -> new TimelineTimestampMapper.TimestampMapperPayload(timelineElement, new HashSet<>(timelineElementInternals)))
+                .map(timelineElement -> new TimelineTimestampMapper.TimestampMapperPayload(timelineElement, timelineElementsSet))
                 .map(timelineTimestampMapper::mapTimelineTimestamps)
                 .sorted(Comparator.naturalOrder())
                 .toList();
