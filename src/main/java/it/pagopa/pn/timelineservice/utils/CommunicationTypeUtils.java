@@ -10,6 +10,7 @@ import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceException
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_UNKNOWN_COMMUNICATION_TYPE;
 
 public class CommunicationTypeUtils {
+    private CommunicationTypeUtils() { }
     /**
      * Verifica che un nuovo elemento da aggiungere alla timeline abbia
      * un {@link CommunicationType} compatibile con quello degli elementi

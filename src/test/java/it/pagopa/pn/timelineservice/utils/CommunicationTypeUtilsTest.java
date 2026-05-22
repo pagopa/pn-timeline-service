@@ -5,6 +5,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,7 +18,9 @@ class CommunicationTypeUtilsTest {
                 .communicationType(CommunicationType.LEGAL)
                 .build();
 
-        assertDoesNotThrow(() -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, Collections.emptyList()));
+        Collection<TimelineElementInternal> existingElements = Collections.emptyList();
+
+        assertDoesNotThrow(() -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, existingElements));
     }
 
     @Test
@@ -25,11 +28,11 @@ class CommunicationTypeUtilsTest {
         TimelineElementInternal newElement = TimelineElementInternal.builder()
                 .communicationType(CommunicationType.LEGAL)
                 .build();
-        TimelineElementInternal existing = TimelineElementInternal.builder()
+        List<TimelineElementInternal> existing = List.of(TimelineElementInternal.builder()
                 .communicationType(CommunicationType.LEGAL)
-                .build();
+                .build());
 
-        assertDoesNotThrow(() -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, List.of(existing)));
+        assertDoesNotThrow(() -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, existing));
     }
 
     @Test
@@ -38,8 +41,10 @@ class CommunicationTypeUtilsTest {
                 .communicationType(null)
                 .build();
 
+        Collection<TimelineElementInternal> existingElements = Collections.emptyList();
+
         assertThrows(PnInternalException.class,
-                () -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, Collections.emptyList()));
+                () -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, existingElements));
     }
 
     @Test
@@ -47,12 +52,12 @@ class CommunicationTypeUtilsTest {
         TimelineElementInternal newElement = TimelineElementInternal.builder()
                 .communicationType(CommunicationType.LEGAL)
                 .build();
-        TimelineElementInternal existing = TimelineElementInternal.builder()
+        List<TimelineElementInternal> existing = List.of(TimelineElementInternal.builder()
                 .communicationType(null)
-                .build();
+                .build());
 
         assertThrows(PnInternalException.class,
-                () -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, List.of(existing)));
+                () -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, existing));
     }
 
     @Test
@@ -60,12 +65,12 @@ class CommunicationTypeUtilsTest {
         TimelineElementInternal newElement = TimelineElementInternal.builder()
                 .communicationType(CommunicationType.LEGAL)
                 .build();
-        TimelineElementInternal existing = TimelineElementInternal.builder()
+        List<TimelineElementInternal> existing = List.of(TimelineElementInternal.builder()
                 .communicationType(CommunicationType.INFORMAL)
-                .build();
+                .build());
 
         assertThrows(PnInternalException.class,
-                () -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, List.of(existing)));
+                () -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, existing));
     }
 
     @Test
@@ -80,7 +85,9 @@ class CommunicationTypeUtilsTest {
                 .communicationType(CommunicationType.INFORMAL)
                 .build();
 
+        List<TimelineElementInternal> existing = List.of(consistent, inconsistent);
+
         assertThrows(PnInternalException.class,
-                () -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, List.of(consistent, inconsistent)));
+                () -> CommunicationTypeUtils.validateCommunicationTypeConsistency(newElement, existing));
     }
 }

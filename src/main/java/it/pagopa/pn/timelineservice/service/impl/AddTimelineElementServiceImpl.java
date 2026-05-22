@@ -40,12 +40,12 @@ public class AddTimelineElementServiceImpl implements AddTimelineElementService 
     private final StatusService statusService;
     private final LockProvider lockProvider;
     private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
-    private final TimelineOperationsResolver strategyResolver;
+    private final TimelineOperationsResolver timelineOperationsResolver;
 
     public Mono<String> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
         log.debug("addTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
 
-        TimelineElementPersistenceStrategy strategy = strategyResolver.resolve(dto.getCommunicationType()).persistenceStrategy();
+        TimelineElementPersistenceStrategy strategy = timelineOperationsResolver.resolve(dto.getCommunicationType()).persistenceStrategy();
         PnAuditLogEvent logEvent = strategy.buildAuditLogEvent(dto, new PnAuditLogBuilder());
         logEvent.log();
 
