@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class InformalTimelineOperations implements TimelineOperations {
     private final InformalTimelineElementPersistenceStrategy informalTimelineElementPersistenceStrategy;
-    private final InformalTimelineStatusHistoryCalculator informalTimelineStatusHistoryStrategy;
+    private final InformalTimelineStatusHistoryCalculator informalTimelineStatusHistoryCalculator;
     private final InformalTimelineTimestampMapper informalTimelineTimestampMapper;
 
     @Override
@@ -22,7 +22,7 @@ public class InformalTimelineOperations implements TimelineOperations {
 
     @Override
     public StatusHistoryCalculator statusHistoryCalculator() {
-        return informalTimelineStatusHistoryStrategy;
+        return informalTimelineStatusHistoryCalculator;
     }
 
     @Override
