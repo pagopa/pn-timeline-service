@@ -49,14 +49,25 @@ public class NotificationReworkUtils {
             return new ReworkFilteringResult(timelineId, null);
         }
 
+        boolean alreadyHasReworkSuffix = newParser.reworkIndexFull().isPresent();
         return reworkElements.stream()
                 .filter(r -> validAttempt(newAttempt, ((NotificationTimelineReworkedDetailsInt) r.getDetails()).getSentAttemptMade()))
                 .findFirst()
-                .map(r -> new ReworkFilteringResult(
-                        timelineId + "." + TimelineEventIdParser.parse(r.getElementId())
-                                .reworkIndexFull()
-                                .orElse(null),
-                        r.getReworkId()))
+                .map(r -> {
+                    String reworkId = r.getReworkId();
+                    if (alreadyHasReworkSuffix) {
+                        return new ReworkFilteringResult(timelineId, reworkId);
+                    }
+                    String suffix = TimelineEventIdParser.parse(r.getElementId())
+                            .reworkIndexFull()
+                            .orElse(null);
+
+                    String resultTimelineId = suffix == null
+                            ? timelineId
+                            : timelineId + "." + suffix;
+
+                    return new ReworkFilteringResult(resultTimelineId, reworkId);
+                })
                 .orElseGet(() -> new ReworkFilteringResult(timelineId, null));
     }
 

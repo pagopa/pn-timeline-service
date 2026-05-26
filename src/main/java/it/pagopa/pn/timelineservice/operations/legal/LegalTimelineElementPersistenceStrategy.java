@@ -58,7 +58,7 @@ public class LegalTimelineElementPersistenceStrategy implements TimelineElementP
         if (pnTimelineServiceConfigs.getInvalidableCategories().contains(dto.getCategory().name())) {
             List<TimelineElementInternal> reworkTimelineElements = getReworkElementsFromTimeline(sortedTimeline, dto);
             TimelineEventIdParser parser = TimelineEventIdParser.parse(dto.getElementId());
-            if(CollectionUtils.isEmpty(reworkTimelineElements) || parser.reworkIndexFull().isPresent()){
+            if(CollectionUtils.isEmpty(reworkTimelineElements)){
                 return dto;
             }
             ReworkFilteringResult reworkFilteringResult = checkReworkAttemptAndReturnSuffix(reworkTimelineElements, dto.getElementId());
