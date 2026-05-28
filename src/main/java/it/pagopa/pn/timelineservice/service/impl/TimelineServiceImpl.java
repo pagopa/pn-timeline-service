@@ -1,68 +1,46 @@
 package it.pagopa.pn.timelineservice.service.impl;
 
-import it.pagopa.pn.commons.exceptions.PnIdConflictException;
-import it.pagopa.pn.commons.exceptions.PnInternalException;
-import it.pagopa.pn.commons.log.PnAuditLogBuilder;
-import it.pagopa.pn.commons.log.PnAuditLogEvent;
-import it.pagopa.pn.commons.log.PnAuditLogEventType;
-import it.pagopa.pn.commons.utils.MDCUtils;
-import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationHistoryInt;
-import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
-import it.pagopa.pn.timelineservice.dto.timeline.*;
-import it.pagopa.pn.timelineservice.dto.timeline.details.*;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementDetailsInt;
-import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
-import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.CancellationRequestResponse;
-import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
-import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
+import it.pagopa.pn.timelineservice.dto.timeline.ElementIdPrefix;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
-import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.AarResponse;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.CancellationRequestResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.RequestRefusedResponse;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineCounterEntityDao;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineCounterEntity;
+import it.pagopa.pn.timelineservice.operations.CommunicationTypeClassifier;
+import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
-import it.pagopa.pn.timelineservice.service.StatusService;
+import it.pagopa.pn.timelineservice.service.StatusHistoryService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
-import it.pagopa.pn.timelineservice.utils.CompletedDeliveryWorkflowCategory;
 import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import it.pagopa.pn.timelineservice.utils.extraction.TimelineDataExtractionEngine;
 import it.pagopa.pn.timelineservice.utils.extraction.mapper.DeliveryInfoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.core.LockConfiguration;
-import net.javacrumbs.shedlock.core.LockProvider;
-import net.javacrumbs.shedlock.core.SimpleLock;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED;
-import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.*;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT;
+import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;
-import static it.pagopa.pn.timelineservice.utils.NotificationReworkUtils.checkReworkAttemptAndReturnSuffix;
 
 
 @Service
@@ -72,140 +50,10 @@ public class TimelineServiceImpl implements TimelineService {
 
     private final TimelineDao timelineDao;
     private final TimelineCounterEntityDao timelineCounterEntityDao;
-    private final StatusUtils statusUtils;
+    private final StatusHistoryService statusHistoryService;
     private final ConfidentialInformationService confidentialInformationService;
-    private final StatusService statusService;
-    private final SmartMapper smartMapper;
-    private final LockProvider lockProvider;
-    private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
-
-    @Override
-    public Mono<String> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
-        log.debug("addTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
-        PnAuditLogBuilder auditLogBuilder = new PnAuditLogBuilder();
-
-        PnAuditLogEvent logEvent = getPnAuditLogEvent(dto, auditLogBuilder);
-        logEvent.log();
-
-        boolean isMultiRecipient = notification.getNumberOfRecipients() > 1;
-        boolean isCriticalTimelineElement = CompletedDeliveryWorkflowCategory.isCompletedWorkflowCategory(dto.getCategory());
-
-        return Mono.just(isMultiRecipient && isCriticalTimelineElement)
-                .flatMap(aBoolean -> {
-                    if (Boolean.TRUE.equals(aBoolean)) {
-                        return addCriticalTimelineElement(dto, notification, logEvent);
-                    } else {
-                        return addTimelineElement(dto, notification, logEvent);
-                    }
-                })
-                .map(TimelineElementInternal::getElementId)
-                .doFinally(signal -> MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC));
-
-    }
-
-    private Mono<TimelineElementInternal> addCriticalTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
-        log.debug("addCriticalTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
-
-        return Mono.fromCallable(() -> lockProvider.lock(
-                        new LockConfiguration(Instant.now(), notification.getIun(), pnTimelineServiceConfigs.getTimelineLockDuration(), Duration.ZERO)))
-                .flatMap(optSimpleLock -> {
-                    if (optSimpleLock.isEmpty()) {
-                        String lockNotAcquiredMessage = "Lock not acquired for iun=" + notification.getIun() + " and timelineId=" + dto.getElementId();
-                        logEvent.generateFailure(lockNotAcquiredMessage).log();
-                        return Mono.error(new PnLockReserved(ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, lockNotAcquiredMessage));
-                    }
-                    SimpleLock simpleLock = optSimpleLock.get();
-                    return processTimelinePersistence(dto, notification, logEvent)
-                            .onErrorMap(ex -> {
-                                if( ex instanceof PnIdConflictException) {
-                                    return ex;
-                                }
-
-                                logEvent.generateFailure("Exception in addCriticalTimelineElement", ex).log();
-                                return new PnInternalException("Exception in addCriticalTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
-                            })
-                            .doFinally(signalType -> simpleLock.unlock());
-                });
-    }
-
-    private Mono<TimelineElementInternal> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
-        return processTimelinePersistence(dto, notification, logEvent)
-                .onErrorMap(ex -> {
-                    if(ex instanceof PnIdConflictException) {
-                        return ex;
-                    }
-
-                    logEvent.generateFailure("Exception in addTimelineElement", ex).log();
-                    return new PnInternalException("Exception in addTimelineElement - iun=" + notification.getIun() + " elementId=" + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED, ex);
-                });
-    }
-
-    private Mono<TimelineElementInternal> processTimelinePersistence(TimelineElementInternal dto, NotificationInfoInt notification, PnAuditLogEvent logEvent) {
-        return getTimeline(dto.getIun(), null, true, false)
-                .collectList()
-                .flatMap(list -> {
-                    Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
-                    StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification);
-                    TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
-                    TimelineElementInternal enrichedDtoWithRework = enrichWithReworkInfo(enrichedDto, currentTimeline);
-                    return confidentialInformationService.saveTimelineConfidentialInformation(enrichedDtoWithRework)
-                            .thenReturn(enrichedDtoWithRework)
-                            .flatMap(dtoWithStatusInfo -> checkAndAddBusinessTimestamp(dtoWithStatusInfo, currentTimeline))
-                            .flatMap(finalDto -> persistTimelineElement(finalDto).thenReturn(finalDto))
-                            .doOnSuccess(finalDto -> logAndCleanMdc(finalDto, logEvent, false))
-                            .doOnError(PnIdConflictException.class, ex -> {
-                                logAndCleanMdc(dto, logEvent, true);
-                                log.warn("Exception idconflict is expected for retry, letting flow continue");
-                            });
-                });
-    }
-
-    private static void logAndCleanMdc(TimelineElementInternal dto, PnAuditLogEvent logEvent, boolean timelineInsertSkipped) {
-        String alreadyInsertMsg = "Timeline event was already inserted before - timelineId=" + dto.getElementId();
-        String successMsg = String.format("Timeline event inserted with: CATEGORY=%s IUN=%s {DETAILS: %s} TIMELINEID=%s paId=%s TIMESTAMP=%s",
-                dto.getCategory(),
-                dto.getIun(),
-                dto.getDetails() != null ? dto.getDetails().toLog() : null,
-                dto.getElementId(),
-                dto.getPaId(),
-                dto.getTimestamp());
-        logEvent.generateSuccess(timelineInsertSkipped ? alreadyInsertMsg : successMsg).log();
-        MDC.remove(MDCUtils.MDC_PN_CTX_TOPIC);
-    }
-
-    private Mono<TimelineElementInternal> checkAndAddBusinessTimestamp(TimelineElementInternal dtoWithStatusInfo, Set<TimelineElementInternal> currentTimeline) {
-        if (shouldWriteBusinessTimestamp()) {
-            Instant cachedTimestamp = dtoWithStatusInfo.getTimestamp();
-            // calcolo e aggiungo il businessTimestamp
-            dtoWithStatusInfo = smartMapper.mapTimelineInternal(dtoWithStatusInfo, currentTimeline);
-            dtoWithStatusInfo.setTimestamp(cachedTimestamp);
-        }
-        return Mono.just(dtoWithStatusInfo);
-    }
-
-    private boolean shouldWriteBusinessTimestamp() {
-        Instant now = Instant.now();
-        return now.isAfter(pnTimelineServiceConfigs.getStartWriteBusinessTimestamp()) && now.isBefore(pnTimelineServiceConfigs.getStopWriteBusinessTimestamp());
-    }
-
-
-    private Mono<Void> persistTimelineElement(TimelineElementInternal dtoWithStatusInfo) {
-        return timelineDao.addTimelineElementIfAbsent(dtoWithStatusInfo);
-    }
-
-    private PnAuditLogEvent getPnAuditLogEvent(TimelineElementInternal dto, PnAuditLogBuilder auditLogBuilder) {
-        String auditLog = String.format("Timeline event inserted with: CATEGORY=%s IUN=%s {DETAILS: %s} TIMELINEID=%s paId=%s TIMESTAMP=%s",
-                dto.getCategory(),
-                dto.getIun(),
-                dto.getDetails() != null ? dto.getDetails().toLog() : null,
-                dto.getElementId(),
-                dto.getPaId(),
-                dto.getTimestamp());
-        return auditLogBuilder
-                .before(PnAuditLogEventType.AUD_NT_TIMELINE, auditLog)
-                .iun(dto.getIun())
-                .build();
-    }
+    private final CommunicationTypeClassifier communicationTypeClassifier;
+    private final TimelineOperationsResolver timelineOperationsResolver;
 
     @Override
     public Mono<TimelineElementInternal> getTimelineElement(String iun, String timelineId, boolean strongly) {
@@ -362,14 +210,68 @@ public class TimelineServiceImpl implements TimelineService {
     @Override
     public Mono<NotificationHistoryInt> getTimelineAndStatusHistory(String iun, int numberOfRecipients, Instant createdAt) {
         log.debug("getTimelineAndStatusHistory Start - iun={} ", iun);
-        NotificationHistoryInt notificationHistoryInt = new NotificationHistoryInt();
 
         return getTimeline(iun, null, true, false)
                 .collect(Collectors.toList())
-                .doOnNext(notificationHistoryInt::setTimeline)
-                .map(timelineElements -> getAndSetStatusHistory(timelineElements, numberOfRecipients, createdAt, notificationHistoryInt))
-                .map(this::getAndSetCurrentStatus)
-                .map(notificationStatusInt -> remapTimelineElements(notificationHistoryInt));
+                .map(this::classifyCommunicationType)
+                .map(timelineWithCommunicationType -> this.buildNotificationHistory(timelineWithCommunicationType, numberOfRecipients, createdAt));
+    }
+
+    public record TimelineElementsWithCommunicationType(List<TimelineElementInternal> timelineElements, CommunicationType communicationType) {}
+
+    private TimelineElementsWithCommunicationType classifyCommunicationType(List<TimelineElementInternal> timelineElements) {
+        CommunicationType communicationType = communicationTypeClassifier.resolveFromTimelineElements(timelineElements);
+        return new TimelineElementsWithCommunicationType(timelineElements, communicationType);
+    }
+
+    private NotificationHistoryInt buildNotificationHistory(TimelineElementsWithCommunicationType timelineElementsWithCommunicationType, int numberOfRecipients, Instant createdAt) {
+        List<TimelineElementInternal> elements = timelineElementsWithCommunicationType.timelineElements;
+        CommunicationType communicationType = timelineElementsWithCommunicationType.communicationType;
+
+        List<NotificationStatusHistoryElementInt> statusHistory = getStatusHistory(elements, numberOfRecipients, createdAt, communicationType);
+        List<TimelineElementInternal> remappedTimeline = remapAndSortTimelineElements(elements, communicationType);
+        NotificationStatusInt currentStatus = StatusUtils.getCurrentStatus(statusHistory);
+
+        NotificationHistoryInt result = new NotificationHistoryInt();
+        result.setTimeline(remappedTimeline);
+        result.setNotificationStatusHistory(statusHistory);
+        result.setNotificationStatus(currentStatus);
+        return result;
+    }
+
+    private List<NotificationStatusHistoryElementInt> getStatusHistory(List<TimelineElementInternal> timelineElements, int numberOfRecipients, Instant createdAt, CommunicationType communicationType) {
+        List<NotificationStatusHistoryElementInt> statusHistory = statusHistoryService.getStatusHistory(new HashSet<>(timelineElements), numberOfRecipients, createdAt, communicationType);
+        removeNotToBeReturnedElements(statusHistory);
+        return statusHistory;
+    }
+
+    private void removeNotToBeReturnedElements(List<NotificationStatusHistoryElementInt> statusHistory) {
+        // Viene eliminato l'elemento InValidation dalla response
+        Optional<NotificationStatusHistoryElementInt> inValidationElementOpt = statusHistory.stream()
+                .filter(element -> NotificationStatusInt.IN_VALIDATION.equals(element.getStatus()))
+                .findFirst();
+
+        if (inValidationElementOpt.isPresent()) {
+            NotificationStatusHistoryElementInt inValidationElement = inValidationElementOpt.get();
+            Instant inValidationStatusActiveFrom = inValidationElement.getActiveFrom();
+            statusHistory.remove(inValidationElement);
+
+            // Viene sostituito il campo ActiveFrom dell'elemento ACCEPTED con quella dell'elemento eliminato IN_VALIDATION
+            statusHistory.stream()
+                    .filter(statusHistoryElement -> NotificationStatusInt.ACCEPTED.equals(statusHistoryElement.getStatus()))
+                    .findFirst()
+                    .ifPresent(el -> el.setActiveFrom(inValidationStatusActiveFrom));
+        }
+    }
+
+    private List<TimelineElementInternal> remapAndSortTimelineElements(List<TimelineElementInternal> timelineElementInternals, CommunicationType communicationType) {
+        Set<TimelineElementInternal> timelineElementsSet = new HashSet<>(timelineElementInternals);
+        TimelineTimestampMapper timelineTimestampMapper = timelineOperationsResolver.resolve(communicationType).timelineTimestampMapper();
+        return timelineElementInternals.stream()
+                .map(timelineElement -> new TimelineTimestampMapper.TimestampMapperPayload(timelineElement, timelineElementsSet))
+                .map(timelineTimestampMapper::mapTimelineTimestamps)
+                .sorted(Comparator.naturalOrder())
+                .toList();
     }
 
     @Override
@@ -429,121 +331,4 @@ public class TimelineServiceImpl implements TimelineService {
             throw new PnNotFoundException("IUN not found", "No timeline elements found for the given IUN", ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN);
         }
     }
-
-    private NotificationHistoryInt getAndSetCurrentStatus(NotificationHistoryInt notificationHistoryInt) {
-        notificationHistoryInt.setNotificationStatus(statusUtils.getCurrentStatus(notificationHistoryInt.getNotificationStatusHistory()));
-        return notificationHistoryInt;
-    }
-
-    private NotificationHistoryInt getAndSetStatusHistory(List<TimelineElementInternal> timelineElements, int numberOfRecipients, Instant createdAt, NotificationHistoryInt notificationHistoryInt) {
-        List<NotificationStatusHistoryElementInt> statusHistory = statusUtils.getStatusHistory(new HashSet<>(timelineElements), numberOfRecipients, createdAt);
-        removeNotToBeReturnedElements(statusHistory);
-        notificationHistoryInt.setNotificationStatusHistory(statusHistory);
-        return notificationHistoryInt;
-    }
-
-
-    private NotificationHistoryInt remapTimelineElements(NotificationHistoryInt notificationHistoryInt) {
-
-        notificationHistoryInt.setTimeline(notificationHistoryInt.getTimeline().stream()
-                .map(t -> smartMapper.mapTimelineInternal(t, new HashSet<>(notificationHistoryInt.getTimeline())))
-                .sorted(Comparator.naturalOrder())
-                .toList());
-
-        return notificationHistoryInt;
-    }
-
-    private void removeNotToBeReturnedElements(List<NotificationStatusHistoryElementInt> statusHistory) {
-        // Viene eliminato l'elemento InValidation dalla response
-        Optional<NotificationStatusHistoryElementInt> inValidationElementOpt = statusHistory.stream()
-                .filter(element -> NotificationStatusInt.IN_VALIDATION.equals(element.getStatus()))
-                .findFirst();
-
-        if (inValidationElementOpt.isPresent()) {
-            NotificationStatusHistoryElementInt inValidationElement = inValidationElementOpt.get();
-            Instant inValidationStatusActiveFrom = inValidationElement.getActiveFrom();
-            statusHistory.remove(inValidationElement);
-
-            // Viene sostituito il campo ActiveFrom dell'elemento ACCEPTED con quella dell'elemento eliminato IN_VALIDATION
-            statusHistory.stream()
-                    .filter(statusHistoryElement -> NotificationStatusInt.ACCEPTED.equals(statusHistoryElement.getStatus()))
-                    .findFirst()
-                    .ifPresent(el -> el.setActiveFrom(inValidationStatusActiveFrom));
-        }
-    }
-
-    private TimelineElementInternal enrichWithStatusInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline,
-                                                         StatusService.NotificationStatusUpdate notificationStatuses, Instant notificationSentAt) {
-
-        Instant timestampLastTimelineElement = getTimestampLastUpdateStatus(currentTimeline, notificationSentAt);
-        StatusInfoInternal statusInfo = buildStatusInfo(notificationStatuses, timestampLastTimelineElement);
-        return dto.toBuilder().statusInfo(statusInfo).build();
-    }
-
-    private TimelineElementInternal enrichWithReworkInfo(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
-        List<TimelineElementInternal> sortedTimeline = new ArrayList<>(currentTimeline);
-
-        //Ordino la lista in base al timestamp e poi la inverto per avere al primo posto l'evento con requestTimestamp più recente
-        sortedTimeline.sort(Comparator.comparing(TimelineElementInternal::getTimestamp).reversed());
-
-        if (pnTimelineServiceConfigs.getInvalidableCategories().contains(dto.getCategory().name())) {
-            List<TimelineElementInternal> reworkTimelineElements = getReworkElementsFromTimeline(sortedTimeline, dto);
-            if(CollectionUtils.isEmpty(reworkTimelineElements)){
-                return dto;
-            }
-            ReworkFilteringResult reworkFilteringResult = checkReworkAttemptAndReturnSuffix(reworkTimelineElements, dto.getElementId());
-            dto.setElementId(reworkFilteringResult.getTimelineElementId());
-            dto.setReworkId(reworkFilteringResult.getReworkId());
-            log.info("enriched timeline element with rework info from {} for elementId={}", reworkFilteringResult.getReworkId(), dto.getElementId());
-        }
-        return dto;
-    }
-
-    private List<TimelineElementInternal> getReworkElementsFromTimeline(List<TimelineElementInternal> currentTimeline, TimelineElementInternal dto) {
-        Optional<Integer> dtoRecIndex = TimelineEventIdParser.parse(dto.getElementId()).recIndex();
-        if(dtoRecIndex.isEmpty()) {
-            log.error("No recIndex found in timeline element with elementId: {}", dto.getElementId());
-            throw new PnInternalException("No recIndex in element with elementId: " + dto.getElementId(), ERROR_CODE_TIMELINESERVICE_ADDTIMELINEFAILED);
-        }
-        return currentTimeline.stream()
-                .filter(elem -> NOTIFICATION_TIMELINE_REWORKED.equals(elem.getCategory()))
-                .filter(timelineElementInternal -> dtoRecIndex.get().equals(TimelineEventIdParser.parse(timelineElementInternal.getElementId()).recIndex()
-                        .orElse(null)))
-                .toList();
-    }
-
-    private Instant getTimestampLastUpdateStatus(Set<TimelineElementInternal> currentTimeline, Instant notificationSentAt) {
-        Optional<StatusInfoInternal> max = currentTimeline.stream()
-                .map(TimelineElementInternal::getStatusInfo)
-                .filter(Objects::nonNull)
-                .max(Comparator.comparing(StatusInfoInternal::getStatusChangeTimestamp));
-
-        return max.map(StatusInfoInternal::getStatusChangeTimestamp).orElse(notificationSentAt);
-
-    }
-
-    protected StatusInfoInternal buildStatusInfo(StatusService.NotificationStatusUpdate notificationStatuses,
-                                                 Instant timestampLastUpdateStatus) {
-        Instant statusChangeTimestamp;
-        boolean statusChanged = false;
-
-        if (isStatusChanged(notificationStatuses)) {
-            statusChanged = true;
-            statusChangeTimestamp = Instant.now();
-        } else {
-            statusChangeTimestamp = timestampLastUpdateStatus;
-        }
-
-        return StatusInfoInternal.builder()
-                .statusChanged(statusChanged)
-                .statusChangeTimestamp(statusChangeTimestamp)
-                .actual(notificationStatuses.getNewStatus().getValue())
-                .build();
-    }
-
-    private boolean isStatusChanged(StatusService.NotificationStatusUpdate notificationStatuses) {
-        return notificationStatuses.getOldStatus() != notificationStatuses.getNewStatus();
-    }
-
-
 }

@@ -1,14 +1,14 @@
-package it.pagopa.pn.timelineservice.utils;
+package it.pagopa.pn.timelineservice.operations.legal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.*;
-import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
+import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampBaseMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
+import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,9 +22,9 @@ import java.util.Set;
 
 import static org.mockito.Mockito.mock;
 
-class StatusUtilsMultiRecipientTest {
+class LegalTimelineStatusHistoryMultiRecipientTest {
 
-    private StatusUtils statusUtils;
+    private LegalTimelineStatusHistoryCalculator legalStatusHistory;
     private static final String SERCQ_ADDRESS = "x-pagopa-pn-sercq:send-self:notification-already-delivered";
     private static final String PEC_ADDRESS = "test@pec.it";
 
@@ -32,8 +32,8 @@ class StatusUtilsMultiRecipientTest {
     void setup() {
         PnTimelineServiceConfigs pnDeliveryPushConfigs = mock(PnTimelineServiceConfigs.class);
         FeatureEnabledUtils featureEnabledUtils = mock(FeatureEnabledUtils.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        this.statusUtils = new StatusUtils(new SmartMapper(new TimelineMapperFactory(pnDeliveryPushConfigs), objectMapper, featureEnabledUtils));
+        LegalTimelineTimestampMapper legalTimelineTimestampMapper = new LegalTimelineTimestampMapper(new TimelineTimestampBaseMapper(), featureEnabledUtils, new TimelineMapperFactory(pnDeliveryPushConfigs));
+        this.legalStatusHistory = new LegalTimelineStatusHistoryCalculator(legalTimelineTimestampMapper);
     }
     
     @Test
@@ -153,7 +153,7 @@ class StatusUtilsMultiRecipientTest {
                 historyDelivering, historyDelivered);
 
         // WHEN
-        List<NotificationStatusHistoryElementInt> resHistoryElementList = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> resHistoryElementList = legalStatusHistory.getStatusHistory(
                 timelineElementList, 2,
                 notificationCreatedAt
         );
@@ -293,7 +293,7 @@ class StatusUtilsMultiRecipientTest {
                 historyDelivering, historyDelivered);
 
         // WHEN
-        List<NotificationStatusHistoryElementInt> resHistoryElementList = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> resHistoryElementList = legalStatusHistory.getStatusHistory(
                 timelineElementList, 2,
                 notificationCreatedAt
         );
@@ -420,7 +420,7 @@ class StatusUtilsMultiRecipientTest {
                 historyDelivering, historyDelivered);
 
         // WHEN
-        List<NotificationStatusHistoryElementInt> resHistoryElementList = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> resHistoryElementList = legalStatusHistory.getStatusHistory(
                 timelineElementList, 2,
                 notificationCreatedAt
         );
@@ -516,7 +516,7 @@ class StatusUtilsMultiRecipientTest {
         // WHEN ask for status history
         Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
 
-        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = legalStatusHistory.getStatusHistory(
                 timelineElementList,
                 NUMBER_OF_RECIPIENTS,
                 notificationCreatedAt
@@ -646,7 +646,7 @@ class StatusUtilsMultiRecipientTest {
         // WHEN ask for status history
         Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
 
-        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = legalStatusHistory.getStatusHistory(
                 timelineElementList,
                 NUMBER_OF_RECIPIENTS,
                 notificationCreatedAt
@@ -773,7 +773,7 @@ class StatusUtilsMultiRecipientTest {
         // WHEN ask for status history
         Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
 
-        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = legalStatusHistory.getStatusHistory(
                 timelineElementList,
                 NUMBER_OF_RECIPIENTS,
                 notificationCreatedAt
@@ -910,7 +910,7 @@ class StatusUtilsMultiRecipientTest {
         // WHEN ask for status history
         Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
 
-        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = legalStatusHistory.getStatusHistory(
                 timelineElementList,
                 NUMBER_OF_RECIPIENTS,
                 notificationCreatedAt
@@ -1066,7 +1066,7 @@ class StatusUtilsMultiRecipientTest {
         // WHEN ask for status history
         Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
 
-        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = legalStatusHistory.getStatusHistory(
                 timelineElementList,
                 NUMBER_OF_RECIPIENTS,
                 notificationCreatedAt
@@ -1212,7 +1212,7 @@ class StatusUtilsMultiRecipientTest {
         // WHEN ask for status history
         Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
 
-        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = legalStatusHistory.getStatusHistory(
                 timelineElementList,
                 NUMBER_OF_RECIPIENTS,
                 notificationCreatedAt
@@ -1373,7 +1373,7 @@ class StatusUtilsMultiRecipientTest {
         // WHEN ask for status history
         Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
 
-        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = legalStatusHistory.getStatusHistory(
                 timelineElementList,
                 NUMBER_OF_RECIPIENTS,
                 notificationCreatedAt
@@ -1530,7 +1530,7 @@ class StatusUtilsMultiRecipientTest {
         // WHEN ask for status history
         Instant notificationCreatedAt = Instant.parse("2021-09-16T15:20:00.00Z");
 
-        List<NotificationStatusHistoryElementInt> actualStatusHistory = statusUtils.getStatusHistory(
+        List<NotificationStatusHistoryElementInt> actualStatusHistory = legalStatusHistory.getStatusHistory(
                 timelineElementList,
                 NUMBER_OF_RECIPIENTS,
                 notificationCreatedAt

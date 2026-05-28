@@ -4,12 +4,13 @@ import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationRequestAcceptedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.service.StatusHistoryService;
 import it.pagopa.pn.timelineservice.service.StatusService;
-import it.pagopa.pn.timelineservice.utils.StatusUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,21 +23,24 @@ import java.util.List;
 import java.util.Set;
 
 class StatusServiceImplTest {
-    private StatusUtils statusUtils;
+    private StatusHistoryService statusHistoryService;
     
     private StatusService statusService;
     
     @BeforeEach
     void setup() {
-        statusUtils = Mockito.mock( StatusUtils.class );
+        statusHistoryService = Mockito.mock( StatusHistoryService.class );
 
-        statusService = new StatusServiceImpl(statusUtils);
+        statusService = new StatusServiceImpl(statusHistoryService);
     }
 
     @Test
     void updateStatus() {
         // GIVEN
         String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
+        Set<TimelineElementInternal> timelineElementList = new HashSet<>(getListTimelineElementInternal(iun));
+        NotificationInfoInt notification = getNotification(iun);
+        CommunicationType communicationType = CommunicationType.LEGAL;
 
         List<NotificationStatusHistoryElementInt> firstListReturn = new ArrayList<>();
         NotificationStatusHistoryElementInt element = NotificationStatusHistoryElementInt.builder()
@@ -50,11 +54,9 @@ class StatusServiceImplTest {
         List<NotificationStatusHistoryElementInt> secondListReturn = new ArrayList<>(firstListReturn);
         secondListReturn.add(element2);
 
-        Mockito.when(statusUtils.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any()))
+        Mockito.when(statusHistoryService.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any()))
                 .thenReturn(firstListReturn)
                 .thenReturn(secondListReturn);
-
-        NotificationInfoInt notification = getNotification(iun);
 
         String id1 = "sender_ack";
         TimelineElementInternal dto = TimelineElementInternal.builder()
@@ -65,9 +67,9 @@ class StatusServiceImplTest {
                 .timestamp(Instant.now())
                 .build();
 
-        Set<TimelineElementInternal> timelineElementList = new HashSet<>(getListTimelineElementInternal(iun));
 
-        StatusService.NotificationStatusUpdate statuses = statusService.getStatus(dto, timelineElementList, notification);
+
+        StatusService.NotificationStatusUpdate statuses = statusService.getStatus(dto, timelineElementList, notification, communicationType);
         Assertions.assertNotNull(statuses);
         Assertions.assertNotEquals(statuses.getOldStatus(), statuses.getNewStatus());
     }
@@ -76,6 +78,9 @@ class StatusServiceImplTest {
     void notUpdateStatus() {
         // GIVEN
         String iun = "202109-eb10750e-e876-4a5a-8762-c4348d679d35";
+        List<TimelineElementInternal> timelineElementList = getListTimelineElementInternal(iun);
+        Set<TimelineElementInternal> timelineElementSet= new HashSet<>(timelineElementList);
+        CommunicationType communicationType = CommunicationType.LEGAL;
 
         List<NotificationStatusHistoryElementInt> firstListReturn = new ArrayList<>();
         NotificationStatusHistoryElementInt element = NotificationStatusHistoryElementInt.builder()
@@ -89,7 +94,7 @@ class StatusServiceImplTest {
         List<NotificationStatusHistoryElementInt> secondListReturn = new ArrayList<>(firstListReturn);
         secondListReturn.add(element2);
 
-        Mockito.when(statusUtils.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any()))
+        Mockito.when(statusHistoryService.getStatusHistory(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any()))
                 .thenReturn(firstListReturn)
                 .thenReturn(secondListReturn);
 
@@ -104,9 +109,7 @@ class StatusServiceImplTest {
                 .timestamp(Instant.now())
                 .build();
 
-        List<TimelineElementInternal> timelineElementList = getListTimelineElementInternal(iun);
-        Set<TimelineElementInternal> timelineElementSet= new HashSet<>(timelineElementList);
-        StatusService.NotificationStatusUpdate statuses = statusService.getStatus(dto, timelineElementSet, notification);
+        StatusService.NotificationStatusUpdate statuses = statusService.getStatus(dto, timelineElementSet, notification, communicationType);
         Assertions.assertEquals(statuses.getOldStatus(), statuses.getNewStatus());
     }
     

@@ -14,12 +14,11 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
+import it.pagopa.pn.timelineservice.service.AddTimelineElementService;
 import it.pagopa.pn.timelineservice.service.LegalFactService;
 import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineElementMapper;
-import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperFactory;
-import it.pagopa.pn.timelineservice.utils.FeatureEnabledUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -49,6 +48,8 @@ class TimelineControllerTest {
 
     private static TimelineService timelineService;
 
+    private static AddTimelineElementService addTimelineElementService;
+
     private static LegalFactService legalFactService;
 
     private static TimelineController timelineController;
@@ -60,10 +61,11 @@ class TimelineControllerTest {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         timelineService = mock(TimelineService.class);
+        addTimelineElementService = mock(AddTimelineElementService.class);
         legalFactService = mock(LegalFactService.class);
         TimelineElementMapper timelineElementMapper = new TimelineElementMapper();
-        SmartMapper smartMapper = new SmartMapper(mock(TimelineMapperFactory.class), objectMapper, mock(FeatureEnabledUtils.class));
-        timelineController = new TimelineController(timelineService, legalFactService, smartMapper, timelineElementMapper);
+        SmartMapper smartMapper = new SmartMapper(objectMapper);
+        timelineController = new TimelineController(timelineService, addTimelineElementService, legalFactService, smartMapper, timelineElementMapper);
     }
 
 
@@ -95,7 +97,7 @@ class TimelineControllerTest {
         info.setPaProtocolNumber("12345678985");
         request.setNotificationInfo(info);
 
-        when(timelineService.addTimelineElement(any(TimelineElementInternal.class),any(NotificationInfoInt.class))).thenReturn(Mono.empty());
+        when(addTimelineElementService.addTimelineElement(any(TimelineElementInternal.class),any(NotificationInfoInt.class))).thenReturn(Mono.empty());
 
         Mono<ResponseEntity<TimelineElementIdResponse>> response = timelineController.addTimelineElement(Mono.just(request), null);
 

@@ -2,6 +2,7 @@ package it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper;
 
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
@@ -38,6 +39,8 @@ public class EntityToDtoTimelineMapper {
                 .notificationSentAt(entity.getNotificationSentAt())
                 .paId(entity.getPaId())
                 .eventTimestamp(entity.getBusinessTimestamp())
+                // Nel caso in cui communicationType sia null, assumo che si tratti di un elemento legale
+                .communicationType(entity.getCommunicationType() == null ? CommunicationType.LEGAL : entity.getCommunicationType())
                 .build();
     }
 

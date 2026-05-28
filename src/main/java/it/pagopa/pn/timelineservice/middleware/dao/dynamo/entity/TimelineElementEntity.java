@@ -2,6 +2,7 @@ package it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity;
 
 
 
+import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineElementCategoryEntityConverter;
 import lombok.*;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
@@ -31,6 +32,7 @@ public class TimelineElementEntity {
     private Instant notificationSentAt;
     private Instant businessTimestamp;
     private String reworkId;
+    private CommunicationType communicationType;
 
     @DynamoDbPartitionKey
     @DynamoDbAttribute(value = FIELD_IUN )
@@ -114,6 +116,15 @@ public class TimelineElementEntity {
     public String getReworkId(){return reworkId;}
 
     public void setReworkId(String reworkId){this.reworkId = reworkId;}
+
+    @DynamoDbAttribute(value = "communicationType")
+    public CommunicationType getCommunicationType() {
+        return communicationType;
+    }
+
+    public void setCommunicationType(CommunicationType communicationType) {
+        this.communicationType = communicationType;
+    }
 
 }
 
