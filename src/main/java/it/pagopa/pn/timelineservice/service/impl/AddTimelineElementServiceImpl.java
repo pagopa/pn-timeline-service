@@ -11,10 +11,13 @@ import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
-import it.pagopa.pn.timelineservice.service.*;
 import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
 import it.pagopa.pn.timelineservice.operations.common.TimelineElementPersistenceStrategy;
-import it.pagopa.pn.timelineservice.utils.CommunicationTypeUtils;
+import it.pagopa.pn.timelineservice.service.AddTimelineElementService;
+import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
+import it.pagopa.pn.timelineservice.service.StatusService;
+import it.pagopa.pn.timelineservice.service.TimelineService;
+import it.pagopa.pn.timelineservice.utils.CommunicationTypeChecker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockConfiguration;
@@ -41,6 +44,7 @@ public class AddTimelineElementServiceImpl implements AddTimelineElementService 
     private final LockProvider lockProvider;
     private final PnTimelineServiceConfigs pnTimelineServiceConfigs;
     private final TimelineOperationsResolver timelineOperationsResolver;
+    private final CommunicationTypeChecker communicationTypeChecker;
 
     public Mono<String> addTimelineElement(TimelineElementInternal dto, NotificationInfoInt notification) {
         log.debug("addTimelineElement - IUN={} and timelineId={}", dto.getIun(), dto.getElementId());
@@ -111,7 +115,7 @@ public class AddTimelineElementServiceImpl implements AddTimelineElementService 
                 .collectList()
                 .flatMap(list -> {
                     Set<TimelineElementInternal> currentTimeline = new HashSet<>(list);
-                    CommunicationTypeUtils.validateCommunicationTypeConsistency(dto, currentTimeline);
+                    communicationTypeChecker.checkAgainstIun(dto.getCommunicationType(), dto.getIun());
                     StatusService.NotificationStatusUpdate notificationStatusUpdate = statusService.getStatus(dto, currentTimeline, notification, dto.getCommunicationType());
                     TimelineElementInternal enrichedDto = enrichWithStatusInfo(dto, currentTimeline, notificationStatusUpdate, notification.getSentAt());
                     TimelineElementInternal enrichedDtoWithRework = strategy.enrichWithRework(enrichedDto, currentTimeline);
