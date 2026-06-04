@@ -21,6 +21,7 @@ import it.pagopa.pn.timelineservice.service.*;
 import it.pagopa.pn.timelineservice.operations.legal.LegalTimelineElementPersistenceStrategy;
 import it.pagopa.pn.timelineservice.operations.TimelineOperations;
 import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
+import it.pagopa.pn.timelineservice.utils.CommunicationTypeChecker;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
 import org.junit.jupiter.api.Assertions;
@@ -76,7 +77,9 @@ class AddTimelineElementServiceImplTest {
         when(legalTimelineElementPersistenceStrategy.requiresCriticalPath(Mockito.any(), Mockito.any())).thenReturn(false);
         when(legalTimelineElementPersistenceStrategy.buildAuditLogEvent(Mockito.any(), Mockito.any())).thenReturn(new PnAuditLogBuilder().before(PnAuditLogEventType.AUD_NT_TIMELINE, "test").build());
         when(legalTimelineElementPersistenceStrategy.enrichWithRework(Mockito.any(), Mockito.any())).thenAnswer(invocation -> invocation.getArgument(0));
-        addTimelineElementService = new AddTimelineElementServiceImpl(timelineService, timelineDao, confidentialInformationService, statusService, lockProvider, pnTimelineServiceConfigs, strategyResolver);
+        CommunicationTypeChecker communicationTypeChecker = Mockito.mock(CommunicationTypeChecker.class);
+        Mockito.doNothing().when(communicationTypeChecker).checkAgainstIun(Mockito.any(), Mockito.any());
+        addTimelineElementService = new AddTimelineElementServiceImpl(timelineService, timelineDao, confidentialInformationService, statusService, lockProvider, pnTimelineServiceConfigs, strategyResolver, communicationTypeChecker);
     }
 
     @Test
