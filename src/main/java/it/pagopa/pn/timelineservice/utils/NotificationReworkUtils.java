@@ -38,8 +38,9 @@ public class NotificationReworkUtils {
 
         TimelineEventIdParser newParser = TimelineEventIdParser.parse(timelineId);
         Integer newAttempt = newParser.sentAttemptMade().orElse(null);
+        boolean alreadyHasReworkSuffix = newParser.reworkIndexFull().isPresent();
 
-        if (isPrepareOrSendAttempt0(newParser)) {
+        if (isPrepareOrSendAttempt0(newParser) && !alreadyHasReworkSuffix) {
             return new ReworkFilteringResult(timelineId, null);
         }
 
@@ -49,7 +50,6 @@ public class NotificationReworkUtils {
             return new ReworkFilteringResult(timelineId, null);
         }
 
-        boolean alreadyHasReworkSuffix = newParser.reworkIndexFull().isPresent();
         return reworkElements.stream()
                 .filter(r -> validAttempt(newAttempt, ((NotificationTimelineReworkedDetailsInt) r.getDetails()).getSentAttemptMade()))
                 .findFirst()
