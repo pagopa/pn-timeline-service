@@ -9,6 +9,7 @@ import it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -56,10 +57,22 @@ public class TimelineMapperAfterFix extends TimelineMapper {
                             parser.sentAttemptMade().map(integer -> integer.equals(attempt)).orElse(false);
                 })
                 .findFirst()
-                .ifPresent(timelineElementInternal ->{
-                    result.setEventTimestamp(timelineElementInternal.getTimestamp());
-                    result.setTimestamp(timelineElementInternal.getTimestamp());
-                });
+                .ifPresentOrElse(
+                        (timelineElementInternal ) -> {
+                            Instant timestamp = checkTimestamp(result, timelineElementInternal);
+                            result.setEventTimestamp(timestamp);
+                            result.setTimestamp(timestamp);},
+                        () -> result.setTimestamp(result.getEventTimestamp())
+                );
+    }
+
+    private Instant checkTimestamp(TimelineElementInternal reworkedElement, TimelineElementInternal sendAnalogElement) {
+        Instant reworkedTimestamp = reworkedElement.getTimestamp();
+        Instant sendAnalogTimestamp = sendAnalogElement.getTimestamp();
+        if (Objects.nonNull(reworkedTimestamp) && Objects.nonNull(sendAnalogTimestamp)) {
+            return sendAnalogTimestamp.isBefore(reworkedTimestamp) ? sendAnalogTimestamp : reworkedElement.getEventTimestamp();
+        }
+        return sendAnalogTimestamp;
     }
 
     private void caseAnalogWorkflow(Set<TimelineElementInternal> timelineElementInternalSet, TimelineElementInternal result) {

@@ -70,6 +70,52 @@ class TimelineMapperBeforeFixTest {
     }
 
     @Test
+    void testMapNotificationRestartAttempt0RecIndex0() {
+        Instant sourceEventTimestamp = Instant.EPOCH;
+        Instant sourceIngestionTimestamp = Instant.now();
+
+        TimelineElementInternal notificationReworked = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(new NotificationTimelineReworkedDetailsInt())
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_ABC.RECINDEX_0.ATTEMPT_0.REWORK_0")
+                .timestamp(sourceIngestionTimestamp)
+                .eventTimestamp(sourceEventTimestamp)
+                .notificationSentAt(Instant.now().plusSeconds(3600))
+                .build();
+        Set<TimelineElementInternal> timelineElementInternalSet = Set.of(
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_1.ATTEMPT_1")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
+                        .build(),
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_1.ATTEMPT_0")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
+                        .build(),
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_1")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
+                        .build(),
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_0.REWORK_0")
+                        .timestamp(sourceIngestionTimestamp.plusSeconds(30000))
+                        .eventTimestamp(sourceIngestionTimestamp.plusSeconds(30000))
+                        .build());
+
+        timelineMapperBeforeFix.remapSpecificTimelineElementData(timelineElementInternalSet, notificationReworked, sourceIngestionTimestamp, false);
+
+        Assertions.assertEquals(sourceIngestionTimestamp, notificationReworked.getIngestionTimestamp());
+        Assertions.assertEquals(sourceEventTimestamp, notificationReworked.getTimestamp());
+        Assertions.assertEquals(sourceEventTimestamp, notificationReworked.getEventTimestamp());
+    }
+
+    @Test
     void testMapNotificationReworkedAttempt1RecIndex1() {
         Instant sourceEventTimestamp = Instant.EPOCH;
         Instant sourceIngestionTimestamp = Instant.now();
