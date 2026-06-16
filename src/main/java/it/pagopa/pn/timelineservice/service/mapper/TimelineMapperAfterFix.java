@@ -57,11 +57,13 @@ public class TimelineMapperAfterFix extends TimelineMapper {
                             parser.sentAttemptMade().map(integer -> integer.equals(attempt)).orElse(false);
                 })
                 .findFirst()
-                .ifPresent(timelineElementInternal ->{
-                    Instant timestamp = checkTimestamp(result, timelineElementInternal);
-                    result.setEventTimestamp(timestamp);
-                    result.setTimestamp(timestamp);
-                });
+                .ifPresentOrElse(
+                        (timelineElementInternal ) -> {
+                            Instant timestamp = checkTimestamp(result, timelineElementInternal);
+                            result.setEventTimestamp(timestamp);
+                            result.setTimestamp(timestamp);},
+                        () -> result.setTimestamp(result.getEventTimestamp())
+                );
     }
 
     private Instant checkTimestamp(TimelineElementInternal reworkedElement, TimelineElementInternal sendAnalogElement) {
