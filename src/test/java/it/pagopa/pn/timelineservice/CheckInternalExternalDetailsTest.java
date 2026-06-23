@@ -112,7 +112,7 @@ class CheckInternalExternalDetailsTest {
             new Pair(SendDigitalMessageDetailsInt.class, SendDigitalMessageDetails.class),
             new Pair(SendDigitalMessageFeedbackDetailsInt.class, SendDigitalMessageFeedbackDetails.class),
             new Pair(SendDigitalMessageProgressDetailsInt.class, SendDigitalMessageProgressDetails.class),
-            new Pair(SendDigitalMessageSkipDetailsInt.class,SendDigitalMessageSkipDetails.class),
+            new Pair(SendDigitalMessageSkipDetailsInt.class, SendDigitalMessageSkipDetails.class),
             new Pair(WorkflowDoneDetailsInt.class, WorkflowDoneDetails.class),
             new Pair(WorkflowEndedReachedDetailsInt.class, WorkflowEndedReachedDetails.class),
             new Pair(WorkflowEndedUndeliverableDetailsInt.class, WorkflowEndedUndeliverableDetails.class),
