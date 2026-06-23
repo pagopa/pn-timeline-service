@@ -35,6 +35,7 @@ public class TimelineElementMapper {
                 .paId(timelineElement.getPaId())
                 .reworkId(timelineElement.getReworkId())
                 .communicationType(mapCommunicationTypeFromExternal(timelineElement.getCommunicationType()))
+                .campaignId(timelineElement.getCampaignId())
                 .build();
     }
 
