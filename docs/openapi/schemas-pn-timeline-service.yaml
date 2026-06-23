@@ -2085,6 +2085,11 @@ components:
         __PEC__: invio tramite PEC
         __EMAIL__: invio tramite email
         __SMS__: invio tramite SMS
+      enum:
+        - APPIO
+        - PEC
+        - EMAIL
+        - SMS
 
     PrepareAnalogDeliveryDetails:
       x-discriminator-value: "PREPARE_ANALOG_DELIVERY"
@@ -2210,7 +2215,7 @@ components:
         attachments:
           type: array
           items:
-          $ref: '#/components/schemas/AttachmentDetails'
+           $ref: '#/components/schemas/AttachmentDetails'
         sendRequestId:
           type: string
           description: RequestId della richiesta d'invio

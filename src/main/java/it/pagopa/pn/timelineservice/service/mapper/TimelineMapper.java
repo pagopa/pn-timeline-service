@@ -104,8 +104,8 @@ public abstract class TimelineMapper {
         // che il timestamp di SEND_DIGITAL_DOMICILE non sia successivo a quello di SEND_DIGITAL_FEEDBACK per serc SEND solo in caso di vecchio
         // workflow di recupero domicili digitali
         //
-        // ottenere channelType e verificare che Ã¨ sercq
-        // se sercq, ottenere l'address, e se Ã¨ sercq-send:
+        // ottenere channelType e verificare che e' sercq
+        // se sercq, ottenere l'address, e se e' sercq-send:
         //  - ottieniamo timestamp di AAR_GEN
         // - lo usiamo per impostare il timestamp di SEND_DIGITAL_DOMICILE (setTimeStamp)
         //

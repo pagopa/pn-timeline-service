@@ -9,6 +9,7 @@ public class InformalTimelineStateMap extends AbstractStateMap {
     @Override
     protected void configureTransitions() {
         fromStatusInValidation();
+        fromStatusAccepted();
         fromStatusProcessing();
         fromStatusReached();
         fromStatusUnreached();
@@ -28,10 +29,15 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_VALIDATION_RESPONSE, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_REFUSED, NotificationStatusInt.REFUSED, SINGLE_RECIPIENT)
-        //Todo: gestire l'accepted, non in stato processing ma in stato accepted e da accepted a -> processing
-        ;
+                .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_REFUSED, NotificationStatusInt.REFUSED, SINGLE_RECIPIENT);
+    }
+
+    private void fromStatusAccepted() {
+        this.fromState(NotificationStatusInt.ACCEPTED)
+                //STATE CHANGE
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT);
     }
 
     private void fromStatusProcessing() {
