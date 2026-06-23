@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE;
-import static it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt.SEND_ANALOG_DOMICILE;
+import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE;
+import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.SEND_ANALOG_DOMICILE;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_INVALIDTIMELINEID;
 
 public class NotificationReworkUtils {

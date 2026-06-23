@@ -1,7 +1,7 @@
 package it.pagopa.pn.timelineservice.rest;
 
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.api.TimelineControllerApi;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import it.pagopa.pn.timelineservice.service.AddTimelineElementService;

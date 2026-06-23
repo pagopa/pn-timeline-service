@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.ResultFilterEnum;
 import it.pagopa.pn.timelineservice.dto.io.IoSendMessageResultInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.EndWorkflowStatus;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;

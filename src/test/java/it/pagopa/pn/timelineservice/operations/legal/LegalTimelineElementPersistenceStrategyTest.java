@@ -8,6 +8,7 @@ import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

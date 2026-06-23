@@ -9,6 +9,7 @@ import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.NotificationRequestAcceptedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;

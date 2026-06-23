@@ -1,7 +1,7 @@
 package it.pagopa.pn.timelineservice.utils;
 
 import it.pagopa.pn.commons.exceptions.PnInternalException;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import lombok.Getter;
 
 import java.util.Arrays;

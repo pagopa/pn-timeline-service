@@ -10,7 +10,7 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusIn
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.AarCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogProgressDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;

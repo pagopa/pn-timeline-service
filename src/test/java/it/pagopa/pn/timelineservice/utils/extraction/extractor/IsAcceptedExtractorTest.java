@@ -1,7 +1,7 @@
 package it.pagopa.pn.timelineservice.utils.extraction.extractor;
 
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

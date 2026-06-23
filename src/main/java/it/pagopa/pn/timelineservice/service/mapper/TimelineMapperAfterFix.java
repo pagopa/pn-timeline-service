@@ -4,7 +4,7 @@ import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes;
 import lombok.extern.slf4j.Slf4j;
 

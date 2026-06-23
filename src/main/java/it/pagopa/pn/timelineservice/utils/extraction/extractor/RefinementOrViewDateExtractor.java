@@ -4,7 +4,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.NotificationViewedCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.RefinementDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

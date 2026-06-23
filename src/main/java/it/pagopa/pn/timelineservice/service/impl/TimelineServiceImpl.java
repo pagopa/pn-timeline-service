@@ -12,7 +12,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelated
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.AarGenerationDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.NotificationTimelineReworkedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnNotFoundException;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.AarResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.CancellationRequestResponse;
@@ -41,7 +41,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED;
+import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_NOT_PRESENT_FOR_CURRENT_IUN;
 import static it.pagopa.pn.timelineservice.service.mapper.ConfidentialDetailEnricher.enrichTimelineElementWithConfidentialInformation;

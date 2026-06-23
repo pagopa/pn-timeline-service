@@ -1,7 +1,8 @@
-package it.pagopa.pn.timelineservice.dto.timeline.details.legal;
+package it.pagopa.pn.timelineservice.dto.timeline.details;
 
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import lombok.Getter;
 
 @Getter

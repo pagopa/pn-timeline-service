@@ -4,6 +4,7 @@ import it.pagopa.pn.commons.exceptions.PnExceptionsCodes;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes;

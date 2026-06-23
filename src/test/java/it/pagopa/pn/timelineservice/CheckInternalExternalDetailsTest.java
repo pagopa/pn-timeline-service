@@ -1,5 +1,6 @@
 package it.pagopa.pn.timelineservice;
 
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;

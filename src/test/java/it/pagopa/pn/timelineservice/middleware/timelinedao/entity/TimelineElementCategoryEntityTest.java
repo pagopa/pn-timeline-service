@@ -1,6 +1,6 @@
 package it.pagopa.pn.timelineservice.middleware.timelinedao.entity;
 
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementCategoryEntity;
 import org.junit.jupiter.api.Test;
 

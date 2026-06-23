@@ -3,6 +3,7 @@ package it.pagopa.pn.timelineservice.service.impl;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import it.pagopa.pn.timelineservice.service.mapper.TimelineMapperBeforeFix;
 import org.junit.jupiter.api.Assertions;

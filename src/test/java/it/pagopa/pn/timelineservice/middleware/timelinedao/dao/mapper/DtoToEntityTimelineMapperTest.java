@@ -8,6 +8,7 @@ import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalChannelsInt;
 import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalDeliveryDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.CoverpageCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.ReachedDetailsInt;

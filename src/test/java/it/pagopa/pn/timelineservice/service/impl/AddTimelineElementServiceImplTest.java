@@ -14,7 +14,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.AarGenerationDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogFeedbackDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.service.*;
