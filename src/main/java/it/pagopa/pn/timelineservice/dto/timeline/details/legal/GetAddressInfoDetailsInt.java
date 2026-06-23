@@ -1,0 +1,32 @@
+package it.pagopa.pn.timelineservice.dto.timeline.details.legal;
+
+import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
+import java.time.Instant;
+
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public class GetAddressInfoDetailsInt extends CategoryTypeTimelineElementDetailsInt implements DigitalAddressSourceRelatedTimelineElement {
+    private int recIndex;
+    private DigitalAddressSourceInt digitalAddressSource;
+    private Boolean isAvailable;
+    private Instant attemptDate;
+
+    public String toLog() {
+        return String.format(
+                "recIndex=%d digitalAddressSource=%s isAvailable=%s",
+                recIndex,
+                digitalAddressSource,
+                isAvailable
+        );
+    }
+}

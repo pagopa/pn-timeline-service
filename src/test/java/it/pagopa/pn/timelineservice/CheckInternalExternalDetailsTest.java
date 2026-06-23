@@ -1,6 +1,8 @@
 package it.pagopa.pn.timelineservice;
 
-import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -100,7 +102,22 @@ class CheckInternalExternalDetailsTest {
             new Pair(AnalogFailureWorkflowTimeoutDetailsInt.class, AnalogFailureWorkflowTimeoutDetails.class),
             new Pair(NotificationTimelineReworkedDetailsInt.class, NotificationTimelineReworkedDetails.class),
             new Pair(NotificationCostValidationRequestDetailsInt.class, NotificationCostValidationRequestDetails.class),
-            new Pair(NotificationCostValidationResponseDetailsInt.class, NotificationCostValidationResponseDetails.class)
+            new Pair(NotificationCostValidationResponseDetailsInt.class, NotificationCostValidationResponseDetails.class),
+            new Pair(CoverpageCreationRequestDetailsInt.class, CoverpageCreationRequestDetails.class),
+            new Pair(InformalNotificationViewedDetailsInt.class, InformalNotificationViewedDetails.class),
+            new Pair(PrepareDigitalDetailsInt.class, PrepareDigitalDetails.class),
+            new Pair(SendAnalogMessageDetailsInt.class, SendAnalogMessageDetails.class),
+            new Pair(SendAnalogMessageFeedbackDetailsInt.class, SendAnalogMessageFeedbackDetails.class),
+            new Pair(SendAnalogMessageProgressDetailsInt.class, SendAnalogMessageProgressDetails.class),
+            new Pair(SendDigitalMessageDetailsInt.class, SendDigitalMessageDetails.class),
+            new Pair(SendDigitalMessageFeedbackDetailsInt.class, SendDigitalMessageFeedbackDetails.class),
+            new Pair(SendDigitalMessageProgressDetailsInt.class, SendDigitalMessageProgressDetails.class),
+            new Pair(SendDigitalMessageSkipDetailsInt.class,SendDigitalMessageSkipDetails.class),
+            new Pair(WorkflowDoneDetailsInt.class, WorkflowDoneDetails.class),
+            new Pair(WorkflowEndedReachedDetailsInt.class, WorkflowEndedReachedDetails.class),
+            new Pair(WorkflowEndedUndeliverableDetailsInt.class, WorkflowEndedUndeliverableDetails.class),
+            new Pair(WorkflowEndedUnreachedDetailsInt.class, WorkflowEndedUnreachedDetails.class),
+            new Pair(ReachedDetailsInt.class, ReachedDetails.class)
         );
     }
 

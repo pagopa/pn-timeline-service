@@ -4,7 +4,7 @@ import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.timeline.ReworkFilteringResult;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationTimelineReworkedDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementCategoryEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
 
@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE;
-import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.SEND_ANALOG_DOMICILE;
+import static it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE;
+import static it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt.SEND_ANALOG_DOMICILE;
 import static it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_INVALIDTIMELINEID;
 
 public class NotificationReworkUtils {

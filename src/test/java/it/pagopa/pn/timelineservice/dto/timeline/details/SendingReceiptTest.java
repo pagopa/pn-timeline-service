@@ -1,5 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendingReceipt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

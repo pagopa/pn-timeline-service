@@ -3,7 +3,7 @@ package it.pagopa.pn.timelineservice.operations.informal;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.transition.TransitionRequest;
 import it.pagopa.pn.timelineservice.operations.common.StatusHistoryCalculator;
 import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;

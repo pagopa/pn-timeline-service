@@ -1,6 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.timeline;
 
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

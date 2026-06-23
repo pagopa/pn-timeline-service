@@ -2,9 +2,9 @@ package it.pagopa.pn.timelineservice.operations.informal;
 
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationRequestAcceptedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.SendDigitalFeedbackDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.NotificationRequestAcceptedDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendDigitalFeedbackDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampBaseMapper;
 import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
 import org.junit.jupiter.api.Assertions;

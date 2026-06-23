@@ -1,5 +1,7 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.NotificationCostValidationRequestDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

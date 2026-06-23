@@ -4,7 +4,8 @@ import it.pagopa.pn.commons.exceptions.PnExceptionsCodes;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes;
 import lombok.extern.slf4j.Slf4j;
 
@@ -103,8 +104,8 @@ public abstract class TimelineMapper {
         // che il timestamp di SEND_DIGITAL_DOMICILE non sia successivo a quello di SEND_DIGITAL_FEEDBACK per serc SEND solo in caso di vecchio
         // workflow di recupero domicili digitali
         //
-        // ottenere channelType e verificare che è sercq
-        // se sercq, ottenere l'address, e se è sercq-send:
+        // ottenere channelType e verificare che Ã¨ sercq
+        // se sercq, ottenere l'address, e se Ã¨ sercq-send:
         //  - ottieniamo timestamp di AAR_GEN
         // - lo usiamo per impostare il timestamp di SEND_DIGITAL_DOMICILE (setTimeStamp)
         //

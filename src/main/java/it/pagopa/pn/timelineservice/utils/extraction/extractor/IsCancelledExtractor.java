@@ -1,7 +1,7 @@
 package it.pagopa.pn.timelineservice.utils.extraction.extractor;
 
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

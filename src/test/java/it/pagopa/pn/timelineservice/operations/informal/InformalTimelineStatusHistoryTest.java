@@ -3,7 +3,7 @@ package it.pagopa.pn.timelineservice.operations.informal;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryElementInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampBaseMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +72,7 @@ class InformalTimelineStatusHistoryTest {
 
         //  ... 2nd initial status
         Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
-                        .status(NotificationStatusInt.ACCEPTED)
+                        .status(NotificationStatusInt.PROCESSING)
                         .activeFrom(timelineElement1.getTimestamp())
                         .relatedTimelineElements(List.of("el3"))
                         .build(),
