@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.ResponseStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.DigitalAddressSourceRelatedTimelineElement;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.ElementTimestampTimelineElementDetails;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;

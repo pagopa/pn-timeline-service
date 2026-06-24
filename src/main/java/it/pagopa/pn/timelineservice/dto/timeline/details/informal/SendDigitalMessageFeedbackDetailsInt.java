@@ -8,7 +8,7 @@ import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalDeliveryDeta
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.ElementTimestampTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.DigitalAddressSourceRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.DigitalAddressSourceRelatedTimelineElement;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendingReceipt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;

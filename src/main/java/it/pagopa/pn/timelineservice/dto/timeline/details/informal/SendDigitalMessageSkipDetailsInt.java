@@ -4,7 +4,7 @@ import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalChannelsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.DigitalAddressSourceRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.DigitalAddressSourceRelatedTimelineElement;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
