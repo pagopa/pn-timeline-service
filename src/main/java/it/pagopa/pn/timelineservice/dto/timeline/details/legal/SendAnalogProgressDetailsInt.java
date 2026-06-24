@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.ext.externalchannel.AttachmentDetailsInt
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.ElementTimestampTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ServiceLevelInt;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

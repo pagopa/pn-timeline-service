@@ -5,7 +5,7 @@ import it.pagopa.pn.timelineservice.dto.ext.externalchannel.CategorizedAttachmen
 import it.pagopa.pn.timelineservice.dto.informalnotification.AnalogDeliveryTypeInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.PrepareAnalogDeliveryDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendAnalogMessageDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.ServiceLevelInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ServiceLevelInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -6,7 +6,7 @@ import it.pagopa.pn.timelineservice.dto.informalnotification.AnalogDeliveryTypeI
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.ElementTimestampTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.ServiceLevelInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ServiceLevelInt;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

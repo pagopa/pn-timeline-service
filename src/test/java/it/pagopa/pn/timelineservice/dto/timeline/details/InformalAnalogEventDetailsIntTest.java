@@ -6,7 +6,7 @@ import it.pagopa.pn.timelineservice.dto.ext.externalchannel.ResponseStatusInt;
 import it.pagopa.pn.timelineservice.dto.informalnotification.AnalogDeliveryTypeInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendAnalogMessageFeedbackDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendAnalogMessageProgressDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.ServiceLevelInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ServiceLevelInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

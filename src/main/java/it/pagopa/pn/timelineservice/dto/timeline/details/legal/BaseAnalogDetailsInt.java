@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.PhysicalAddressRelatedTimelineElement;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ServiceLevelInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
