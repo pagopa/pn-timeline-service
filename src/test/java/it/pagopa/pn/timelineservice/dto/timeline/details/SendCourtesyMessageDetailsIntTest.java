@@ -1,5 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 import it.pagopa.pn.timelineservice.dto.address.CourtesyDigitalAddressInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendCourtesyMessageDetailsInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 class SendCourtesyMessageDetailsIntTest {
     private SendCourtesyMessageDetailsInt detailsInt;
-    private Instant instant = Instant.parse("2021-09-16T15:24:00.00Z");
+    private final Instant instant = Instant.parse("2021-09-16T15:24:00.00Z");
     @BeforeEach
     void setUp() {
         detailsInt = new SendCourtesyMessageDetailsInt();

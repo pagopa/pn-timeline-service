@@ -621,6 +621,11 @@ components:
           * `CANCELLED` - L'ente ha annullato l'invio della notifica
           * `PAID` - [DEPRECATO] Uno dei destinatari ha pagato la notifica
           * `RETURNED_TO_SENDER` - La notifica è stata restituita al mittente
+          * `PROCESSING` - La notifica è in fase di elaborazione
+          * `REACHED` - La notifica ha raggiunto il destinatario
+          * `UNREACHED` - La notifica non ha raggiunto il destinatario
+          * `UNDELIVERABLE` - La notifica non è consegnabile
+          * `COMPLETED` - La notifica è stata completata
       enum:
         - IN_VALIDATION
         - ACCEPTED
@@ -633,6 +638,11 @@ components:
         - UNREACHABLE
         - CANCELLED
         - RETURNED_TO_SENDER
+        - PROCESSING
+        - REACHED
+        - UNREACHED
+        - UNDELIVERABLE
+        - COMPLETED
     NotificationStatusHistory:
       description: elenco degli avanzamenti effettuati dal processo di notifica
       type: array

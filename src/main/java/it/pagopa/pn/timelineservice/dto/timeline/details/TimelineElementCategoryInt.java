@@ -1,5 +1,8 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import lombok.Getter;
 
 @Getter
@@ -59,7 +62,22 @@ public enum TimelineElementCategoryInt {
     ANALOG_FAILURE_WORKFLOW_TIMEOUT(AnalogFailureWorkflowTimeoutDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_FAILURE_WORKFLOW_TIMEOUT, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_TIMELINE_REWORKED(NotificationTimelineReworkedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_AFTER, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_COST_VALIDATION_REQUEST(NotificationCostValidationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
-    NOTIFICATION_COST_VALIDATION_RESPONSE(NotificationCostValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_28);
+    NOTIFICATION_COST_VALIDATION_RESPONSE(NotificationCostValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
+    SEND_DIGITAL_MESSAGE(SendDigitalMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_DIGITAL_MESSAGE_SKIP(SendDigitalMessageSkipDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_DIGITAL_MESSAGE_PROGRESS(SendDigitalMessageProgressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_DIGITAL_MESSAGE_FEEDBACK(SendDigitalMessageFeedbackDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    PREPARE_ANALOG_DELIVERY(PrepareAnalogDeliveryDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_ANALOG_MESSAGE(SendAnalogMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_ANALOG_MESSAGE_PROGRESS(SendAnalogMessageProgressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_ANALOG_MESSAGE_FEEDBACK(SendAnalogMessageFeedbackDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    REACHED(ReachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_ENDED_REACHED(WorkflowEndedReachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_ENDED_UNREACHED(WorkflowEndedUnreachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_ENDED_UNDELIVERABLE(WorkflowEndedUndeliverableDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_DONE(WorkflowDoneDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    INFORMAL_NOTIFICATION_VIEWED(InformalNotificationViewedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    COVERPAGE_CREATION_REQUEST(CoverpageCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_10);
 
     private final Class<? extends TimelineElementDetailsInt> detailsJavaClass;
     private final int priority;

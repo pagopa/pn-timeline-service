@@ -24,7 +24,19 @@ public enum NotificationStatusInt {
 
     CANCELLED("CANCELLED", NotificationStatusInt.VERSION_10),
 
-    RETURNED_TO_SENDER("RETURNED_TO_SENDER", NotificationStatusInt.VERSION_26);
+    RETURNED_TO_SENDER("RETURNED_TO_SENDER", NotificationStatusInt.VERSION_26),
+
+    /* Nuovi stati per gli elementi di timeline delle notifiche bonarie*/
+
+    PROCESSING("PROCESSING", NotificationStatusInt.VERSION_10),
+
+    REACHED("REACHED", NotificationStatusInt.VERSION_10),
+
+    UNREACHED("UNREACHED", NotificationStatusInt.VERSION_10),
+
+    UNDELIVERABLE("UNDELIVERABLE", NotificationStatusInt.VERSION_10),
+
+    COMPLETED("COMPLETED", NotificationStatusInt.VERSION_10);
 
     private final String value;
     private final int version;

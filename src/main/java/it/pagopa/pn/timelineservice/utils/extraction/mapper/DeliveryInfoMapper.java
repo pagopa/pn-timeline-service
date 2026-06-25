@@ -1,6 +1,6 @@
 package it.pagopa.pn.timelineservice.utils.extraction.mapper;
 
-import it.pagopa.pn.timelineservice.dto.timeline.details.ExtendedDeliveryModeInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.ExtendedDeliveryModeInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.DeliveryInformationResponse;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.ExtendedDeliveryMode;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.RefinementOrViewedDateDetail;
