@@ -30,13 +30,11 @@ public enum NotificationStatusInt {
 
     PROCESSING("PROCESSING", NotificationStatusInt.VERSION_10),
 
-    REACHED("REACHED", NotificationStatusInt.VERSION_10),
+    COMPLETED_REACHED("COMPLETED_REACHED", NotificationStatusInt.VERSION_10),
 
-    UNREACHED("UNREACHED", NotificationStatusInt.VERSION_10),
+    COMPLETED_UNREACHED("COMPLETED_UNREACHED", NotificationStatusInt.VERSION_10),
 
-    UNDELIVERABLE("UNDELIVERABLE", NotificationStatusInt.VERSION_10),
-
-    COMPLETED("COMPLETED", NotificationStatusInt.VERSION_10);
+    UNDELIVERABLE("UNDELIVERABLE", NotificationStatusInt.VERSION_10);
 
     private final String value;
     private final int version;

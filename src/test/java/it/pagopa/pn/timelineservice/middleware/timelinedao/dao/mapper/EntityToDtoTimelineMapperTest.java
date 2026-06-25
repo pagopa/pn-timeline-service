@@ -3,13 +3,7 @@ package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.mapper;
 import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalChannelsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.CoverpageCreationRequestDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.ReachedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendAnalogMessageProgressDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendDigitalMessageFeedbackDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendDigitalMessageProgressDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowDoneDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowEndedReachedDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.AarCreationRequestDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.PublicRegistryCallDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RequestRefusedDetailsInt;
@@ -258,8 +252,8 @@ class EntityToDtoTimelineMapperTest {
                         .build())
                 .build(), Map.of()).getDetails();
 
-        WorkflowDoneDetailsInt workflowDoneDetails = (WorkflowDoneDetailsInt) mapper.entityToDto(TimelineElementEntity.builder()
-                .category(TimelineElementCategoryEntity.WORKFLOW_DONE)
+        WorkflowDoneReachedDetailsInt workflowDoneDetails = (WorkflowDoneReachedDetailsInt) mapper.entityToDto(TimelineElementEntity.builder()
+                .category(TimelineElementCategoryEntity.WORKFLOW_DONE_REACHED)
                 .details(TimelineElementDetailsEntity.builder()
                         .recIndex(0)
                         .sourceElementId("sourceElementId")

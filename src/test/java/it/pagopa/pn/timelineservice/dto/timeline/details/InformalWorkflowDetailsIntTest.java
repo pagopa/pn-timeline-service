@@ -1,12 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.CoverpageCreationRequestDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.InformalNotificationViewedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.ReachedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowDoneDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowEndedReachedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowEndedUndeliverableDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowEndedUnreachedDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -56,8 +50,18 @@ class InformalWorkflowDetailsIntTest {
     }
 
     @Test
-    void workflowDoneToLog() {
-        WorkflowDoneDetailsInt details = WorkflowDoneDetailsInt.builder()
+    void workflowDoneReachedToLog() {
+        WorkflowDoneReachedDetailsInt details = WorkflowDoneReachedDetailsInt.builder()
+                .recIndex(4)
+                .sourceElementId("sourceElementId")
+                .build();
+
+        Assertions.assertEquals("recIndex=4 sourceElementId=sourceElementId", details.toLog());
+    }
+
+    @Test
+    void workflowDoneUnreachedToLog() {
+        WorkflowDoneUnreachedDetailsInt details = WorkflowDoneUnreachedDetailsInt.builder()
                 .recIndex(4)
                 .sourceElementId("sourceElementId")
                 .build();

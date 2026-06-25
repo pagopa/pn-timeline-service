@@ -15,7 +15,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.informal.ReachedDetails
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendAnalogMessageProgressDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendDigitalMessageFeedbackDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendDigitalMessageProgressDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowDoneDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowDoneReachedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowEndedReachedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
@@ -289,8 +289,8 @@ class DtoToEntityTimelineMapperTest {
                 .build());
 
         TimelineElementEntity workflowDoneEntity = mapper.dtoToEntity(TimelineElementInternal.builder()
-                .category(TimelineElementCategoryInt.WORKFLOW_DONE)
-                .details(WorkflowDoneDetailsInt.builder()
+                .category(TimelineElementCategoryInt.WORKFLOW_DONE_REACHED)
+                .details(WorkflowDoneReachedDetailsInt.builder()
                         .recIndex(0)
                         .sourceElementId("sourceElementId")
                         .build())
@@ -336,7 +336,7 @@ class DtoToEntityTimelineMapperTest {
         TimelineElementDetailsInt elementDetailsInt = parseDetailsFromEntity(TimelineElementDetailsEntity.builder()
                 .recIndex(0)
                 .notificationCost(100)
-                .build(), TimelineElementCategoryInt.NOTIFICATION_VIEWED);
+                .build());
 
         LegalFactsIdInt legalFactsIdInt = buildLegalFactsIdInt();
         List<LegalFactsIdInt> legalFactsIdInts = new ArrayList<>();
@@ -356,8 +356,8 @@ class DtoToEntityTimelineMapperTest {
                 .build();
     }
 
-    private TimelineElementDetailsInt parseDetailsFromEntity(TimelineElementDetailsEntity entity, TimelineElementCategoryInt category) {
-        return SmartMapper.mapToClass(entity, category.getDetailsJavaClass());
+    private TimelineElementDetailsInt parseDetailsFromEntity(TimelineElementDetailsEntity entity) {
+        return SmartMapper.mapToClass(entity, TimelineElementCategoryInt.NOTIFICATION_VIEWED.getDetailsJavaClass());
     }
 
     private LegalFactsIdInt buildLegalFactsIdInt() {

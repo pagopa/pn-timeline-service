@@ -89,7 +89,8 @@ components:
         - WORKFLOW_ENDED_REACHED
         - WORKFLOW_ENDED_UNREACHED
         - WORKFLOW_ENDED_UNDELIVERABLE
-        - WORKFLOW_DONE
+        - WORKFLOW_DONE_REACHED
+        - WORKFLOW_DONE_UNREACHED
         - INFORMAL_NOTIFICATION_VIEWED
         - COVERPAGE_CREATION_REQUEST
         - SEND_DIGITAL_MESSAGE_SKIP
@@ -226,7 +227,8 @@ components:
         - "$ref": "#/components/schemas/WorkflowEndedReachedDetails"
         - "$ref": "#/components/schemas/WorkflowEndedUnreachedDetails"
         - "$ref": "#/components/schemas/WorkflowEndedUndeliverableDetails"
-        - "$ref": "#/components/schemas/WorkflowDoneDetails"
+        - "$ref": "#/components/schemas/WorkflowDoneReachedDetails"
+        - "$ref": "#/components/schemas/WorkflowDoneUnreachedDetails"
         - "$ref": "#/components/schemas/InformalNotificationViewedDetails"
         - "$ref": "#/components/schemas/CoverpageCreationRequestDetails"
         - "$ref": "#/components/schemas/SendDigitalMessageSkipDetails"
@@ -2420,8 +2422,24 @@ components:
         recIndex:
           $ref: '#/components/schemas/RecIndex'
 
-    WorkflowDoneDetails:
-      x-discriminator-value: "WORKFLOW_DONE"
+    WorkflowDoneReachedDetails:
+      x-discriminator-value: "WORKFLOW_DONE_REACHED "
+      type: object
+      required:
+        - recIndex
+        - categoryType
+      properties:
+        categoryType:
+          type: string
+        recIndex:
+          $ref: '#/components/schemas/RecIndex'
+        sourceElementId:
+          type: string
+          description: Id dell'elemento che ha generato la conclusione del workflow
+          maxLength: 512
+
+    WorkflowDoneUnreachedDetails:
+      x-discriminator-value: "WORKFLOW_DONE_UNREACHED "
       type: object
       required:
         - recIndex

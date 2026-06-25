@@ -63,6 +63,7 @@ public enum TimelineElementCategoryInt {
     NOTIFICATION_TIMELINE_REWORKED(NotificationTimelineReworkedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_AFTER, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_COST_VALIDATION_REQUEST(NotificationCostValidationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_COST_VALIDATION_RESPONSE(NotificationCostValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
+    //Timeline Element for Informal Notification
     SEND_DIGITAL_MESSAGE(SendDigitalMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_DIGITAL_MESSAGE_SKIP(SendDigitalMessageSkipDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_DIGITAL_MESSAGE_PROGRESS(SendDigitalMessageProgressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
@@ -75,7 +76,8 @@ public enum TimelineElementCategoryInt {
     WORKFLOW_ENDED_REACHED(WorkflowEndedReachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     WORKFLOW_ENDED_UNREACHED(WorkflowEndedUnreachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     WORKFLOW_ENDED_UNDELIVERABLE(WorkflowEndedUndeliverableDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
-    WORKFLOW_DONE(WorkflowDoneDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_DONE_REACHED(WorkflowDoneReachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_DONE_UNREACHED(WorkflowDoneUnreachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     INFORMAL_NOTIFICATION_VIEWED(InformalNotificationViewedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     COVERPAGE_CREATION_REQUEST(CoverpageCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_10);
 

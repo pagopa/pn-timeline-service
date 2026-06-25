@@ -11,37 +11,33 @@ public class InformalTimelineStateMap extends AbstractStateMap {
         fromStatusInValidation();
         fromStatusAccepted();
         fromStatusProcessing();
-        fromStatusReached();
-        fromStatusUnreached();
+        fromStatusCompletedUnreached();
         fromStatusUndeliverable();
-        fromStatusCompleted();
+        fromStatusCompletedReached();
 
         this.fromState(NotificationStatusInt.REFUSED);
     }
 
     private void fromStatusInValidation() {
-        // Received state
         this.fromState(NotificationStatusInt.IN_VALIDATION)
-                //STATE UNCHANGE
+                // STATE UNCHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.VALIDATE_NORMALIZE_ADDRESSES_REQUEST, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NORMALIZED_ADDRESS, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_VALIDATION_CALL, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_VALIDATION_RESPONSE, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_REFUSED, NotificationStatusInt.REFUSED, SINGLE_RECIPIENT);
     }
 
     private void fromStatusAccepted() {
         this.fromState(NotificationStatusInt.ACCEPTED)
-                //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT);
     }
 
     private void fromStatusProcessing() {
-        // Received state
         this.fromState(NotificationStatusInt.PROCESSING)
                 //STATE UNCHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
@@ -57,64 +53,42 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.REACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_UNREACHED, NotificationStatusInt.UNREACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_UNREACHED, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_UNDELIVERABLE, NotificationStatusInt.UNDELIVERABLE, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-        ;
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE_UNREACHED, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT);
     }
 
-    private void fromStatusReached() {
-        // Received state
-        this.fromState(NotificationStatusInt.REACHED)
+    private void fromStatusCompletedUnreached() {
+        this.fromState(NotificationStatusInt.COMPLETED_UNREACHED)
                 //STATE UNCHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_PROGRESS, NotificationStatusInt.REACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_FEEDBACK, NotificationStatusInt.REACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_PROGRESS, NotificationStatusInt.REACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.REACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.REACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_PROGRESS, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_FEEDBACK, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_PROGRESS, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-        ;
-    }
-
-    private void fromStatusUnreached() {
-        // Received state
-        this.fromState(NotificationStatusInt.UNREACHED)
-                //STATE UNCHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_PROGRESS, NotificationStatusInt.UNREACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_FEEDBACK, NotificationStatusInt.UNREACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_PROGRESS, NotificationStatusInt.UNREACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.UNREACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.UNREACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.UNREACHED, SINGLE_RECIPIENT)
-
-                //STATE CHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.REACHED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-        ;
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT);
     }
 
     private void fromStatusUndeliverable() {
-        // Received state
         this.fromState(NotificationStatusInt.UNDELIVERABLE)
-                //STATE CHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-        ;
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT);
     }
 
-    private void fromStatusCompleted() {
-        // Received state
-        this.fromState(NotificationStatusInt.COMPLETED)
+    private void fromStatusCompletedReached() {
+        this.fromState(NotificationStatusInt.COMPLETED_REACHED)
                 //STATE UNCHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_PROGRESS, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_FEEDBACK, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_PROGRESS, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.COMPLETED, SINGLE_RECIPIENT)
-        ;
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_PROGRESS, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_FEEDBACK, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_PROGRESS, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT);
     }
 }

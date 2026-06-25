@@ -621,11 +621,10 @@ components:
           * `CANCELLED` - L'ente ha annullato l'invio della notifica
           * `PAID` - [DEPRECATO] Uno dei destinatari ha pagato la notifica
           * `RETURNED_TO_SENDER` - La notifica è stata restituita al mittente
-          * `PROCESSING` - La notifica è in fase di elaborazione
-          * `REACHED` - La notifica ha raggiunto il destinatario
-          * `UNREACHED` - La notifica non ha raggiunto il destinatario
-          * `UNDELIVERABLE` - La notifica non è consegnabile
-          * `COMPLETED` - La notifica è stata completata
+          * `PROCESSING` - Stato assunto non appena la validazione ha esito positivo e l'orchestratore avvia il workflow sequenziale di consegna sui canali
+          * `COMPLETED_REACHED` - Stato finale di terminazione positiva; Il destinatario è stato raggiunto alla destinazione più vicina al cittadino, ma non è stato ancora ottenuto il feedback di arresto finale desiderato dall'ente;
+          * `COMPLETED_UNREACHED` - Stato finale di terminazione negativa; Il destinatario non è stato raggiunto alla destinazione più vicina al cittadino;
+          * `UNDELIVERABLE` - Stato di irreperibilità totale; raggiungibile solo se la validazione asincrona consente l'ingresso di notifiche prive di qualsiasi recapito utile o di profilo IO associato
       enum:
         - IN_VALIDATION
         - ACCEPTED
@@ -639,10 +638,9 @@ components:
         - CANCELLED
         - RETURNED_TO_SENDER
         - PROCESSING
-        - REACHED
-        - UNREACHED
+        - COMPLETED_REACHED
+        - COMPLETED_UNREACHED
         - UNDELIVERABLE
-        - COMPLETED
     NotificationStatusHistory:
       description: elenco degli avanzamenti effettuati dal processo di notifica
       type: array
