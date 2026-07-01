@@ -119,7 +119,7 @@ class CheckInternalExternalDetailsTest {
             new Pair(WorkflowEndedReachedDetailsInt.class, WorkflowEndedReachedDetails.class),
             new Pair(WorkflowEndedUndeliverableDetailsInt.class, WorkflowEndedUndeliverableDetails.class),
             new Pair(WorkflowEndedUnreachedDetailsInt.class, WorkflowEndedUnreachedDetails.class),
-            new Pair(ReachedDetailsInt.class, ReachedDetails.class)
+            new Pair(DeliveredDetailsInt.class, DeliveredDetails.class)
         );
     }
 

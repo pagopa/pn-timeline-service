@@ -1,8 +1,5 @@
-package it.pagopa.pn.timelineservice.dto.timeline.details.legal;
+package it.pagopa.pn.timelineservice.dto.timeline.details.common;
 
-import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.common.ElementTimestampTimelineElementDetails;
-import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

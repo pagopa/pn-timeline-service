@@ -11,7 +11,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 @Setter
 @EqualsAndHashCode
 @DynamoDbBean
-public class ReachedDetailsEntity {
+public class DeliveredDetailsEntity {
     @Getter(onMethod = @__({@DynamoDbAttribute("channel")}))
     private String channel;
     @Getter(onMethod = @__({@DynamoDbAttribute("sourceElementId")}))

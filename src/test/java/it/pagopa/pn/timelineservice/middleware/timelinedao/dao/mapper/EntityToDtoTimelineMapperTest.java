@@ -260,8 +260,8 @@ class EntityToDtoTimelineMapperTest {
                         .build())
                 .build(), Map.of()).getDetails();
 
-        ReachedDetailsInt reachedDetails = (ReachedDetailsInt) mapper.entityToDto(TimelineElementEntity.builder()
-                .category(TimelineElementCategoryEntity.REACHED)
+        DeliveredDetailsInt reachedDetails = (DeliveredDetailsInt) mapper.entityToDto(TimelineElementEntity.builder()
+                .category(TimelineElementCategoryEntity.DELIVERED)
                 .details(TimelineElementDetailsEntity.builder()
                         .recIndex(0)
                         .channel(String.valueOf(DigitalChannelsInt.PEC))
@@ -273,7 +273,7 @@ class EntityToDtoTimelineMapperTest {
                 .category(TimelineElementCategoryEntity.WORKFLOW_ENDED_REACHED)
                 .details(TimelineElementDetailsEntity.builder()
                         .recIndex(0)
-                        .channels(List.of("PEC", "SMS"))
+                        .sourceElementId("workflowEndedSourceElementId")
                         .build())
                 .build(), Map.of()).getDetails();
 
@@ -290,7 +290,8 @@ class EntityToDtoTimelineMapperTest {
         Assertions.assertEquals("sourceElementId", workflowDoneDetails.getSourceElementId());
         Assertions.assertEquals("PEC", reachedDetails.getChannel());
         Assertions.assertEquals("reachedSourceElementId", reachedDetails.getSourceElementId());
-        Assertions.assertEquals(List.of("PEC", "SMS"), workflowEndedReachedDetails.getChannels());
+        Assertions.assertEquals("workflowEndedSourceElementId",
+                workflowEndedReachedDetails.getSourceElementId());
         Assertions.assertEquals("feedbackRequestId", feedbackDetails.getRequestId());
         Assertions.assertEquals("APPIO", feedbackDetails.getChannel().getValue());
     }

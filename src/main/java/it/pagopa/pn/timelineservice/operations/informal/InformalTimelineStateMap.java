@@ -48,7 +48,7 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_PROGRESS, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.REACHED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.DELIVERED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
 

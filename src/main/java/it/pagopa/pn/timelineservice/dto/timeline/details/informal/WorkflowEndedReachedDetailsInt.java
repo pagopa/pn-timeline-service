@@ -7,7 +7,6 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,15 +18,15 @@ import java.util.List;
 public class WorkflowEndedReachedDetailsInt extends CategoryTypeTimelineElementDetailsInt implements ElementTimestampTimelineElementDetails, RecipientRelatedTimelineElementDetails {
     private int recIndex;
     private Instant notificationDate;
-    private List<String> channels;
+    private String sourceElementId;
 
     @Override
     public String toLog() {
         return String.format(
-                "recIndex=%d notificationDate=%s channels=%s",
+                "recIndex=%d notificationDate=%s sourceElementId=%s",
                 recIndex,
                 notificationDate,
-                channels
+                sourceElementId
         );
     }
 

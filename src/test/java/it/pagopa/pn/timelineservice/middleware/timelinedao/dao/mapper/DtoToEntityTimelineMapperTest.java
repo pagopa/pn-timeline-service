@@ -10,13 +10,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.CoverpageCreationRequestDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.ReachedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendAnalogMessageProgressDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendDigitalMessageFeedbackDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.SendDigitalMessageProgressDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowDoneReachedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.informal.WorkflowEndedReachedDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementDetailsEntity;
@@ -297,8 +291,8 @@ class DtoToEntityTimelineMapperTest {
                 .build());
 
         TimelineElementEntity reachedEntity = mapper.dtoToEntity(TimelineElementInternal.builder()
-                .category(TimelineElementCategoryInt.REACHED)
-                .details(ReachedDetailsInt.builder()
+                .category(TimelineElementCategoryInt.DELIVERED)
+                .details(DeliveredDetailsInt.builder()
                         .recIndex(0)
                         .channel("PEC")
                         .sourceElementId("reachedSourceElementId")
@@ -309,7 +303,7 @@ class DtoToEntityTimelineMapperTest {
                 .category(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED)
                 .details(WorkflowEndedReachedDetailsInt.builder()
                         .recIndex(0)
-                        .channels(List.of("PEC", "SMS"))
+                        .sourceElementId("elementId")
                         .build())
                 .build());
 
@@ -325,8 +319,8 @@ class DtoToEntityTimelineMapperTest {
         assertThat(coverpageEntity.getDetails().getFileKey()).isEqualTo("fileKey");
         assertThat(workflowDoneEntity.getDetails().getSourceElementId()).isEqualTo("sourceElementId");
         assertThat(reachedEntity.getDetails().getChannel()).isEqualTo("PEC");
+        assertThat(workflowEndedReachedEntity.getDetails().getSourceElementId()).isEqualTo("elementId");
         assertThat(reachedEntity.getDetails().getSourceElementId()).isEqualTo("reachedSourceElementId");
-        assertThat(workflowEndedReachedEntity.getDetails().getChannels()).containsExactly("PEC", "SMS");
         assertThat(requestIdEntity.getDetails().getRequestId()).isEqualTo("feedbackRequestId");
         assertThat(requestIdEntity.getDetails().getChannel()).isEqualTo("APPIO");
     }

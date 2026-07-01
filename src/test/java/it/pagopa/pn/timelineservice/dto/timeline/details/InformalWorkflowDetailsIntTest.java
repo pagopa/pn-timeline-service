@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.List;
 
 class InformalWorkflowDetailsIntTest {
 
@@ -21,8 +20,8 @@ class InformalWorkflowDetailsIntTest {
     }
 
     @Test
-    void reachedToLog() {
-        ReachedDetailsInt details = ReachedDetailsInt.builder()
+    void deliveredToLog() {
+        DeliveredDetailsInt details = DeliveredDetailsInt.builder()
                 .recIndex(2)
                 .channel("SMS")
                 .sourceElementId("sourceElementId")
@@ -75,12 +74,12 @@ class InformalWorkflowDetailsIntTest {
         WorkflowEndedReachedDetailsInt details = WorkflowEndedReachedDetailsInt.builder()
                 .recIndex(5)
                 .notificationDate(notificationDate)
-                .channels(List.of("SMS", "EMAIL"))
+                .sourceElementId("sourceElementId")
                 .build();
 
         Assertions.assertEquals(
-                String.format("recIndex=%d notificationDate=%s channels=%s",
-                        5, notificationDate, List.of("SMS", "EMAIL")),
+                String.format("recIndex=%d notificationDate=%s sourceElementId=%s",
+                        5, notificationDate, "sourceElementId"),
                 details.toLog()
         );
         Assertions.assertEquals(notificationDate, details.getElementTimestamp());
@@ -99,8 +98,9 @@ class InformalWorkflowDetailsIntTest {
     void workflowEndedUnreachedToLog() {
         WorkflowEndedUnreachedDetailsInt details = WorkflowEndedUnreachedDetailsInt.builder()
                 .recIndex(7)
+                .sourceElementId("sourceElementId")
                 .build();
 
-        Assertions.assertEquals("recIndex=7", details.toLog());
+        Assertions.assertEquals("recIndex=7 sourceElementId=sourceElementId", details.toLog());
     }
 }

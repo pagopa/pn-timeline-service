@@ -85,7 +85,7 @@ components:
         - SEND_ANALOG_MESSAGE
         - SEND_ANALOG_MESSAGE_PROGRESS
         - SEND_ANALOG_MESSAGE_FEEDBACK
-        - REACHED
+        - DELIVERED
         - WORKFLOW_ENDED_REACHED
         - WORKFLOW_ENDED_UNREACHED
         - WORKFLOW_ENDED_UNDELIVERABLE
@@ -223,7 +223,7 @@ components:
         - "$ref": "#/components/schemas/SendAnalogMessageDetails"
         - "$ref": "#/components/schemas/SendAnalogMessageProgressDetails"
         - "$ref": "#/components/schemas/SendAnalogMessageFeedbackDetails"
-        - "$ref": "#/components/schemas/ReachedDetails"
+        - "$ref": "#/components/schemas/DeliveredDetails"
         - "$ref": "#/components/schemas/WorkflowEndedReachedDetails"
         - "$ref": "#/components/schemas/WorkflowEndedUnreachedDetails"
         - "$ref": "#/components/schemas/WorkflowEndedUndeliverableDetails"
@@ -2344,8 +2344,8 @@ components:
           description: Codice della raccomandata
           maxLength: 128
 
-    ReachedDetails:
-      x-discriminator-value: "REACHED"
+    DeliveredDetails:
+      x-discriminator-value: "DELIVERED"
       type: object
       required:
         - recIndex
@@ -2375,28 +2375,18 @@ components:
       required:
         - recIndex
         - categoryType
-        - channels
+        - sourceElementId
       properties:
         categoryType:
           type: string
         recIndex:
           $ref: '#/components/schemas/RecIndex'
+        sourceElementId:
+          type: string
         notificationDate:
           description: data del primo evento di raggiungimento del destinatario
           type: string
           format: date-time
-        channels:
-          type: array
-          description: >
-              __Canali di raggiungimento del destinatario__
-              - __APPIO__
-              - __PEC__
-              - __EMAIL__
-              - __SMS__
-              - __ANALOG__
-          items:
-            type: string
-            minLength: 1
 
     WorkflowEndedUnreachedDetails:
       x-discriminator-value: "WORKFLOW_ENDED_UNREACHED"
@@ -2404,11 +2394,14 @@ components:
       required:
         - recIndex
         - categoryType
+        - sourceElementId
       properties:
         categoryType:
           type: string
         recIndex:
           $ref: '#/components/schemas/RecIndex'
+        sourceElementId:
+          type: string
 
     WorkflowEndedUndeliverableDetails:
       x-discriminator-value: "WORKFLOW_ENDED_UNDELIVERABLE"

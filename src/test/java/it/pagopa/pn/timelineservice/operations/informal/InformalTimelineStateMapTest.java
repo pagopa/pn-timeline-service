@@ -25,7 +25,7 @@ class InformalTimelineStateMapTest {
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.SEND_ANALOG_MESSAGE, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_PROGRESS, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.PROCESSING);
-        assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.REACHED, NotificationStatusInt.PROCESSING);
+        assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.DELIVERED, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.PROCESSING);
     }
