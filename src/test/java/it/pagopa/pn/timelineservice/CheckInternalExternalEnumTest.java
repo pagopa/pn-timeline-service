@@ -91,6 +91,24 @@ class CheckInternalExternalEnumTest {
     }
 
     @Test
+    void checkExternalCourtesyChannelFailureReason(){
+        assertDoesNotThrow( ()  ->{
+            for (CourtesyChannelFailureReasonInt courtesyChannelFailureReasonInt : CourtesyChannelFailureReasonInt.values()) {
+                CourtesyChannelFailureReason.valueOf(courtesyChannelFailureReasonInt.name());
+            }
+        });
+    }
+
+    @Test
+    void checkInternalCourtesyChannelFailureReason(){
+        assertDoesNotThrow( ()  ->{
+            for (CourtesyChannelFailureReason courtesyChannelFailureReason : CourtesyChannelFailureReason.values()) {
+                CourtesyChannelFailureReasonInt.valueOf(courtesyChannelFailureReason.name());
+            }
+        });
+    }
+
+    @Test
     void checkExternalServiceLevel(){
         assertDoesNotThrow( ()  ->{
             for (ServiceLevelInt serviceLevelInt : ServiceLevelInt.values()) {

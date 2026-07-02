@@ -59,7 +59,8 @@ public enum TimelineElementCategoryInt {
     ANALOG_FAILURE_WORKFLOW_TIMEOUT(AnalogFailureWorkflowTimeoutDetailsInt.class, TimelineElementCategoryInt.PRIORITY_ANALOG_FAILURE_WORKFLOW_TIMEOUT, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_TIMELINE_REWORKED(NotificationTimelineReworkedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_AFTER, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_COST_VALIDATION_REQUEST(NotificationCostValidationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
-    NOTIFICATION_COST_VALIDATION_RESPONSE(NotificationCostValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_28);
+    NOTIFICATION_COST_VALIDATION_RESPONSE(NotificationCostValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
+    COURTESY_CHANNEL_FAILED(CourtesyChannelFailedDetailsInt.class, TimelineElementCategoryInt.VERSION_29);
 
     private final Class<? extends TimelineElementDetailsInt> detailsJavaClass;
     private final int priority;
@@ -84,6 +85,7 @@ public enum TimelineElementCategoryInt {
     public static final int VERSION_26 = 26;
     public static final int VERSION_27 = 27;
     public static final int VERSION_28 = 28;
+    public static final int VERSION_29 = 29;
 
     TimelineElementCategoryInt(Class<? extends TimelineElementDetailsInt> detailsJavaClass, int version) {
         this(detailsJavaClass, PRIORITY_BEFORE, version);
