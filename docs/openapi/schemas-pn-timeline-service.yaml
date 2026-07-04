@@ -2017,20 +2017,33 @@ components:
           maxLength: 20
           description: >
             Stato - Codice relativo all'evento - Descrizione:
+              - PROGRESS   SENT_TO_IO = MESSAGGIO INVIATO SU APP IO
+              - PROGRESS   DELIVERED_TO_USER = MESSAGGIO CONSEGNATO AL DESTINATARIO SU APP IO
+              - PROGRESS   READ = LETTURA MESSAGGIO DA PARTE DEL DESTINATARIO SU APP IO
+              - PROGRESS   PAID = PAGAMENTO POSIZIONE DEBITORIA SU APP IO
               - PROGRESS   C000 = PREACCETTAZIONE
               - PROGRESS   C001 = ACCETTAZIONE
               - PROGRESS   C005 = PRESA_IN_CARICO
               - PROGRESS   C007 = PREAVVISO_ERRORE_CONSEGNA
-              - PROGRESS   DP00 = RE-INVIO PEC CAUSA FALLIMENTO TEMPORANEO
-              - PROGRESS   DP10 = TIMEOUT RICEZIONE RISULTATO
-              - PROGRESS   READ = LETTURA MESSAGGIO DA PARTE DEL DESTINATARIO
-              - PROGRESS   PAID = PAGAMENTO POSIZIONE DEBITORIA
+              - PROGRESS   M003 = INVIATO
+              - PROGRESS   M004 = IN CONSEGNA
+              - PROGRESS   S003 = INVIATO
+              - ERROR      SENDER_NOT_ALLOWED = DESTINATARIO NON ABILITATO A RICEVERE NOTIFICHE SU IO
               - ERROR      C002 = NON_ACCETTAZIONE
               - ERROR      C004 = ERRORE_CONSEGNA
               - ERROR      C006 = RILEVAZIONE_VIRUS
               - ERROR      C008 = ERRORE_COMUNICAZIONE_SERVER_PEC
               - ERROR      C009 = ERRORE_DOMINIO_PEC_NON_VALIDO
               - ERROR      C010 = ERROR_INVIO_PEC
+              - ERROR      C011 = ERRORE_INDIRIZZO
+              - ERROR      M005 = RIMBALZO
+              - ERROR      M006 = SPAM
+              - ERROR      M008 = ERRORE
+              - ERROR      M009 = RIFIUTATO
+              - ERROR      M010 = ERRORE_INTERNO
+              - ERROR      M011 = ERRORE_SISTEMA
+              - ERROR      S008 = ERRORE
+              - ERROR      S010 = ERRORE
               - OK         C003 = AVVENUTA_CONSEGNA
         failureCause:
           type: string
