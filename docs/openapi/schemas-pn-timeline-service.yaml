@@ -130,6 +130,8 @@ components:
           $ref: '#/components/schemas/StatusInfo'
         reworkId:
           type: string
+        reworkRequestType:
+          type: string
         notificationSentAt:
           type: string
           format: date-time
