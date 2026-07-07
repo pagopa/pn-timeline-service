@@ -119,6 +119,39 @@ class AddTimelineElementServiceImplTest {
     }
 
     @Test
+    void addTimelineElementSavesReworkRequestType() {
+        String iun = "iun_12345";
+        String elementId = "SEND_ANALOG_FEEDBACK.IUN_" + iun + ".RECINDEX_0.ATTEMPT_0";
+        String reworkRequestType = "ADDRESS_REWORK";
+
+        NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
+        StatusService.NotificationStatusUpdate notificationStatuses =
+                new StatusService.NotificationStatusUpdate(NotificationStatusInt.ACCEPTED, NotificationStatusInt.ACCEPTED);
+        Mockito.when(statusService.getStatus(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(notificationStatuses);
+        Mockito.when(confidentialInformationService.saveTimelineConfidentialInformation(Mockito.any())).thenReturn(Mono.empty());
+        Mockito.when(timelineDao.addTimelineElementIfAbsent(Mockito.any())).thenReturn(Mono.empty());
+        Mockito.when(timelineService.getTimeline(iun, null, true, false))
+                .thenReturn(Flux.fromIterable(getSendPaperDetailsList(iun, elementId)));
+
+        TimelineElementInternal newElement = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.SEND_ANALOG_FEEDBACK)
+                .elementId(elementId)
+                .iun(iun)
+                .timestamp(Instant.now())
+                .reworkRequestType(reworkRequestType)
+                .communicationType(CommunicationType.LEGAL)
+                .build();
+
+        StepVerifier.create(addTimelineElementService.addTimelineElement(newElement, notification))
+                .expectNext(elementId)
+                .verifyComplete();
+
+        ArgumentCaptor<TimelineElementInternal> captor = ArgumentCaptor.forClass(TimelineElementInternal.class);
+        verify(timelineDao).addTimelineElementIfAbsent(captor.capture());
+        Assertions.assertEquals(reworkRequestType, captor.getValue().getReworkRequestType());
+    }
+
+    @Test
     void addCriticalTimelineElement() {
         // GIVEN
         String iun = "iun_12345";
