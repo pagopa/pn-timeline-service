@@ -212,7 +212,6 @@ components:
         - categoryType
         - channelType
         - deliveryMode
-        - failureReason
       properties:
         categoryType:
           type: string
