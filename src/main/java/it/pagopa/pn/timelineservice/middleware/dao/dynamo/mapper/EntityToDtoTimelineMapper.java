@@ -30,6 +30,7 @@ public class EntityToDtoTimelineMapper {
         return TimelineElementInternal.builder()
                 .iun(entity.getIun())
                 .reworkId(entity.getReworkId())
+                .campaignId(entity.getCampaignId())
                 .elementId( entity.getTimelineElementId() )
                 .category( category )
                 .timestamp( entity.getTimestamp() )
