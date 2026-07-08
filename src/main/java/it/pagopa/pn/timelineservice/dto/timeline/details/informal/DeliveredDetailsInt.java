@@ -24,10 +24,11 @@ public class DeliveredDetailsInt extends CategoryTypeTimelineElementDetailsInt i
     @Override
     public String toLog() {
         return String.format(
-                "recIndex=%d channel=%s sourceElementId=%s",
+                "recIndex=%d channel=%s sourceElementId=%s notificationDate=%s",
                 recIndex,
                 channel,
-                sourceElementId
+                sourceElementId,
+                notificationDate
         );
     }
 

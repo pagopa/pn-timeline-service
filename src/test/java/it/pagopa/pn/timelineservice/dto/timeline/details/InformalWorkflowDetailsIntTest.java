@@ -25,9 +25,10 @@ class InformalWorkflowDetailsIntTest {
                 .recIndex(2)
                 .channel("SMS")
                 .sourceElementId("sourceElementId")
+                .notificationDate(Instant.parse("2024-03-01T08:00:00Z"))
                 .build();
 
-        Assertions.assertEquals("recIndex=2 channel=SMS sourceElementId=sourceElementId", details.toLog());
+        Assertions.assertEquals("recIndex=2 channel=SMS sourceElementId=sourceElementId notificationDate=2024-03-01T08:00:00Z", details.toLog());
     }
 
     @Test
@@ -70,19 +71,16 @@ class InformalWorkflowDetailsIntTest {
 
     @Test
     void workflowEndedReachedToLogAndTimestamp() {
-        Instant notificationDate = Instant.parse("2024-03-02T09:00:00Z");
         WorkflowEndedReachedDetailsInt details = WorkflowEndedReachedDetailsInt.builder()
                 .recIndex(5)
-                .notificationDate(notificationDate)
                 .sourceElementId("sourceElementId")
                 .build();
 
         Assertions.assertEquals(
-                String.format("recIndex=%d notificationDate=%s sourceElementId=%s",
-                        5, notificationDate, "sourceElementId"),
+                String.format("recIndex=%d sourceElementId=%s",
+                        5, "sourceElementId"),
                 details.toLog()
         );
-        Assertions.assertEquals(notificationDate, details.getElementTimestamp());
     }
 
     @Test
