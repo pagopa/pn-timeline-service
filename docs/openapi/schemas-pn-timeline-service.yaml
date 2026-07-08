@@ -2431,11 +2431,12 @@ components:
           $ref: '#/components/schemas/RecIndex'
 
     WorkflowDoneReachedDetails:
-      x-discriminator-value: "WORKFLOW_DONE_REACHED "
+      x-discriminator-value: "WORKFLOW_DONE_REACHED"
       type: object
       required:
         - recIndex
         - categoryType
+        - sourceElementId
       properties:
         categoryType:
           type: string
@@ -2447,11 +2448,12 @@ components:
           maxLength: 512
 
     WorkflowDoneUnreachedDetails:
-      x-discriminator-value: "WORKFLOW_DONE_UNREACHED "
+      x-discriminator-value: "WORKFLOW_DONE_UNREACHED"
       type: object
       required:
         - recIndex
         - categoryType
+        - sourceElementId
       properties:
         categoryType:
           type: string
