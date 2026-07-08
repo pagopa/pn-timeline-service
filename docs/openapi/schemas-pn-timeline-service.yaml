@@ -146,6 +146,8 @@ components:
           $ref: '#/components/schemas/StatusInfo'
         reworkId:
           type: string
+        campaignId:
+          type: string
         notificationSentAt:
           type: string
           format: date-time

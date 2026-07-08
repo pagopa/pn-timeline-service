@@ -68,6 +68,7 @@ class DtoToEntityTimelineMapperTest {
         assertThat(actual.getLegalFactIds().getFirst().getKey()).isEqualTo(timelineElementInternal.getLegalFactsIds().getFirst().getKey());
         assertThat(actual.getLegalFactIds().getFirst().getCategory().name()).isEqualTo(timelineElementInternal.getLegalFactsIds().getFirst().getCategory().name());
         assertThat(actual.getReworkId()).isEqualTo(timelineElementInternal.getReworkId());
+        assertThat(actual.getCampaignId()).isEqualTo(timelineElementInternal.getCampaignId());
 
         // verifica communicationType
         assertEquals(expectedCommunicationType, actual.getCommunicationType());
@@ -346,6 +347,7 @@ class DtoToEntityTimelineMapperTest {
                 .legalFactsIds(legalFactsIdInts)
                 .notificationSentAt(Instant.now())
                 .reworkId("reworkId")
+                .campaignId("campaignId")
                 .communicationType(communicationType)
                 .build();
     }
