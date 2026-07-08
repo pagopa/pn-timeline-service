@@ -2381,6 +2381,10 @@ components:
           type: string
           description: Id dell'elemento che ha generato il raggiungimento
           maxLength: 512
+        notificationDate:
+          description: data del primo evento di raggiungimento del destinatario
+          type: string
+          format: date-time
 
     WorkflowEndedReachedDetails:
       x-discriminator-value: "WORKFLOW_ENDED_REACHED"
@@ -2396,10 +2400,6 @@ components:
           $ref: '#/components/schemas/RecIndex'
         sourceElementId:
           type: string
-        notificationDate:
-          description: data del primo evento di raggiungimento del destinatario
-          type: string
-          format: date-time
 
     WorkflowEndedUnreachedDetails:
       x-discriminator-value: "WORKFLOW_ENDED_UNREACHED"

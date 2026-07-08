@@ -67,12 +67,12 @@ public enum TimelineElementCategoryInt {
     SEND_DIGITAL_MESSAGE(SendDigitalMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_DIGITAL_MESSAGE_SKIP(SendDigitalMessageSkipDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_DIGITAL_MESSAGE_PROGRESS(SendDigitalMessageProgressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
-    SEND_DIGITAL_MESSAGE_FEEDBACK(SendDigitalMessageFeedbackDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_DIGITAL_MESSAGE_FEEDBACK(SendDigitalMessageFeedbackDetailsInt.class, TimelineElementCategoryInt.PRIORITY_SEND_DIGITAL_MESSAGE_FEEDBACK, TimelineElementCategoryInt.VERSION_10),
     PREPARE_ANALOG_DELIVERY(PrepareAnalogDeliveryDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_ANALOG_MESSAGE(SendAnalogMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_ANALOG_MESSAGE_PROGRESS(SendAnalogMessageProgressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
-    SEND_ANALOG_MESSAGE_FEEDBACK(SendAnalogMessageFeedbackDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
-    DELIVERED(DeliveredDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_ANALOG_MESSAGE_FEEDBACK(SendAnalogMessageFeedbackDetailsInt.class, TimelineElementCategoryInt.PRIORITY_SEND_ANALOG_MESSAGE_FEEDBACK, TimelineElementCategoryInt.VERSION_10),
+    DELIVERED(DeliveredDetailsInt.class, TimelineElementCategoryInt.PRIORITY_DELIVERED, TimelineElementCategoryInt.VERSION_10),
     WORKFLOW_ENDED_REACHED(WorkflowEndedReachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     WORKFLOW_ENDED_UNREACHED(WorkflowEndedUnreachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     WORKFLOW_ENDED_UNDELIVERABLE(WorkflowEndedUndeliverableDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
@@ -93,6 +93,9 @@ public enum TimelineElementCategoryInt {
     public static final int PRIORITY_COMPLETELY_UNREACHABLET = 60;
     public static final int PRIORITY_SCHEDULE_REFINEMENT = 70;
     public static final int PRIORITY_ANALOG_FAILURE_WORKFLOW_TIMEOUT = 70;
+    public static final int PRIORITY_DELIVERED = 40;
+    public static final int PRIORITY_SEND_ANALOG_MESSAGE_FEEDBACK = 30;
+    public static final int PRIORITY_SEND_DIGITAL_MESSAGE_FEEDBACK = 30;
 
     public static final int PRIORITY_BEFORE = 10;
     public static final int PRIORITY_AFTER = 20;

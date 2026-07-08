@@ -1,7 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details.informal;
 
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.common.ElementTimestampTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -15,7 +14,7 @@ import java.time.Instant;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public class WorkflowEndedReachedDetailsInt extends CategoryTypeTimelineElementDetailsInt implements ElementTimestampTimelineElementDetails, RecipientRelatedTimelineElementDetails {
+public class WorkflowEndedReachedDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
     private int recIndex;
     private Instant notificationDate;
     private String sourceElementId;
@@ -30,8 +29,5 @@ public class WorkflowEndedReachedDetailsInt extends CategoryTypeTimelineElementD
         );
     }
 
-    @Override
-    public Instant getElementTimestamp() {
-        return notificationDate;
-    }
+
 }

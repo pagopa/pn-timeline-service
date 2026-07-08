@@ -1,9 +1,12 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details.informal;
 
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ElementTimestampTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+
+import java.time.Instant;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,10 +15,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public class DeliveredDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
+public class DeliveredDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, ElementTimestampTimelineElementDetails {
     private int recIndex;
     private String channel;
     private String sourceElementId;
+    private Instant notificationDate;
 
     @Override
     public String toLog() {
@@ -25,5 +29,10 @@ public class DeliveredDetailsInt extends CategoryTypeTimelineElementDetailsInt i
                 channel,
                 sourceElementId
         );
+    }
+
+    @Override
+    public Instant getElementTimestamp() {
+        return notificationDate;
     }
 }
