@@ -1,0 +1,31 @@
+package it.pagopa.pn.timelineservice.dto.timeline.details.legal;
+
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
+import java.time.Instant;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public class PublicRegistryCallDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
+    private int recIndex;
+    private DeliveryModeInt deliveryMode;
+    private ContactPhaseInt contactPhase;
+    private int sentAttemptMade;
+    private Instant sendDate;
+    private String relatedFeedbackTimelineId;
+    
+    public String toLog() {
+        return String.format(
+                "recIndex=%d",
+                recIndex
+        );
+    }
+}

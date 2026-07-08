@@ -2,9 +2,16 @@ package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.mapper;
 
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
+import it.pagopa.pn.timelineservice.dto.informalnotification.AnalogDeliveryDetailsInt;
+import it.pagopa.pn.timelineservice.dto.informalnotification.AnalogDeliveryTypeInt;
+import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalChannelsInt;
+import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalDeliveryDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementDetailsEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
@@ -212,12 +219,119 @@ class DtoToEntityTimelineMapperTest {
         assertThat(actual.getDetails().getAarTemplateType().name()).isEqualTo(details.getAarTemplateType().name());
     }
 
+    @Test
+    void dtoToEntityInformalDigitalDeliveryDetail() {
+        Instant eventTimestamp = Instant.parse("2024-01-02T10:15:30Z");
+        TimelineElementInternal timelineElementInternal = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_PROGRESS)
+                .details(SendDigitalMessageProgressDetailsInt.builder()
+                        .recIndex(0)
+                        .requestId("requestId")
+                        .channel(DigitalChannelsInt.PEC)
+                        .deliveryDetail(DigitalDeliveryDetailsInt.builder()
+                                .code("DELIVERY_CODE")
+                                .failureCause("failureCause")
+                                .eventTimestamp(eventTimestamp)
+                                .build())
+                        .build())
+                .build();
+
+        TimelineElementEntity actual = mapper.dtoToEntity(timelineElementInternal);
+
+        assertThat(actual.getDetails()).isNotNull();
+        assertThat(actual.getDetails().getRequestId()).isEqualTo("requestId");
+        assertThat(actual.getDetails().getChannel()).isEqualTo("PEC");
+        assertThat(actual.getDetails().getDeliveryDetail()).isNotNull();
+        assertThat(actual.getDetails().getDeliveryDetail().getCode()).isEqualTo("DELIVERY_CODE");
+        assertThat(actual.getDetails().getDeliveryDetail().getFailureCause()).isEqualTo("failureCause");
+        assertThat(actual.getDetails().getDeliveryDetail().getEventTimestamp()).isEqualTo(eventTimestamp);
+    }
+
+    @Test
+    void dtoToEntityInformalAnalogDeliveryDetail() {
+        Instant eventTimestamp = Instant.parse("2024-01-02T10:15:30Z");
+        TimelineElementInternal timelineElementInternal = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_PROGRESS)
+                .details(SendAnalogMessageProgressDetailsInt.builder()
+                        .recIndex(0)
+                        .deliveryType(AnalogDeliveryTypeInt.RS)
+                        .deliveryDetail(AnalogDeliveryDetailsInt.builder()
+                                .code("DELIVERY_CODE")
+                                .failureCause("failureCause")
+                                .eventTimestamp(eventTimestamp)
+                                .build())
+                        .build())
+                .build();
+
+        TimelineElementEntity actual = mapper.dtoToEntity(timelineElementInternal);
+
+        assertThat(actual.getDetails()).isNotNull();
+        assertThat(actual.getDetails().getDeliveryType()).isEqualTo(it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.AnalogDeliveryTypeEntity.RS);
+        assertThat(actual.getDetails().getDeliveryDetail()).isNotNull();
+        assertThat(actual.getDetails().getDeliveryDetail().getCode()).isEqualTo("DELIVERY_CODE");
+        assertThat(actual.getDetails().getDeliveryDetail().getFailureCause()).isEqualTo("failureCause");
+        assertThat(actual.getDetails().getDeliveryDetail().getEventTimestamp()).isEqualTo(eventTimestamp);
+    }
+
+    @Test
+    void dtoToEntityInformalStringAndListFields() {
+        TimelineElementEntity coverpageEntity = mapper.dtoToEntity(TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.COVERPAGE_CREATION_REQUEST)
+                .details(CoverpageCreationRequestDetailsInt.builder()
+                        .recIndex(0)
+                        .fileKey("fileKey")
+                        .build())
+                .build());
+
+        TimelineElementEntity workflowDoneEntity = mapper.dtoToEntity(TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.WORKFLOW_DONE_REACHED)
+                .details(WorkflowDoneReachedDetailsInt.builder()
+                        .recIndex(0)
+                        .sourceElementId("sourceElementId")
+                        .build())
+                .build());
+
+        TimelineElementEntity reachedEntity = mapper.dtoToEntity(TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.DELIVERED)
+                .details(DeliveredDetailsInt.builder()
+                        .recIndex(0)
+                        .channel("PEC")
+                        .sourceElementId("reachedSourceElementId")
+                        .build())
+                .build());
+
+        TimelineElementEntity workflowEndedReachedEntity = mapper.dtoToEntity(TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED)
+                .details(WorkflowEndedReachedDetailsInt.builder()
+                        .recIndex(0)
+                        .sourceElementId("elementId")
+                        .build())
+                .build());
+
+        TimelineElementEntity requestIdEntity = mapper.dtoToEntity(TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_FEEDBACK)
+                .details(SendDigitalMessageFeedbackDetailsInt.builder()
+                        .recIndex(0)
+                        .requestId("feedbackRequestId")
+                        .channel(DigitalChannelsInt.APPIO)
+                        .build())
+                .build());
+
+        assertThat(coverpageEntity.getDetails().getFileKey()).isEqualTo("fileKey");
+        assertThat(workflowDoneEntity.getDetails().getSourceElementId()).isEqualTo("sourceElementId");
+        assertThat(reachedEntity.getDetails().getChannel()).isEqualTo("PEC");
+        assertThat(workflowEndedReachedEntity.getDetails().getSourceElementId()).isEqualTo("elementId");
+        assertThat(reachedEntity.getDetails().getSourceElementId()).isEqualTo("reachedSourceElementId");
+        assertThat(requestIdEntity.getDetails().getRequestId()).isEqualTo("feedbackRequestId");
+        assertThat(requestIdEntity.getDetails().getChannel()).isEqualTo("APPIO");
+    }
+
     private TimelineElementInternal buildTimelineElementInternal(CommunicationType communicationType) {
         Instant instant = Instant.parse("2021-09-16T15:23:00.00Z");
         TimelineElementDetailsInt elementDetailsInt = parseDetailsFromEntity(TimelineElementDetailsEntity.builder()
                 .recIndex(0)
                 .notificationCost(100)
-                .build(), TimelineElementCategoryInt.NOTIFICATION_VIEWED);
+                .build());
 
         LegalFactsIdInt legalFactsIdInt = buildLegalFactsIdInt();
         List<LegalFactsIdInt> legalFactsIdInts = new ArrayList<>();
@@ -238,8 +352,8 @@ class DtoToEntityTimelineMapperTest {
                 .build();
     }
 
-    private TimelineElementDetailsInt parseDetailsFromEntity(TimelineElementDetailsEntity entity, TimelineElementCategoryInt category) {
-        return SmartMapper.mapToClass(entity, category.getDetailsJavaClass());
+    private TimelineElementDetailsInt parseDetailsFromEntity(TimelineElementDetailsEntity entity) {
+        return SmartMapper.mapToClass(entity, TimelineElementCategoryInt.NOTIFICATION_VIEWED.getDetailsJavaClass());
     }
 
     private LegalFactsIdInt buildLegalFactsIdInt() {

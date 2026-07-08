@@ -1,0 +1,42 @@
+package it.pagopa.pn.timelineservice.dto.timeline.details.legal;
+
+import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.PhysicalAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
+@ToString
+public class PrepareAnalogDomicileFailureDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, PhysicalAddressRelatedTimelineElement {
+
+    private int recIndex;
+    private PhysicalAddressInt foundAddress;
+    private String failureCause;
+    private String prepareRequestId;
+
+    public String toLog() {
+        return String.format(
+            "recIndex=%d failureCause=%s prepareRequestId=%s",
+            recIndex,
+            failureCause,
+            prepareRequestId
+        );
+    }
+
+    @Override
+    public PhysicalAddressInt getPhysicalAddress() {
+        return foundAddress;
+    }
+
+    @Override
+    public void setPhysicalAddress(PhysicalAddressInt physicalAddressInt) {
+        this.foundAddress = physicalAddressInt;
+    }
+}
