@@ -2,7 +2,14 @@ package it.pagopa.pn.timelineservice.service.impl;
 
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ConfidentialInformationTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.NewAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.PhysicalAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.InformalDigitalAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.CourtesyAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.DigitalAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.PersonalInformationRelatedTimelineElement;
 import it.pagopa.pn.timelineservice.generated.openapi.msclient.datavault.model.ConfidentialTimelineElementDto;
 import it.pagopa.pn.timelineservice.middleware.externalclient.datavault.PnDataVaultClientReactive;
 import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
@@ -54,6 +61,10 @@ public class ConfidentialInformationServiceImpl implements ConfidentialInformati
 
         if (details instanceof DigitalAddressRelatedTimelineElement digitalDetails && digitalDetails.getDigitalAddress() != null) {
             builder.digitalAddress(digitalDetails.getDigitalAddress().getAddress());
+        }
+
+        if (details instanceof InformalDigitalAddressRelatedTimelineElement informalDetails && informalDetails.getDigitalAddress() != null) {
+            builder.digitalAddress(informalDetails.getDigitalAddress().getAddress());
         }
 
         if (details instanceof PhysicalAddressRelatedTimelineElement physicalDetails && physicalDetails.getPhysicalAddress() != null) {

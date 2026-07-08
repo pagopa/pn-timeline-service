@@ -2,8 +2,8 @@ package it.pagopa.pn.timelineservice.operations.common;
 
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.NotificationRequestAcceptedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.SendDigitalFeedbackDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.NotificationRequestAcceptedDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendDigitalFeedbackDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

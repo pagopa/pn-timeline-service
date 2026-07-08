@@ -1,4 +1,5 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.ContactPhaseInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;

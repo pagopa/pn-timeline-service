@@ -34,6 +34,7 @@ public class TimelineElementEntity {
     private String reworkId;
     private String reworkRequestType;
     private CommunicationType communicationType;
+    private String campaignId;
 
     @DynamoDbPartitionKey
     @DynamoDbAttribute(value = FIELD_IUN )
@@ -117,6 +118,11 @@ public class TimelineElementEntity {
     public String getReworkId(){return reworkId;}
 
     public void setReworkId(String reworkId){this.reworkId = reworkId;}
+
+    @DynamoDbAttribute(value = "campaignId") @DynamoDbIgnoreNulls
+    public String getCampaignId(){return campaignId;}
+
+    public void setCampaignId(String campaignId){this.campaignId = campaignId;}
 
     @DynamoDbAttribute(value = "reworkRequestType") @DynamoDbIgnoreNulls
     public String getReworkRequestType(){return reworkRequestType;}

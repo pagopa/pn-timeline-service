@@ -1,6 +1,7 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.ScheduleDigitalWorkflowDetailsInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 class ScheduleDigitalWorkflowDetailsIntTest {
     private ScheduleDigitalWorkflowDetailsInt detailsInt;
-    private Instant instant = Instant.parse("2021-09-16T15:24:00.00Z");
+    private final Instant instant = Instant.parse("2021-09-16T15:24:00.00Z");
     @BeforeEach
     void setUp() {
         detailsInt = new ScheduleDigitalWorkflowDetailsInt();

@@ -1,11 +1,13 @@
 package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.mapper;
 
+import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalChannelsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
-import it.pagopa.pn.timelineservice.dto.timeline.details.AarCreationRequestDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.PublicRegistryCallDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.RequestRefusedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.SendAnalogDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.AarCreationRequestDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.PublicRegistryCallDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.RequestRefusedDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogDetailsInt;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.*;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.EntityToDtoTimelineMapper;
 import org.junit.jupiter.api.Assertions;
@@ -112,6 +114,7 @@ class EntityToDtoTimelineMapperTest {
                 .paId("PaId")
                 .iun("iun")
                 .reworkId("reworkId")
+                .campaignId("campaignId")
                 .category(TimelineElementCategoryEntity.PUBLIC_REGISTRY_CALL)
                 .details(
                         TimelineElementDetailsEntity.builder()
@@ -137,7 +140,8 @@ class EntityToDtoTimelineMapperTest {
         Assertions.assertEquals(entity.getDetails().getRecIndex(), details.getRecIndex());
         Assertions.assertEquals(entity.getDetails().getSentAttemptMade(), details.getSentAttemptMade());
         Assertions.assertEquals(entity.getDetails().getDeliveryMode().getValue(), details.getDeliveryMode().getValue());
-        Assertions.assertEquals("reworkId", entity.getReworkId());
+        Assertions.assertEquals("reworkId", internal.getReworkId());
+        Assertions.assertEquals("campaignId", internal.getCampaignId());
         Assertions.assertEquals(expectedCommunicationType, internal.getCommunicationType());
     }
 
@@ -186,6 +190,112 @@ class EntityToDtoTimelineMapperTest {
         Assertions.assertEquals(entity.getDetails().getNumberOfPages(), details.getNumberOfPages());
         Assertions.assertEquals(entity.getDetails().getRecIndex(), details.getRecIndex());
         Assertions.assertEquals(entity.getDetails().getAarTemplateType().name(), details.getAarTemplateType().name());
+    }
+
+    @Test
+    void entityToDtoInformalDigitalDeliveryDetail() {
+        Instant eventTimestamp = Instant.parse("2024-01-02T10:15:30Z");
+        TimelineElementEntity entity = TimelineElementEntity.builder()
+                .category(TimelineElementCategoryEntity.SEND_DIGITAL_MESSAGE_PROGRESS)
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .requestId("requestId")
+                        .channel(String.valueOf(DigitalChannelsInt.PEC))
+                        .deliveryDetail(DeliveryDetailsEntity.builder()
+                                .code("DELIVERY_CODE")
+                                .failureCause("failureCause")
+                                .eventTimestamp(eventTimestamp)
+                                .build())
+                        .build())
+                .build();
+
+        TimelineElementInternal actual = mapper.entityToDto(entity, Map.of());
+        SendDigitalMessageProgressDetailsInt details = (SendDigitalMessageProgressDetailsInt) actual.getDetails();
+
+        Assertions.assertEquals("requestId", details.getRequestId());
+        Assertions.assertEquals("PEC", details.getChannel().getValue());
+        Assertions.assertEquals("DELIVERY_CODE", details.getDeliveryDetail().getCode());
+        Assertions.assertEquals("failureCause", details.getDeliveryDetail().getFailureCause());
+        Assertions.assertEquals(eventTimestamp, details.getDeliveryDetail().getEventTimestamp());
+    }
+
+    @Test
+    void entityToDtoInformalAnalogDeliveryDetail() {
+        Instant eventTimestamp = Instant.parse("2024-01-02T10:15:30Z");
+        TimelineElementEntity entity = TimelineElementEntity.builder()
+                .category(TimelineElementCategoryEntity.SEND_ANALOG_MESSAGE_PROGRESS)
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .deliveryType(AnalogDeliveryTypeEntity.RS)
+                        .deliveryDetail(DeliveryDetailsEntity.builder()
+                                .code("DELIVERY_CODE")
+                                .failureCause("failureCause")
+                                .eventTimestamp(eventTimestamp)
+                                .build())
+                        .build())
+                .build();
+
+        TimelineElementInternal actual = mapper.entityToDto(entity, Map.of());
+        SendAnalogMessageProgressDetailsInt details = (SendAnalogMessageProgressDetailsInt) actual.getDetails();
+
+        Assertions.assertEquals(AnalogDeliveryTypeEntity.RS.getValue(), details.getDeliveryType().getValue());
+        Assertions.assertEquals("DELIVERY_CODE", details.getDeliveryDetail().getCode());
+        Assertions.assertEquals("failureCause", details.getDeliveryDetail().getFailureCause());
+        Assertions.assertEquals(eventTimestamp, details.getDeliveryDetail().getEventTimestamp());
+    }
+
+    @Test
+    void entityToDtoInformalStringAndListFields() {
+        CoverpageCreationRequestDetailsInt coverpageDetails = (CoverpageCreationRequestDetailsInt) mapper.entityToDto(TimelineElementEntity.builder()
+                .category(TimelineElementCategoryEntity.COVERPAGE_CREATION_REQUEST)
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .fileKey("fileKey")
+                        .build())
+                .build(), Map.of()).getDetails();
+
+        WorkflowDoneReachedDetailsInt workflowDoneDetails = (WorkflowDoneReachedDetailsInt) mapper.entityToDto(TimelineElementEntity.builder()
+                .category(TimelineElementCategoryEntity.WORKFLOW_DONE_REACHED)
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .sourceElementId("sourceElementId")
+                        .build())
+                .build(), Map.of()).getDetails();
+
+        DeliveredDetailsInt reachedDetails = (DeliveredDetailsInt) mapper.entityToDto(TimelineElementEntity.builder()
+                .category(TimelineElementCategoryEntity.DELIVERED)
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .channel(String.valueOf(DigitalChannelsInt.PEC))
+                        .sourceElementId("reachedSourceElementId")
+                        .build())
+                .build(), Map.of()).getDetails();
+
+        WorkflowEndedReachedDetailsInt workflowEndedReachedDetails = (WorkflowEndedReachedDetailsInt) mapper.entityToDto(TimelineElementEntity.builder()
+                .category(TimelineElementCategoryEntity.WORKFLOW_ENDED_REACHED)
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .sourceElementId("workflowEndedSourceElementId")
+                        .build())
+                .build(), Map.of()).getDetails();
+
+        SendDigitalMessageFeedbackDetailsInt feedbackDetails = (SendDigitalMessageFeedbackDetailsInt) mapper.entityToDto(TimelineElementEntity.builder()
+                .category(TimelineElementCategoryEntity.SEND_DIGITAL_MESSAGE_FEEDBACK)
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .requestId("feedbackRequestId")
+                        .channel(String.valueOf(DigitalChannelsInt.APPIO))
+                        .build())
+                .build(), Map.of()).getDetails();
+
+        Assertions.assertEquals("fileKey", coverpageDetails.getFileKey());
+        Assertions.assertEquals("sourceElementId", workflowDoneDetails.getSourceElementId());
+        Assertions.assertEquals("PEC", reachedDetails.getChannel());
+        Assertions.assertEquals("reachedSourceElementId", reachedDetails.getSourceElementId());
+        Assertions.assertEquals("workflowEndedSourceElementId",
+                workflowEndedReachedDetails.getSourceElementId());
+        Assertions.assertEquals("feedbackRequestId", feedbackDetails.getRequestId());
+        Assertions.assertEquals("APPIO", feedbackDetails.getChannel().getValue());
     }
     
 }
