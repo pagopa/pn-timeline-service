@@ -2098,12 +2098,12 @@ components:
       type: string
       description: >
         Canale di invio digitale per il quale è stato ricevuto il feedback
-        __APPIO__: invio tramite App IO
+        __IO__: invio tramite App IO
         __PEC__: invio tramite PEC
         __EMAIL__: invio tramite email
         __SMS__: invio tramite SMS
       enum:
-        - APPIO
+        - IO
         - PEC
         - EMAIL
         - SMS
@@ -2374,7 +2374,7 @@ components:
           type: string
           description: >
             __Canale di raggiungimento del destinatario__
-            - __APPIO__
+            - __IO__
             - __PEC__
             - __EMAIL__
             - __SMS__

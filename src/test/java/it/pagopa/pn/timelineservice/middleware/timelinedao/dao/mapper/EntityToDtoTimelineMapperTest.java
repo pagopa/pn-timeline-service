@@ -284,7 +284,7 @@ class EntityToDtoTimelineMapperTest {
                 .details(TimelineElementDetailsEntity.builder()
                         .recIndex(0)
                         .requestId("feedbackRequestId")
-                        .channel(String.valueOf(DigitalChannelsInt.APPIO))
+                        .channel(String.valueOf(DigitalChannelsInt.IO))
                         .build())
                 .build(), Map.of()).getDetails();
 

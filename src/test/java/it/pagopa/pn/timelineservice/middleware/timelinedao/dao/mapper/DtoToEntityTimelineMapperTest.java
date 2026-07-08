@@ -313,7 +313,7 @@ class DtoToEntityTimelineMapperTest {
                 .details(SendDigitalMessageFeedbackDetailsInt.builder()
                         .recIndex(0)
                         .requestId("feedbackRequestId")
-                        .channel(DigitalChannelsInt.APPIO)
+                        .channel(DigitalChannelsInt.IO)
                         .build())
                 .build());
 

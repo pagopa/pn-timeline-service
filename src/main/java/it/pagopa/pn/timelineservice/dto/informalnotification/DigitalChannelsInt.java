@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum DigitalChannelsInt {
-    APPIO("APPIO"),
+    IO("IO"),
     PEC("PEC"),
     EMAIL("EMAIL"),
     SMS("SMS");
