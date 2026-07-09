@@ -23,6 +23,7 @@ public class DtoToEntityTimelineMapper {
                 .timestamp( dto.getTimestamp() )
                 .reworkId(dto.getReworkId())
                 .campaignId(dto.getCampaignId())
+                .reworkRequestType(dto.getReworkRequestType())
                 .details( dtoToDetailsEntity( dto.getDetails() ) )
                 .legalFactIds( convertLegalFactsToEntity( dto.getLegalFactsIds() ) )
                 .statusInfo(dtoToStatusInfoEntity(dto.getStatusInfo()))
