@@ -12,6 +12,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.TimelineElement;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementDetailsEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
@@ -69,7 +70,7 @@ class DtoToEntityTimelineMapperTest {
         assertThat(actual.getLegalFactIds().getFirst().getCategory().name()).isEqualTo(timelineElementInternal.getLegalFactsIds().getFirst().getCategory().name());
         assertThat(actual.getReworkId()).isEqualTo(timelineElementInternal.getReworkId());
         assertThat(actual.getCampaignId()).isEqualTo(timelineElementInternal.getCampaignId());
-        assertThat(actual.getReworkRequestType()).isEqualTo(timelineElementInternal.getReworkRequestType());
+        assertThat(actual.getReworkRequestType()).isEqualTo(timelineElementInternal.getReworkRequestType().name());
 
         // verifica communicationType
         assertEquals(expectedCommunicationType, actual.getCommunicationType());
@@ -349,7 +350,7 @@ class DtoToEntityTimelineMapperTest {
                 .notificationSentAt(Instant.now())
                 .reworkId("reworkId")
                 .campaignId("campaignId")
-                .reworkRequestType("reworkRequestType")
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.REWORK)
                 .communicationType(communicationType)
                 .build();
     }

@@ -16,6 +16,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogDetails
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogFeedbackDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.TimelineElement;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.service.*;
 import it.pagopa.pn.timelineservice.operations.legal.LegalTimelineElementPersistenceStrategy;
@@ -122,7 +123,7 @@ class AddTimelineElementServiceImplTest {
     void addTimelineElementSavesReworkRequestType() {
         String iun = "iun_12345";
         String elementId = "SEND_ANALOG_FEEDBACK.IUN_" + iun + ".RECINDEX_0.ATTEMPT_0";
-        String reworkRequestType = "ADDRESS_REWORK";
+        TimelineElement.ReworkRequestTypeEnum reworkRequestType = TimelineElement.ReworkRequestTypeEnum.REWORK;
 
         NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
         StatusService.NotificationStatusUpdate notificationStatuses =

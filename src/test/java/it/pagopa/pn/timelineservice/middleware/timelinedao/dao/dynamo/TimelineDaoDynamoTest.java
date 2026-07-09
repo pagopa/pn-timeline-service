@@ -3,12 +3,16 @@ package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.dynamo;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
+import it.pagopa.pn.timelineservice.dto.ext.externalchannel.AttachmentDetailsInt;
+import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
+import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.NormalizedAddressDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.NotificationRequestAcceptedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
+import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.TimelineElement;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.TimelineDaoDynamo;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.*;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
@@ -31,7 +35,10 @@ import software.amazon.awssdk.enhanced.dynamodb.model.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -348,6 +355,120 @@ class TimelineDaoDynamoTest {
         mockQueryEnahncedRequest(table, List.of());
         List<TimelineElementInternal> result = dao.getTimelineStrongly("iun").collectList().block();
         Assertions.assertNotNull(result);
+    }
+
+    @Test
+    void removeAttachmentsFromInvalidatedElements_shouldRemoveLegalFactsIdsForNotificationViewed() throws Exception {
+        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
+                .elementId("NOTIFICATION_VIEWED.IUN_test.RECINDEX_0")
+                .category(TimelineElementCategoryInt.NOTIFICATION_VIEWED)
+                .legalFactsIds(List.of(
+                        LegalFactsIdInt.builder()
+                                .key("legal-fact-key")
+                                .category(LegalFactCategoryInt.RECIPIENT_ACCESS)
+                                .build()))
+                .build();
+        Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
+        invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
+
+        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+
+        Assertions.assertNull(invalidatedTimelineElement.getLegalFactsIds());
+    }
+
+    @Test
+    void removeAttachmentsFromInvalidatedElements_shouldRemoveAttachmentsForSendAnalogProgress() throws Exception {
+        SendAnalogProgressDetailsInt details = SendAnalogProgressDetailsInt.builder()
+                .attachments(List.of(
+                        AttachmentDetailsInt.builder()
+                                .id("attachment-id")
+                                .documentType("AAR")
+                                .url("safestorage://attachment-id")
+                                .date(Instant.now())
+                                .build()))
+                .build();
+        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
+                .elementId("SEND_ANALOG_PROGRESS.IUN_test.RECINDEX_0.ATTEMPT_0.IDX_1")
+                .category(TimelineElementCategoryInt.SEND_ANALOG_PROGRESS)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS)
+                .details(details)
+                .build();
+        Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
+        invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
+
+        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+
+        Assertions.assertNull(details.getAttachments());
+    }
+
+    @Test
+    void removeAttachmentsFromInvalidatedElements_shouldNotRemoveAttachmentsForSendAnalogProgressIfReworkRequestTypeIsNotInvalidateElements() throws Exception {
+        SendAnalogProgressDetailsInt details = SendAnalogProgressDetailsInt.builder()
+                .attachments(List.of(
+                        AttachmentDetailsInt.builder()
+                                .id("attachment-id")
+                                .documentType("AAR")
+                                .url("safestorage://attachment-id")
+                                .date(Instant.now())
+                                .build()))
+                .build();
+        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
+                .elementId("SEND_ANALOG_PROGRESS.IUN_test.RECINDEX_0.ATTEMPT_0.IDX_2")
+                .category(TimelineElementCategoryInt.SEND_ANALOG_PROGRESS)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.REWORK)
+                .details(details)
+                .build();
+        Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
+        invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
+
+        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+
+        Assertions.assertNotNull(details.getAttachments());
+    }
+
+    @Test
+    void removeAttachmentsFromInvalidatedElements_shouldNotChangeCompletelyUnreachable() throws Exception {
+        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
+                .elementId("COMPLETELY_UNREACHABLE.IUN_test.RECINDEX_0")
+                .category(TimelineElementCategoryInt.COMPLETELY_UNREACHABLE)
+                .legalFactsIds(List.of(
+                        LegalFactsIdInt.builder()
+                                .key("legal-fact-key")
+                                .category(LegalFactCategoryInt.RECIPIENT_ACCESS)
+                                .build()))
+                .build();
+        Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
+        invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
+
+        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+
+        Assertions.assertNotNull(invalidatedTimelineElement.getLegalFactsIds());
+    }
+
+    @Test
+    void removeAttachmentsFromInvalidatedElements_shouldChangeCompletelyUnreachable() throws Exception {
+        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
+                .elementId("COMPLETELY_UNREACHABLE.IUN_test.RECINDEX_0")
+                .category(TimelineElementCategoryInt.COMPLETELY_UNREACHABLE)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS)
+                .legalFactsIds(List.of(
+                        LegalFactsIdInt.builder()
+                                .key("legal-fact-key")
+                                .category(LegalFactCategoryInt.RECIPIENT_ACCESS)
+                                .build()))
+                .build();
+        Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
+        invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
+
+        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+
+        Assertions.assertNull(invalidatedTimelineElement.getLegalFactsIds());
+    }
+
+    private void invokeRemoveAttachmentsFromInvalidatedElements(Map<String, TimelineElementInternal> invalidatedElementMap) throws Exception {
+        Method method = TimelineDaoDynamo.class.getDeclaredMethod("removeAttachmentsFromInvalidatedElements", Map.class);
+        method.setAccessible(true);
+        method.invoke(dao, invalidatedElementMap);
     }
 
     @Test
