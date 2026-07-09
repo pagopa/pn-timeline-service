@@ -2437,6 +2437,7 @@ components:
         - recIndex
         - categoryType
         - sourceElementId
+        - completionFeedback
       properties:
         categoryType:
           type: string
@@ -2446,6 +2447,8 @@ components:
           type: string
           description: Id dell'elemento che ha generato la conclusione del workflow
           maxLength: 512
+        completionFeedback:
+          $ref: '#/components/schemas/CompletionFeedback'
 
     WorkflowDoneUnreachedDetails:
       x-discriminator-value: "WORKFLOW_DONE_UNREACHED"
@@ -2454,6 +2457,7 @@ components:
         - recIndex
         - categoryType
         - sourceElementId
+        - completionFeedback
       properties:
         categoryType:
           type: string
@@ -2463,6 +2467,8 @@ components:
           type: string
           description: Id dell'elemento che ha generato la conclusione del workflow
           maxLength: 512
+        completionFeedback:
+          $ref: '#/components/schemas/CompletionFeedback'
 
     InformalNotificationViewedDetails:
       x-discriminator-value: "INFORMAL_NOTIFICATION_VIEWED"
@@ -2523,6 +2529,16 @@ components:
       type: integer
       description: Index destinatario notifica digitale
       format: int32
+
+    CompletionFeedback:
+      type: string
+      description: >
+        Feedback desiderato per la conclusione del workflow di notificazione
+        - __SENT__
+        - __RECEIVED__
+        - __READ__
+        - __PAID__
+        - __SKIP__
 
     NewTimelineElement:
       type: object

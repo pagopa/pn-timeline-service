@@ -99,9 +99,8 @@ public class TimelineElementDetailsEntity {
     @Getter(onMethod=@__({@DynamoDbAttribute("fileKey")})) private String fileKey;
     @Getter(onMethod=@__({@DynamoDbAttribute("requestId")})) private String requestId;
     @Getter(onMethod=@__({@DynamoDbAttribute("sourceElementId")})) private String sourceElementId;
-    @Getter(onMethod=@__({@DynamoDbAttribute("channels")})) private List<String> channels;
     @Getter(onMethod=@__({@DynamoDbAttribute("deliveryDetail")})) private DeliveryDetailsEntity deliveryDetail;
     @Getter(onMethod=@__({@DynamoDbAttribute("channel")})) private String channel;
     @Getter(onMethod=@__({@DynamoDbAttribute("deliveryType")})) private AnalogDeliveryTypeEntity deliveryType;
-    @Getter(onMethod=@__({@DynamoDbAttribute("delivered")})) private DeliveredDetailsEntity delivered;
+    @Getter(onMethod=@__({@DynamoDbAttribute("completionFeedback")})) private String completionFeedback;
 }
