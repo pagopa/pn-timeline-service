@@ -1,5 +1,8 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.CategoryTypeTimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.DeliveryModeInt;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
