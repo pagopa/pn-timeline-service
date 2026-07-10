@@ -10,7 +10,7 @@
     </parent>
     <artifactId>pn-timeline-service</artifactId>
     <version>1.6.0-SNAPSHOT</version>
-    <name>pn-template-service</name>
+    <name>pn-timeline-service</name>
     <description>A template for timeline Microservice</description>
     <scm>
         <connection>${git.conn}</connection>

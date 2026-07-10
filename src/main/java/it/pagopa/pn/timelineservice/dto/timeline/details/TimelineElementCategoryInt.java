@@ -1,5 +1,8 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
 import lombok.Getter;
 
 @Getter
@@ -60,7 +63,24 @@ public enum TimelineElementCategoryInt {
     NOTIFICATION_TIMELINE_REWORKED(NotificationTimelineReworkedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_AFTER, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_COST_VALIDATION_REQUEST(NotificationCostValidationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_COST_VALIDATION_RESPONSE(NotificationCostValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
-    COURTESY_CHANNEL_FAILED(CourtesyChannelFailedDetailsInt.class, TimelineElementCategoryInt.VERSION_28);
+    COURTESY_CHANNEL_FAILED(CourtesyChannelFailedDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
+    //Timeline Element for Informal Notification
+    SEND_DIGITAL_MESSAGE(SendDigitalMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_DIGITAL_MESSAGE_SKIP(SendDigitalMessageSkipDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_DIGITAL_MESSAGE_PROGRESS(SendDigitalMessageProgressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_DIGITAL_MESSAGE_FEEDBACK(SendDigitalMessageFeedbackDetailsInt.class, TimelineElementCategoryInt.PRIORITY_SEND_DIGITAL_MESSAGE_FEEDBACK, TimelineElementCategoryInt.VERSION_10),
+    PREPARE_ANALOG_DELIVERY(PrepareAnalogDeliveryDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_ANALOG_MESSAGE(SendAnalogMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_ANALOG_MESSAGE_PROGRESS(SendAnalogMessageProgressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_ANALOG_MESSAGE_FEEDBACK(SendAnalogMessageFeedbackDetailsInt.class, TimelineElementCategoryInt.PRIORITY_SEND_ANALOG_MESSAGE_FEEDBACK, TimelineElementCategoryInt.VERSION_10),
+    DELIVERED(DeliveredDetailsInt.class, TimelineElementCategoryInt.PRIORITY_DELIVERED, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_ENDED_REACHED(WorkflowEndedReachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_ENDED_UNREACHED(WorkflowEndedUnreachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_ENDED_UNDELIVERABLE(WorkflowEndedUndeliverableDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_DONE_REACHED(WorkflowDoneReachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    WORKFLOW_DONE_UNREACHED(WorkflowDoneUnreachedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    INFORMAL_NOTIFICATION_VIEWED(InformalNotificationViewedDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    COVERPAGE_CREATION_REQUEST(CoverpageCreationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_10);
 
     private final Class<? extends TimelineElementDetailsInt> detailsJavaClass;
     private final int priority;
@@ -74,6 +94,9 @@ public enum TimelineElementCategoryInt {
     public static final int PRIORITY_COMPLETELY_UNREACHABLET = 60;
     public static final int PRIORITY_SCHEDULE_REFINEMENT = 70;
     public static final int PRIORITY_ANALOG_FAILURE_WORKFLOW_TIMEOUT = 70;
+    public static final int PRIORITY_DELIVERED = 40;
+    public static final int PRIORITY_SEND_ANALOG_MESSAGE_FEEDBACK = 30;
+    public static final int PRIORITY_SEND_DIGITAL_MESSAGE_FEEDBACK = 30;
 
     public static final int PRIORITY_BEFORE = 10;
     public static final int PRIORITY_AFTER = 20;

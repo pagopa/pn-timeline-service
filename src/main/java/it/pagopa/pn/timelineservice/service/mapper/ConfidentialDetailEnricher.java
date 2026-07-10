@@ -1,10 +1,17 @@
 package it.pagopa.pn.timelineservice.service.mapper;
 
 import it.pagopa.pn.timelineservice.dto.address.CourtesyDigitalAddressInt;
+import it.pagopa.pn.timelineservice.dto.address.InformalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.datavault.ConfidentialTimelineElementDtoInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.NewAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.PhysicalAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.informal.InformalDigitalAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.CourtesyAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.DigitalAddressRelatedTimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.PersonalInformationRelatedTimelineElement;
 
 public class ConfidentialDetailEnricher {
     private ConfidentialDetailEnricher() {
@@ -28,6 +35,15 @@ public class ConfidentialDetailEnricher {
             address = getDigitalAddress(confidentialDto, address);
 
             digitalAddressRelatedTimelineElement.setDigitalAddress(address);
+        }
+
+        if (details instanceof InformalDigitalAddressRelatedTimelineElement informalDigitalAddressRelatedTimelineElement && confidentialDto.getDigitalAddress() != null) {
+
+            InformalDigitalAddressInt address = informalDigitalAddressRelatedTimelineElement.getDigitalAddress();
+
+            address = getDigitalAddress(confidentialDto, address);
+
+            informalDigitalAddressRelatedTimelineElement.setDigitalAddress(address);
         }
 
         if (details instanceof PhysicalAddressRelatedTimelineElement physicalAddressRelatedTimelineElement && confidentialDto.getPhysicalAddress() != null) {
@@ -58,6 +74,15 @@ public class ConfidentialDetailEnricher {
     private static LegalDigitalAddressInt getDigitalAddress(ConfidentialTimelineElementDtoInt confidentialDto, LegalDigitalAddressInt address) {
         if (address == null) {
             address = LegalDigitalAddressInt.builder().build();
+        }
+
+        address = address.toBuilder().address(confidentialDto.getDigitalAddress()).build();
+        return address;
+    }
+
+    private static InformalDigitalAddressInt getDigitalAddress(ConfidentialTimelineElementDtoInt confidentialDto, InformalDigitalAddressInt address) {
+        if (address == null) {
+            address = InformalDigitalAddressInt.builder().build();
         }
 
         address = address.toBuilder().address(confidentialDto.getDigitalAddress()).build();

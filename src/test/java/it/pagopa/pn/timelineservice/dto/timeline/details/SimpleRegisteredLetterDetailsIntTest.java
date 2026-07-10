@@ -3,6 +3,7 @@ package it.pagopa.pn.timelineservice.dto.timeline.details;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.CategorizedAttachmentsResultInt;
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.ResultFilterInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SimpleRegisteredLetterDetailsInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

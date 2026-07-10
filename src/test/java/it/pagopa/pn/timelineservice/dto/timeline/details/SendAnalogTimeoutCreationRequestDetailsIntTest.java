@@ -1,5 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogTimeoutCreationRequestDetailsInt;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

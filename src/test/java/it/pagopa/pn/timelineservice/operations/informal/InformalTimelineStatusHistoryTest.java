@@ -72,7 +72,7 @@ class InformalTimelineStatusHistoryTest {
 
         //  ... 2nd initial status
         Assertions.assertEquals(NotificationStatusHistoryElementInt.builder()
-                        .status(NotificationStatusInt.ACCEPTED)
+                        .status(NotificationStatusInt.PROCESSING)
                         .activeFrom(timelineElement1.getTimestamp())
                         .relatedTimelineElements(List.of("el3"))
                         .build(),
