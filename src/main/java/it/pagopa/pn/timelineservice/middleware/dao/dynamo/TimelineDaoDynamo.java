@@ -149,7 +149,7 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .filter(timelineElementInternal -> isNotInvalidated(timelineElementInternal, invalidatedTimelineElements));
     }
 
-    private void removeAttachmentsFromInvalidatedElements(Map<String, TimelineElementInternal> invalidatedElementMap) {
+    protected void removeAttachmentsFromInvalidatedElements(Map<String, TimelineElementInternal> invalidatedElementMap) {
         invalidatedElementMap.values().forEach(timelineElementInternal -> {
             if (timelineElementInternal.getCategory() == null) {
                 return;

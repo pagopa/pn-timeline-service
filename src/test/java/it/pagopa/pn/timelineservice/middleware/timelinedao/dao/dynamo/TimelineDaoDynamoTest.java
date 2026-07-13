@@ -4,8 +4,6 @@ import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.AttachmentDetailsInt;
-import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
-import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
@@ -35,7 +33,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +49,7 @@ class TimelineDaoDynamoTest {
     @Mock
     private DynamoDbAsyncTable<Object> table;
 
-    private TimelineDaoDynamo dao;
+    private TestableTimelineDaoDynamo dao;
 
     @Spy
     private DtoToEntityTimelineMapper dtoToEntityTimelineMapper;
@@ -68,7 +65,7 @@ class TimelineDaoDynamoTest {
         timelineDao.setTableName("timeline");
         pnTimelineServiceConfigs.setTimelineDao(timelineDao);
         pnTimelineServiceConfigs.setInvalidableCategories(List.of("PREPARE_ANALOG_DOMICILE","PREPARE_ANALOG_DOMICILE_FAILURE","SEND_ANALOG_DOMICILE","SEND_ANALOG_PROGRESS","SEND_ANALOG_FEEDBACK","ANALOG_SUCCESS_WORKFLOW","ANALOG_FAILURE_WORKFLOW","SCHEDULE_REFINEMENT","REFINEMENT","COMPLETELY_UNREACHABLE_CREATION_REQUEST","COMPLETELY_UNREACHABLE","ANALOG_WORKFLOW_RECIPIENT_DECEASED"));
-        dao = new TimelineDaoDynamo(dynamoDbEnhancedAsyncClient, pnTimelineServiceConfigs, dtoToEntityTimelineMapper, entityToDtoTimelineMapper);
+        dao = new TestableTimelineDaoDynamo(dynamoDbEnhancedAsyncClient, pnTimelineServiceConfigs, dtoToEntityTimelineMapper, entityToDtoTimelineMapper);
     }
 
     @Test
@@ -359,116 +356,199 @@ class TimelineDaoDynamoTest {
 
     @Test
     void removeAttachmentsFromInvalidatedElements_shouldRemoveLegalFactsIdsForNotificationViewed() throws Exception {
-        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
-                .elementId("NOTIFICATION_VIEWED.IUN_test.RECINDEX_0")
-                .category(TimelineElementCategoryInt.NOTIFICATION_VIEWED)
-                .legalFactsIds(List.of(
-                        LegalFactsIdInt.builder()
+        TimelineElementEntity invalidatedTimelineElementEntity = TimelineElementEntity.builder()
+                .iun("iun-test")
+                .timelineElementId("NOTIFICATION_VIEWED.IUN_test.RECINDEX_0")
+                .category(TimelineElementCategoryEntity.NOTIFICATION_VIEWED)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
+                .legalFactIds(List.of(
+                        LegalFactsIdEntity.builder()
                                 .key("legal-fact-key")
-                                .category(LegalFactCategoryInt.RECIPIENT_ACCESS)
+                                .category(LegalFactCategoryEntity.RECIPIENT_ACCESS)
                                 .build()))
                 .build();
+        TimelineElementInternal invalidatedTimelineElement = entityToDtoTimelineMapper.entityToDto(invalidatedTimelineElementEntity, null);
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap);
 
         Assertions.assertNull(invalidatedTimelineElement.getLegalFactsIds());
     }
 
     @Test
     void removeAttachmentsFromInvalidatedElements_shouldRemoveAttachmentsForSendAnalogProgress() throws Exception {
-        SendAnalogProgressDetailsInt details = SendAnalogProgressDetailsInt.builder()
-                .attachments(List.of(
-                        AttachmentDetailsInt.builder()
-                                .id("attachment-id")
-                                .documentType("AAR")
-                                .url("safestorage://attachment-id")
-                                .date(Instant.now())
-                                .build()))
+        TimelineElementEntity invalidatedTimelineElementEntity = TimelineElementEntity.builder()
+                .iun("iun-test")
+                .timelineElementId("SEND_ANALOG_PROGRESS.IUN_test.RECINDEX_0.ATTEMPT_0.IDX_1")
+                .category(TimelineElementCategoryEntity.SEND_ANALOG_PROGRESS)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .attachments(List.of(
+                                AttachmentDetailsEntity.builder()
+                                        .id("attachment-id")
+                                        .documentType("AAR")
+                                        .url("safestorage://attachment-id")
+                                        .date(Instant.now())
+                                        .build()))
+                        .build())
                 .build();
-        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
-                .elementId("SEND_ANALOG_PROGRESS.IUN_test.RECINDEX_0.ATTEMPT_0.IDX_1")
-                .category(TimelineElementCategoryInt.SEND_ANALOG_PROGRESS)
-                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS)
-                .details(details)
-                .build();
+        TimelineElementInternal invalidatedTimelineElement = entityToDtoTimelineMapper.entityToDto(invalidatedTimelineElementEntity, null);
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap);
 
-        Assertions.assertNull(details.getAttachments());
+        Assertions.assertNull(((SendAnalogProgressDetailsInt) invalidatedTimelineElement.getDetails()).getAttachments());
     }
 
     @Test
     void removeAttachmentsFromInvalidatedElements_shouldNotRemoveAttachmentsForSendAnalogProgressIfReworkRequestTypeIsNotInvalidateElements() throws Exception {
-        SendAnalogProgressDetailsInt details = SendAnalogProgressDetailsInt.builder()
-                .attachments(List.of(
-                        AttachmentDetailsInt.builder()
-                                .id("attachment-id")
-                                .documentType("AAR")
-                                .url("safestorage://attachment-id")
-                                .date(Instant.now())
-                                .build()))
+        TimelineElementEntity invalidatedTimelineElementEntity = TimelineElementEntity.builder()
+                .iun("iun-test")
+                .timelineElementId("SEND_ANALOG_PROGRESS.IUN_test.RECINDEX_0.ATTEMPT_0.IDX_2")
+                .category(TimelineElementCategoryEntity.SEND_ANALOG_PROGRESS)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.REWORK.name())
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .attachments(List.of(
+                                AttachmentDetailsEntity.builder()
+                                        .id("attachment-id")
+                                        .documentType("AAR")
+                                        .url("safestorage://attachment-id")
+                                        .date(Instant.now())
+                                        .build()))
+                        .build())
                 .build();
-        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
-                .elementId("SEND_ANALOG_PROGRESS.IUN_test.RECINDEX_0.ATTEMPT_0.IDX_2")
-                .category(TimelineElementCategoryInt.SEND_ANALOG_PROGRESS)
-                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.REWORK)
-                .details(details)
-                .build();
+        TimelineElementInternal invalidatedTimelineElement = entityToDtoTimelineMapper.entityToDto(invalidatedTimelineElementEntity, null);
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap);
 
-        Assertions.assertNotNull(details.getAttachments());
+        Assertions.assertNotNull(((SendAnalogProgressDetailsInt) invalidatedTimelineElement.getDetails()).getAttachments());
     }
 
     @Test
     void removeAttachmentsFromInvalidatedElements_shouldNotChangeCompletelyUnreachable() throws Exception {
-        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
-                .elementId("COMPLETELY_UNREACHABLE.IUN_test.RECINDEX_0")
-                .category(TimelineElementCategoryInt.COMPLETELY_UNREACHABLE)
-                .legalFactsIds(List.of(
-                        LegalFactsIdInt.builder()
+        TimelineElementEntity invalidatedTimelineElementEntity = TimelineElementEntity.builder()
+                .iun("iun-test")
+                .timelineElementId("COMPLETELY_UNREACHABLE.IUN_test.RECINDEX_0")
+                .category(TimelineElementCategoryEntity.COMPLETELY_UNREACHABLE)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.REWORK.name())
+                .legalFactIds(List.of(
+                        LegalFactsIdEntity.builder()
                                 .key("legal-fact-key")
-                                .category(LegalFactCategoryInt.RECIPIENT_ACCESS)
+                                .category(LegalFactCategoryEntity.RECIPIENT_ACCESS)
                                 .build()))
                 .build();
+        TimelineElementInternal invalidatedTimelineElement = entityToDtoTimelineMapper.entityToDto(invalidatedTimelineElementEntity, null);
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap);
 
         Assertions.assertNotNull(invalidatedTimelineElement.getLegalFactsIds());
     }
 
     @Test
     void removeAttachmentsFromInvalidatedElements_shouldChangeCompletelyUnreachable() throws Exception {
-        TimelineElementInternal invalidatedTimelineElement = TimelineElementInternal.builder()
-                .elementId("COMPLETELY_UNREACHABLE.IUN_test.RECINDEX_0")
-                .category(TimelineElementCategoryInt.COMPLETELY_UNREACHABLE)
-                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS)
-                .legalFactsIds(List.of(
-                        LegalFactsIdInt.builder()
+        TimelineElementEntity invalidatedTimelineElementEntity = TimelineElementEntity.builder()
+                .iun("iun-test")
+                .timelineElementId("COMPLETELY_UNREACHABLE.IUN_test.RECINDEX_0")
+                .category(TimelineElementCategoryEntity.COMPLETELY_UNREACHABLE)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
+                .legalFactIds(List.of(
+                        LegalFactsIdEntity.builder()
                                 .key("legal-fact-key")
-                                .category(LegalFactCategoryInt.RECIPIENT_ACCESS)
+                                .category(LegalFactCategoryEntity.RECIPIENT_ACCESS)
                                 .build()))
                 .build();
+        TimelineElementInternal invalidatedTimelineElement = entityToDtoTimelineMapper.entityToDto(invalidatedTimelineElementEntity, null);
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        invokeRemoveAttachmentsFromInvalidatedElements(invalidatedElementMap);
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap);
 
         Assertions.assertNull(invalidatedTimelineElement.getLegalFactsIds());
     }
 
-    private void invokeRemoveAttachmentsFromInvalidatedElements(Map<String, TimelineElementInternal> invalidatedElementMap) throws Exception {
-        Method method = TimelineDaoDynamo.class.getDeclaredMethod("removeAttachmentsFromInvalidatedElements", Map.class);
-        method.setAccessible(true);
-        method.invoke(dao, invalidatedElementMap);
+    @Test
+    void getTimeline_shouldStripAttachmentsFromNestedInvalidatedElementsInReworkDetails() throws Exception {
+        String iun = "JQUD-NRZR-ZVTH-202503-Y-1";
+
+        String invalidatedSendId = "SEND_ANALOG_PROGRESS.IUN_" + iun + ".RECINDEX_0.ATTEMPT_0.IDX_1";
+        TimelineElementEntity invalidatedSend = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId(invalidatedSendId)
+                .category(TimelineElementCategoryEntity.SEND_ANALOG_PROGRESS)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .attachments(List.of(
+                                AttachmentDetailsEntity.builder()
+                                        .id("attachment-id")
+                                        .documentType("AAR")
+                                        .url("safestorage://attachment-id")
+                                        .date(Instant.now())
+                                        .build()))
+                        .build())
+                .build();
+
+        String invalidatedUnreachableId = "COMPLETELY_UNREACHABLE.IUN_" + iun + ".RECINDEX_0";
+        TimelineElementEntity invalidatedUnreachable = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId(invalidatedUnreachableId)
+                .category(TimelineElementCategoryEntity.COMPLETELY_UNREACHABLE)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
+                .legalFactIds(List.of(
+                        LegalFactsIdEntity.builder()
+                                .key("legal-fact-key")
+                                .category(LegalFactCategoryEntity.RECIPIENT_ACCESS)
+                                .build()))
+                .build();
+
+        NotificationStatusHistoryElementEntity statusHistoryElement = NotificationStatusHistoryElementEntity.builder()
+                .relatedTimelineElementIds(List.of(invalidatedSendId, invalidatedUnreachableId))
+                .build();
+
+        TimelineElementEntity rework = TimelineElementEntity.builder()
+                .iun(iun)
+                .timelineElementId("NOTIFICATION_TIMELINE_REWORKED.IUN_" + iun + ".RECINDEX_0.ATTEMPT_0.REWORK_0")
+                .category(TimelineElementCategoryEntity.NOTIFICATION_TIMELINE_REWORKED)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.REWORK.name())
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .invalidatedTimelineAndStatusHistory(List.of(statusHistoryElement))
+                        .build())
+                .build();
+
+        Map<String, TimelineElementInternal> invalidatedTimelineElements = new HashMap<>();
+        invalidatedTimelineElements.put(invalidatedSendId, entityToDtoTimelineMapper.entityToDto(invalidatedSend, null));
+        invalidatedTimelineElements.put(invalidatedUnreachableId, entityToDtoTimelineMapper.entityToDto(invalidatedUnreachable, null));
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedTimelineElements);
+
+        TimelineElementInternal reworkElement = entityToDtoTimelineMapper.entityToDto(rework, invalidatedTimelineElements);
+        Assertions.assertEquals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED, reworkElement.getCategory());
+
+        NotificationTimelineReworkedDetailsInt details = (NotificationTimelineReworkedDetailsInt) reworkElement.getDetails();
+        List<TimelineElementInternal> relatedTimelineElements = details.getInvalidatedTimelineAndStatusHistory()
+                .getFirst()
+                .getRelatedTimelineElements();
+
+        Assertions.assertEquals(2, relatedTimelineElements.size());
+        TimelineElementInternal sanitizedSend = relatedTimelineElements.stream()
+                .filter(elem -> invalidatedSendId.equals(elem.getElementId()))
+                .findFirst()
+                .orElseThrow();
+        Assertions.assertNull(((SendAnalogProgressDetailsInt) sanitizedSend.getDetails()).getAttachments());
+
+        TimelineElementInternal sanitizedUnreachable = relatedTimelineElements.stream()
+                .filter(elem -> invalidatedUnreachableId.equals(elem.getElementId()))
+                .findFirst()
+                .orElseThrow();
+        Assertions.assertNull(sanitizedUnreachable.getLegalFactsIds());
     }
 
     @Test
@@ -555,6 +635,7 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .timelineElementId(id1)
                 .category(TimelineElementCategoryEntity.SEND_ANALOG_PROGRESS)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
                 .statusInfo(StatusInfoEntity.builder().build())
@@ -565,6 +646,7 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .timelineElementId(id3)
                 .category(TimelineElementCategoryEntity.SEND_ANALOG_PROGRESS)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
                 .statusInfo(StatusInfoEntity.builder().build())
@@ -575,6 +657,7 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .timelineElementId(id2)
                 .category(TimelineElementCategoryEntity.SEND_ANALOG_PROGRESS)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
                 .statusInfo(StatusInfoEntity.builder().build())
@@ -589,6 +672,7 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .timelineElementId(id4)
                 .category(TimelineElementCategoryEntity.NOTIFICATION_TIMELINE_REWORKED)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.REWORK.name())
                 .details(TimelineElementDetailsEntity.builder().recIndex(0).invalidatedTimelineAndStatusHistory(List.of(notificationStatusHistoryElementInt)).build())
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
@@ -666,6 +750,7 @@ class TimelineDaoDynamoTest {
                 .iun(iun)
                 .timelineElementId(id3)
                 .category(TimelineElementCategoryEntity.SEND_DIGITAL_DOMICILE)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.REWORK.name())
                 .details(TimelineElementDetailsEntity.builder().recIndex(0).invalidatedTimelineAndStatusHistory(List.of()).build())
                 .timestamp(Instant.now())
                 .businessTimestamp(Instant.now().minus(1, ChronoUnit.HOURS))
@@ -892,6 +977,17 @@ class TimelineDaoDynamoTest {
 
         PagePublisher<T> pagePublisher = PagePublisher.create(sdkPublisher);
         when(dynamoDbAsyncTable.query((QueryEnhancedRequest) any())).thenReturn(pagePublisher);
+    }
+
+    private static class TestableTimelineDaoDynamo extends TimelineDaoDynamo {
+        TestableTimelineDaoDynamo(DynamoDbEnhancedAsyncClient dynamoDbEnhancedClient, PnTimelineServiceConfigs cfg,
+                                  DtoToEntityTimelineMapper dto2entity, EntityToDtoTimelineMapper entity2dto) {
+            super(dynamoDbEnhancedClient, cfg, dto2entity, entity2dto);
+        }
+
+        void removeAttachmentsFromInvalidatedElementsForTest(Map<String, TimelineElementInternal> invalidatedElementMap) {
+            super.removeAttachmentsFromInvalidatedElements(invalidatedElementMap);
+        }
     }
 
 }
