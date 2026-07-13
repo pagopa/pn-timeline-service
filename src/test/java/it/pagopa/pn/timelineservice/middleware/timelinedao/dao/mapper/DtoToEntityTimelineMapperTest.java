@@ -1,18 +1,22 @@
 package it.pagopa.pn.timelineservice.middleware.timelinedao.dao.mapper;
 
-import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
-import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.informalnotification.AnalogDeliveryDetailsInt;
 import it.pagopa.pn.timelineservice.dto.informalnotification.AnalogDeliveryTypeInt;
 import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalChannelsInt;
 import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalDeliveryDetailsInt;
+import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
+import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.NotificationPaidDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ServiceLevelInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
-import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.TimelineElement;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.AarCreationRequestDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.BaseAnalogDetailsInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.NotificationViewedDetailsInt;
 import it.pagopa.pn.timelineservice.legalfacts.AarTemplateType;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementDetailsEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementEntity;
@@ -350,7 +354,7 @@ class DtoToEntityTimelineMapperTest {
                 .notificationSentAt(Instant.now())
                 .reworkId("reworkId")
                 .campaignId("campaignId")
-                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.REWORK)
+                .reworkRequestType(ReworkRequestTypeEnum.REWORK)
                 .communicationType(communicationType)
                 .build();
     }
