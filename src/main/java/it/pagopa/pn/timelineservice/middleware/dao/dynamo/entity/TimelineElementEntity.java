@@ -32,6 +32,7 @@ public class TimelineElementEntity {
     private Instant notificationSentAt;
     private Instant businessTimestamp;
     private String reworkId;
+    private String reworkRequestType;
     private CommunicationType communicationType;
     private String campaignId;
 
@@ -122,6 +123,11 @@ public class TimelineElementEntity {
     public String getCampaignId(){return campaignId;}
 
     public void setCampaignId(String campaignId){this.campaignId = campaignId;}
+
+    @DynamoDbAttribute(value = "reworkRequestType") @DynamoDbIgnoreNulls
+    public String getReworkRequestType(){return reworkRequestType;}
+
+    public void setReworkRequestType(String reworkRequestType){this.reworkRequestType = reworkRequestType;}
 
     @DynamoDbAttribute(value = "communicationType")
     public CommunicationType getCommunicationType() {

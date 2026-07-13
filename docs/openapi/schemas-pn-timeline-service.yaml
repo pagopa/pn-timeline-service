@@ -148,6 +148,8 @@ components:
           type: string
         campaignId:
           type: string
+        reworkRequestType:
+          type: string
         notificationSentAt:
           type: string
           format: date-time

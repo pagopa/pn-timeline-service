@@ -34,6 +34,7 @@ public class TimelineElementMapper {
                 .notificationSentAt(timelineElement.getNotificationSentAt())
                 .paId(timelineElement.getPaId())
                 .reworkId(timelineElement.getReworkId())
+                .reworkRequestType(timelineElement.getReworkRequestType())
                 .communicationType(mapCommunicationTypeFromExternal(timelineElement.getCommunicationType()))
                 .campaignId(timelineElement.getCampaignId())
                 .build();
