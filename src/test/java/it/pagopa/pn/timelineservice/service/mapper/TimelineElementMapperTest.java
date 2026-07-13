@@ -2,6 +2,7 @@ package it.pagopa.pn.timelineservice.service.mapper;
 
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
@@ -54,6 +55,7 @@ class TimelineElementMapperTest {
                 .notificationSentAt(Instant.now())
                 .paId("paId")
                 .reworkId("reworkId")
+                .reworkRequestType(it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.TimelineElement.ReworkRequestTypeEnum.REWORK)
                 .communicationType(generatedCommunicationType);
 
         TimelineElementInternal result = mapper.externalToInternal(timelineElement);
@@ -65,6 +67,7 @@ class TimelineElementMapperTest {
         assertEquals(timelineElement.getNotificationSentAt(), result.getNotificationSentAt());
         assertEquals("paId", result.getPaId());
         assertEquals("reworkId", result.getReworkId());
+        assertEquals(ReworkRequestTypeEnum.REWORK, result.getReworkRequestType());
         assertEquals(expectedCommunicationType, result.getCommunicationType());
         assertNotNull(result.getStatusInfo());
         assertEquals("ACCEPTED", result.getStatusInfo().getActual());
@@ -116,6 +119,23 @@ class TimelineElementMapperTest {
         TimelineElementInternal result = mapper.externalToInternal(timelineElement);
 
         assertNull(result.getStatusInfo());
+    }
+
+    @Test
+    void externalToInternalWithNullReworkRequestTypeReturnsNullReworkRequestType() {
+        TimelineElementMapper mapper = new TimelineElementMapper();
+
+        TimelineElement timelineElement = new TimelineElement()
+                .iun("iun")
+                .elementId("elementId")
+                .category(TimelineCategory.AAR_GENERATION)
+                .timestamp(Instant.now())
+                .details(buildAarGenerationDetails())
+                .reworkRequestType(null);
+
+        TimelineElementInternal result = mapper.externalToInternal(timelineElement);
+
+        assertNull(result.getReworkRequestType());
     }
 
 

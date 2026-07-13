@@ -3,11 +3,12 @@ package it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.NotificationTimelineReworkedDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.LegalFactsIdEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.StatusInfoEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElementDetailsEntity;
@@ -30,6 +31,9 @@ public class EntityToDtoTimelineMapper {
         return TimelineElementInternal.builder()
                 .iun(entity.getIun())
                 .reworkId(entity.getReworkId())
+                .reworkRequestType(Optional.ofNullable(entity.getReworkRequestType())
+                        .map(ReworkRequestTypeEnum::valueOf)
+                        .orElse(null))
                 .campaignId(entity.getCampaignId())
                 .elementId( entity.getTimelineElementId() )
                 .category( category )

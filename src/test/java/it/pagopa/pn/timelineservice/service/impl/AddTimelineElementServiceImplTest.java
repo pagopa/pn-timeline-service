@@ -9,18 +9,21 @@ import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.notification.NotificationInfoInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
+import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.AarGenerationDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogFeedbackDetailsInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.exceptions.PnLockReserved;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
-import it.pagopa.pn.timelineservice.service.*;
-import it.pagopa.pn.timelineservice.operations.legal.LegalTimelineElementPersistenceStrategy;
 import it.pagopa.pn.timelineservice.operations.TimelineOperations;
 import it.pagopa.pn.timelineservice.operations.TimelineOperationsResolver;
+import it.pagopa.pn.timelineservice.operations.legal.LegalTimelineElementPersistenceStrategy;
+import it.pagopa.pn.timelineservice.service.ConfidentialInformationService;
+import it.pagopa.pn.timelineservice.service.StatusService;
+import it.pagopa.pn.timelineservice.service.TimelineService;
 import it.pagopa.pn.timelineservice.utils.CommunicationTypeChecker;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
@@ -122,7 +125,7 @@ class AddTimelineElementServiceImplTest {
     void addTimelineElementSavesReworkRequestType() {
         String iun = "iun_12345";
         String elementId = "SEND_ANALOG_FEEDBACK.IUN_" + iun + ".RECINDEX_0.ATTEMPT_0";
-        String reworkRequestType = "ADDRESS_REWORK";
+        ReworkRequestTypeEnum reworkRequestType = ReworkRequestTypeEnum.REWORK;
 
         NotificationInfoInt notification = NotificationInfoInt.builder().iun(iun).build();
         StatusService.NotificationStatusUpdate notificationStatuses =
