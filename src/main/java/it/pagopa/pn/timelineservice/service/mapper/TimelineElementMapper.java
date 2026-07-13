@@ -3,6 +3,7 @@ package it.pagopa.pn.timelineservice.service.mapper;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactCategoryInt;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.CommunicationType;
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum;
 import it.pagopa.pn.timelineservice.dto.timeline.StatusInfoInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -34,7 +36,9 @@ public class TimelineElementMapper {
                 .notificationSentAt(timelineElement.getNotificationSentAt())
                 .paId(timelineElement.getPaId())
                 .reworkId(timelineElement.getReworkId())
-                .reworkRequestType(timelineElement.getReworkRequestType())
+                .reworkRequestType(Optional.of(timelineElement.getReworkRequestType().name())
+                        .map(ReworkRequestTypeEnum::valueOf)
+                        .orElse(null))
                 .communicationType(mapCommunicationTypeFromExternal(timelineElement.getCommunicationType()))
                 .campaignId(timelineElement.getCampaignId())
                 .build();
