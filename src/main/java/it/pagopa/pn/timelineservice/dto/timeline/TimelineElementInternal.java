@@ -3,7 +3,6 @@ package it.pagopa.pn.timelineservice.dto.timeline;
 import it.pagopa.pn.timelineservice.dto.legalfacts.LegalFactsIdInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.TimelineElementDetailsInt;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.TimelineElement;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 

@@ -3,10 +3,10 @@ package it.pagopa.pn.timelineservice.middleware.dao.dynamo;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogProgressDetailsInt;
-import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.TimelineElement;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.DigitalAddressEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.PhysicalAddressEntity;
@@ -160,13 +160,13 @@ public class TimelineDaoDynamo implements TimelineDao {
                     timelineElementInternal.setLegalFactsIds(null);
                 }
                 case SEND_ANALOG_PROGRESS -> {
-                    if (TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())
+                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())
                     && timelineElementInternal.getDetails() instanceof SendAnalogProgressDetailsInt sendAnalogProgressDetailsInt) {
                         sendAnalogProgressDetailsInt.setAttachments(null);
                     }
                 }
                 case COMPLETELY_UNREACHABLE -> {
-                    if (TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())) {
+                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())) {
                         timelineElementInternal.setLegalFactsIds(null);
                     }
                 }
