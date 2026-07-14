@@ -3,8 +3,10 @@ package it.pagopa.pn.timelineservice.middleware.dao.dynamo;
 import it.pagopa.pn.commons.exceptions.PnIdConflictException;
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogProgressDetailsInt;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.DigitalAddressEntity;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.PhysicalAddressEntity;
@@ -139,11 +141,38 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .collectList()
                 .doOnNext(entities -> {
                     Map<String,TimelineElementInternal> invalidatedElementMap = checkIfReworksArePresentAndRetrieveInvalidatedElements(entities);
+                    removeAttachmentsFromInvalidatedElements(invalidatedElementMap);
                     invalidatedTimelineElements.putAll(invalidatedElementMap);
                 })
                 .flatMapMany(Flux::fromIterable)
                 .map(entity -> entity2dto.entityToDto(entity, invalidatedTimelineElements))
                 .filter(timelineElementInternal -> isNotInvalidated(timelineElementInternal, invalidatedTimelineElements));
+    }
+
+    protected void removeAttachmentsFromInvalidatedElements(Map<String, TimelineElementInternal> invalidatedElementMap) {
+        invalidatedElementMap.values().forEach(timelineElementInternal -> {
+            if (timelineElementInternal.getCategory() == null) {
+                return;
+            }
+
+            switch (timelineElementInternal.getCategory()) {
+                case NOTIFICATION_VIEWED -> {
+                    timelineElementInternal.setLegalFactsIds(null);
+                }
+                case SEND_ANALOG_PROGRESS -> {
+                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())
+                    && timelineElementInternal.getDetails() instanceof SendAnalogProgressDetailsInt sendAnalogProgressDetailsInt) {
+                        sendAnalogProgressDetailsInt.setAttachments(null);
+                    }
+                }
+                case COMPLETELY_UNREACHABLE -> {
+                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())) {
+                        timelineElementInternal.setLegalFactsIds(null);
+                    }
+                }
+                default -> {}
+            }
+        });
     }
 
     private Map<String,TimelineElementInternal> checkIfReworksArePresentAndRetrieveInvalidatedElements(List<TimelineElementEntity> entities) {

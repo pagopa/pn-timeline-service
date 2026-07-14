@@ -10,6 +10,7 @@ import it.pagopa.pn.timelineservice.service.mapper.SmartMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class DtoToEntityTimelineMapper {
@@ -23,7 +24,7 @@ public class DtoToEntityTimelineMapper {
                 .timestamp( dto.getTimestamp() )
                 .reworkId(dto.getReworkId())
                 .campaignId(dto.getCampaignId())
-                .reworkRequestType(dto.getReworkRequestType())
+                .reworkRequestType(Objects.isNull(dto.getReworkRequestType()) ? null : dto.getReworkRequestType().name())
                 .details( dtoToDetailsEntity( dto.getDetails() ) )
                 .legalFactIds( convertLegalFactsToEntity( dto.getLegalFactsIds() ) )
                 .statusInfo(dtoToStatusInfoEntity(dto.getStatusInfo()))

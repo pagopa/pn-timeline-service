@@ -150,6 +150,10 @@ components:
           type: string
         reworkRequestType:
           type: string
+          enum:
+            - REWORK
+            - RESTART
+            - INVALIDATE_ELEMENTS
         notificationSentAt:
           type: string
           format: date-time
