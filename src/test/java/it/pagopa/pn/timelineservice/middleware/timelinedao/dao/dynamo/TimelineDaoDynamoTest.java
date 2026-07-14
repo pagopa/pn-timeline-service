@@ -32,6 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -372,7 +373,7 @@ class TimelineDaoDynamoTest {
 
         dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap);
 
-        Assertions.assertNull(invalidatedTimelineElement.getLegalFactsIds());
+        Assertions.assertEquals(Collections.emptyList(), invalidatedTimelineElement.getLegalFactsIds());
     }
 
     @Test
@@ -399,7 +400,7 @@ class TimelineDaoDynamoTest {
 
         dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap);
 
-        Assertions.assertNull(((SendAnalogProgressDetailsInt) invalidatedTimelineElement.getDetails()).getAttachments());
+        Assertions.assertEquals(Collections.emptyList(), ((SendAnalogProgressDetailsInt) invalidatedTimelineElement.getDetails()).getAttachments());
     }
 
     @Test
@@ -470,7 +471,7 @@ class TimelineDaoDynamoTest {
 
         dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap);
 
-        Assertions.assertNull(invalidatedTimelineElement.getLegalFactsIds());
+        Assertions.assertEquals(Collections.emptyList(), invalidatedTimelineElement.getLegalFactsIds());
     }
 
     @Test
@@ -541,13 +542,13 @@ class TimelineDaoDynamoTest {
                 .filter(elem -> invalidatedSendId.equals(elem.getElementId()))
                 .findFirst()
                 .orElseThrow();
-        Assertions.assertNull(((SendAnalogProgressDetailsInt) sanitizedSend.getDetails()).getAttachments());
+        Assertions.assertEquals(Collections.emptyList(), ((SendAnalogProgressDetailsInt) sanitizedSend.getDetails()).getAttachments());
 
         TimelineElementInternal sanitizedUnreachable = relatedTimelineElements.stream()
                 .filter(elem -> invalidatedUnreachableId.equals(elem.getElementId()))
                 .findFirst()
                 .orElseThrow();
-        Assertions.assertNull(sanitizedUnreachable.getLegalFactsIds());
+        Assertions.assertEquals(Collections.emptyList(), sanitizedUnreachable.getLegalFactsIds());
     }
 
     @Test
