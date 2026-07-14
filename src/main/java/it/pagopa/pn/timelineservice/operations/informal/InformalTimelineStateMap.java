@@ -27,7 +27,7 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_VALIDATION_RESPONSE, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
-                .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_REFUSED, NotificationStatusInt.REFUSED, SINGLE_RECIPIENT);
     }
 
