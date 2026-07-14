@@ -295,7 +295,7 @@ class EntityToDtoTimelineMapperTest {
         Assertions.assertEquals("workflowEndedSourceElementId",
                 workflowEndedReachedDetails.getSourceElementId());
         Assertions.assertEquals("feedbackRequestId", feedbackDetails.getRequestId());
-        Assertions.assertEquals("APPIO", feedbackDetails.getChannel().getValue());
+        Assertions.assertEquals("IO", feedbackDetails.getChannel().getValue());
     }
     
 }

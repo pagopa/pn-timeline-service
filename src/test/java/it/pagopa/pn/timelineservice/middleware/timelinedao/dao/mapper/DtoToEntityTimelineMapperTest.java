@@ -329,7 +329,7 @@ class DtoToEntityTimelineMapperTest {
         assertThat(workflowEndedReachedEntity.getDetails().getSourceElementId()).isEqualTo("elementId");
         assertThat(reachedEntity.getDetails().getSourceElementId()).isEqualTo("reachedSourceElementId");
         assertThat(requestIdEntity.getDetails().getRequestId()).isEqualTo("feedbackRequestId");
-        assertThat(requestIdEntity.getDetails().getChannel()).isEqualTo("APPIO");
+        assertThat(requestIdEntity.getDetails().getChannel()).isEqualTo("IO");
     }
 
     private TimelineElementInternal buildTimelineElementInternal(CommunicationType communicationType) {
