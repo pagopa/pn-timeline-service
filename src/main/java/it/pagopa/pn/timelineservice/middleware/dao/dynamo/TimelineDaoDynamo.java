@@ -27,10 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -157,17 +154,17 @@ public class TimelineDaoDynamo implements TimelineDao {
 
             switch (timelineElementInternal.getCategory()) {
                 case NOTIFICATION_VIEWED -> {
-                    timelineElementInternal.setLegalFactsIds(null);
+                    timelineElementInternal.setLegalFactsIds(Collections.emptyList());
                 }
                 case SEND_ANALOG_PROGRESS -> {
                     if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())
                     && timelineElementInternal.getDetails() instanceof SendAnalogProgressDetailsInt sendAnalogProgressDetailsInt) {
-                        sendAnalogProgressDetailsInt.setAttachments(null);
+                        sendAnalogProgressDetailsInt.setAttachments(Collections.emptyList());
                     }
                 }
                 case COMPLETELY_UNREACHABLE -> {
                     if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())) {
-                        timelineElementInternal.setLegalFactsIds(null);
+                        timelineElementInternal.setLegalFactsIds(Collections.emptyList());
                     }
                 }
                 default -> {}
