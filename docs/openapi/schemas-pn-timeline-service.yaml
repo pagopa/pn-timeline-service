@@ -2459,12 +2459,17 @@ components:
       required:
         - recIndex
         - categoryType
+        - sourceElementId
         - completionFeedback
       properties:
         categoryType:
           type: string
         recIndex:
           $ref: '#/components/schemas/RecIndex'
+        sourceElementId:
+          type: string
+          description: Id dell'elemento che ha generato la conclusione del workflow
+          maxLength: 512
         completionFeedback:
           $ref: '#/components/schemas/CompletionFeedback'
 
