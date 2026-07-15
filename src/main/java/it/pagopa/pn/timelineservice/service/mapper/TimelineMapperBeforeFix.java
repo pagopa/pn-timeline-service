@@ -1,16 +1,22 @@
 package it.pagopa.pn.timelineservice.service.mapper;
 
 import it.pagopa.pn.commons.exceptions.PnInternalException;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.RecipientRelatedTimelineElementDetails;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
+import static it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS;
 
 @Slf4j
 public class TimelineMapperBeforeFix extends TimelineMapper {
@@ -58,22 +64,37 @@ public class TimelineMapperBeforeFix extends TimelineMapper {
         Integer reworkRecIndex = reworkedEventIdParser.recIndex().orElse(null);
         Integer attempt = reworkedEventIdParser.sentAttemptMade().orElse(null);
 
-        timelineElementInternalSet.stream()
-                .filter(timelineElementInternal -> timelineElementInternal.getCategory().equals(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE))
-                .filter(timelineElementInternal -> {
-                    TimelineEventIdParser parser = TimelineEventIdParser.parse(timelineElementInternal.getElementId());
-                    return parser.recIndex()
-                            .map(integer -> integer.equals(reworkRecIndex)).orElse(false) &&
-                            parser.sentAttemptMade().map(integer -> integer.equals(attempt)).orElse(false);
-                })
-                .findFirst()
-                .ifPresentOrElse(
-                        (timelineElementInternal ) -> {
-                            Instant timestamp = checkTimestamp(result, timelineElementInternal);
-                            result.setEventTimestamp(timestamp);
-                            result.setTimestamp(timestamp);},
-                        () -> result.setTimestamp(result.getEventTimestamp())
-                );
+        if (INVALIDATE_ELEMENTS.equals(result.getReworkRequestType())) {
+            NotificationTimelineReworkedDetailsInt reworkedDetailsInt = (NotificationTimelineReworkedDetailsInt) result.getDetails();
+            List<NotificationStatusHistoryInvalidatedElementInt> invalidatedTimelineAndStatusHistory = reworkedDetailsInt.getInvalidatedTimelineAndStatusHistory();
+
+            Instant firstInvalidatedEventTimestamp = invalidatedTimelineAndStatusHistory.stream()
+                    .flatMap(invalidated -> invalidated.getRelatedTimelineElements().stream())
+                    .min(Comparator.comparing(TimelineElementInternal::getEventTimestamp))
+                    .map(TimelineElementInternal::getEventTimestamp)
+                    .orElseThrow(() -> new PnInternalException("No invalidated timeline elements found", PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT));
+
+            result.setEventTimestamp(firstInvalidatedEventTimestamp);
+            result.setTimestamp(firstInvalidatedEventTimestamp);
+        }else {
+            timelineElementInternalSet.stream()
+                    .filter(timelineElementInternal -> timelineElementInternal.getCategory().equals(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE))
+                    .filter(timelineElementInternal -> {
+                        TimelineEventIdParser parser = TimelineEventIdParser.parse(timelineElementInternal.getElementId());
+                        return parser.recIndex()
+                                .map(integer -> integer.equals(reworkRecIndex)).orElse(false) &&
+                                parser.sentAttemptMade().map(integer -> integer.equals(attempt)).orElse(false);
+                    })
+                    .findFirst()
+                    .ifPresentOrElse(
+                            (timelineElementInternal) -> {
+                                Instant timestamp = checkTimestamp(result, timelineElementInternal);
+                                result.setEventTimestamp(timestamp);
+                                result.setTimestamp(timestamp);
+                            },
+                            () -> result.setTimestamp(result.getEventTimestamp())
+                    );
+        }
     }
 
     private Instant checkTimestamp(TimelineElementInternal reworkedElement, TimelineElementInternal sendAnalogElement) {

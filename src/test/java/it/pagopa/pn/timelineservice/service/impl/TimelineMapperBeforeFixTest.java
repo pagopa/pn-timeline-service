@@ -2,6 +2,8 @@ package it.pagopa.pn.timelineservice.service.impl;
 
 import it.pagopa.pn.commons.exceptions.PnInternalException;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
+import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusHistoryInvalidatedElementInt;
+import it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Set;
 
 class TimelineMapperBeforeFixTest {
@@ -113,6 +116,131 @@ class TimelineMapperBeforeFixTest {
         Assertions.assertEquals(sourceEventTimestamp, notificationReworked.getTimestamp());
         Assertions.assertEquals(sourceEventTimestamp, notificationReworked.getEventTimestamp());
     }
+
+    @Test
+    void testMapNotificationReworkedAttempt0RecIndex0InvalidateElements() {
+        Instant sourceEventTimestamp = Instant.EPOCH;
+        Instant sourceIngestionTimestamp = Instant.now();
+
+        NotificationTimelineReworkedDetailsInt details = new NotificationTimelineReworkedDetailsInt();
+        NotificationStatusHistoryInvalidatedElementInt invalidatedElement = new NotificationStatusHistoryInvalidatedElementInt();
+        invalidatedElement.setRelatedTimelineElements(List.of(
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_PROGRESS.IUN_ABC.RECINDEX_0.ATTEMPT_0")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceEventTimestamp)
+                        .build()));
+        details.setInvalidatedTimelineAndStatusHistory(List.of(invalidatedElement));
+
+        TimelineElementInternal notificationReworked = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .reworkRequestType(ReworkRequestTypeEnum.INVALIDATE_ELEMENTS)
+                .details(details)
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_ABC.RECINDEX_0.ATTEMPT_0.REWORK_0")
+                .timestamp(sourceIngestionTimestamp)
+                .notificationSentAt(Instant.now().plusSeconds(3600))
+                .build();
+        Set<TimelineElementInternal> timelineElementInternalSet = Set.of(
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_1.ATTEMPT_1")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
+                        .build(),
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_1.ATTEMPT_0")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
+                        .build(),
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_1")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
+                        .build(),
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_0")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceEventTimestamp)
+                        .build());
+
+        timelineMapperBeforeFix.remapSpecificTimelineElementData(timelineElementInternalSet, notificationReworked, sourceIngestionTimestamp, false);
+
+        Assertions.assertEquals(sourceIngestionTimestamp, notificationReworked.getIngestionTimestamp());
+        Assertions.assertEquals(sourceEventTimestamp, notificationReworked.getTimestamp());
+        Assertions.assertEquals(sourceEventTimestamp, notificationReworked.getEventTimestamp());
+    }
+
+    @Test
+    void testMapNotificationReworkedAttempt0RecIndex0InvalidateElements2() {
+        Instant sourceEventTimestamp = Instant.EPOCH;
+        Instant sourceIngestionTimestamp = Instant.now();
+
+        NotificationTimelineReworkedDetailsInt details = new NotificationTimelineReworkedDetailsInt();
+        NotificationStatusHistoryInvalidatedElementInt invalidatedElement = new NotificationStatusHistoryInvalidatedElementInt();
+        invalidatedElement.setRelatedTimelineElements(List.of(
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE)
+                        .elementId("PREPARE_ANALOG_DOMICILE_.IUN_ABC.RECINDEX_0.ATTEMPT_1")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceEventTimestamp)
+                        .build()));
+
+        NotificationStatusHistoryInvalidatedElementInt invalidatedElement2 = new NotificationStatusHistoryInvalidatedElementInt();
+        invalidatedElement2.setRelatedTimelineElements(List.of(
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE_FAILURE)
+                        .elementId("PREPARE_ANALOG_DOMICILE_FAILURE.IUN_ABC.RECINDEX_0")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceEventTimestamp.plusSeconds(1000))
+                        .build()));
+
+        details.setInvalidatedTimelineAndStatusHistory(List.of(invalidatedElement, invalidatedElement2));
+
+        TimelineElementInternal notificationReworked = TimelineElementInternal.builder()
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .reworkRequestType(ReworkRequestTypeEnum.INVALIDATE_ELEMENTS)
+                .details(details)
+                .elementId("NOTIFICATION_TIMELINE_REWORKED.IUN_ABC.RECINDEX_0.ATTEMPT_0.REWORK_0")
+                .timestamp(sourceIngestionTimestamp)
+                .notificationSentAt(Instant.now().plusSeconds(3600))
+                .build();
+        Set<TimelineElementInternal> timelineElementInternalSet = Set.of(
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_1.ATTEMPT_1")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
+                        .build(),
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_1.ATTEMPT_0")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
+                        .build(),
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_1")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
+                        .build(),
+                TimelineElementInternal.builder()
+                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_0")
+                        .timestamp(sourceEventTimestamp)
+                        .eventTimestamp(sourceEventTimestamp)
+                        .build());
+
+        timelineMapperBeforeFix.remapSpecificTimelineElementData(timelineElementInternalSet, notificationReworked, sourceIngestionTimestamp, false);
+
+        Assertions.assertEquals(sourceIngestionTimestamp, notificationReworked.getIngestionTimestamp());
+        Assertions.assertEquals(sourceEventTimestamp, notificationReworked.getTimestamp());
+        Assertions.assertEquals(sourceEventTimestamp, notificationReworked.getEventTimestamp());
+    }
+
 
     @Test
     void testMapNotificationReworkedAttempt1RecIndex1() {
