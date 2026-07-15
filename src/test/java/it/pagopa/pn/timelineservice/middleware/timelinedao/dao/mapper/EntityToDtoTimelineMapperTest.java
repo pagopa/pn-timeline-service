@@ -284,7 +284,7 @@ class EntityToDtoTimelineMapperTest {
                 .details(TimelineElementDetailsEntity.builder()
                         .recIndex(0)
                         .requestId("feedbackRequestId")
-                        .channel(String.valueOf(DigitalChannelsInt.APPIO))
+                        .channel(String.valueOf(DigitalChannelsInt.IO))
                         .build())
                 .build(), Map.of()).getDetails();
 
@@ -295,7 +295,7 @@ class EntityToDtoTimelineMapperTest {
         Assertions.assertEquals("workflowEndedSourceElementId",
                 workflowEndedReachedDetails.getSourceElementId());
         Assertions.assertEquals("feedbackRequestId", feedbackDetails.getRequestId());
-        Assertions.assertEquals("APPIO", feedbackDetails.getChannel().getValue());
+        Assertions.assertEquals("IO", feedbackDetails.getChannel().getValue());
     }
     
 }

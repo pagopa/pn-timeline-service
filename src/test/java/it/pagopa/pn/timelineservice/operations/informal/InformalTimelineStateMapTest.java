@@ -12,7 +12,7 @@ class InformalTimelineStateMapTest {
 
     @Test
     void requestAcceptedMovesFromInValidationToProcessing() {
-        assertTransition(NotificationStatusInt.IN_VALIDATION, TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.PROCESSING);
+        assertTransition(NotificationStatusInt.IN_VALIDATION, TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.ACCEPTED);
     }
 
     @Test

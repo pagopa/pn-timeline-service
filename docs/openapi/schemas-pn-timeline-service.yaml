@@ -2104,12 +2104,12 @@ components:
       type: string
       description: >
         Canale di invio digitale per il quale è stato ricevuto il feedback
-        __APPIO__: invio tramite App IO
+        __IO__: invio tramite App IO
         __PEC__: invio tramite PEC
         __EMAIL__: invio tramite email
         __SMS__: invio tramite SMS
       enum:
-        - APPIO
+        - IO
         - PEC
         - EMAIL
         - SMS
@@ -2380,7 +2380,7 @@ components:
           type: string
           description: >
             __Canale di raggiungimento del destinatario__
-            - __APPIO__
+            - __IO__
             - __PEC__
             - __EMAIL__
             - __SMS__
@@ -2415,14 +2415,11 @@ components:
       required:
         - recIndex
         - categoryType
-        - sourceElementId
       properties:
         categoryType:
           type: string
         recIndex:
           $ref: '#/components/schemas/RecIndex'
-        sourceElementId:
-          type: string
 
     WorkflowEndedUndeliverableDetails:
       x-discriminator-value: "WORKFLOW_ENDED_UNDELIVERABLE"
@@ -2443,6 +2440,7 @@ components:
         - recIndex
         - categoryType
         - sourceElementId
+        - completionFeedback
       properties:
         categoryType:
           type: string
@@ -2452,6 +2450,8 @@ components:
           type: string
           description: Id dell'elemento che ha generato la conclusione del workflow
           maxLength: 512
+        completionFeedback:
+          $ref: '#/components/schemas/CompletionFeedback'
 
     WorkflowDoneUnreachedDetails:
       x-discriminator-value: "WORKFLOW_DONE_UNREACHED"
@@ -2460,6 +2460,7 @@ components:
         - recIndex
         - categoryType
         - sourceElementId
+        - completionFeedback
       properties:
         categoryType:
           type: string
@@ -2469,6 +2470,8 @@ components:
           type: string
           description: Id dell'elemento che ha generato la conclusione del workflow
           maxLength: 512
+        completionFeedback:
+          $ref: '#/components/schemas/CompletionFeedback'
 
     InformalNotificationViewedDetails:
       x-discriminator-value: "INFORMAL_NOTIFICATION_VIEWED"
@@ -2529,6 +2532,16 @@ components:
       type: integer
       description: Index destinatario notifica digitale
       format: int32
+
+    CompletionFeedback:
+      type: string
+      description: >
+        Feedback desiderato per la conclusione del workflow di notificazione
+        - __SENT__
+        - __RECEIVED__
+        - __READ__
+        - __PAID__
+        - __SKIP__
 
     NewTimelineElement:
       type: object
