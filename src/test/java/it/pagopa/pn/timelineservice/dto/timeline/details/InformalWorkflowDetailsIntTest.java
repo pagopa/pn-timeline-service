@@ -64,11 +64,10 @@ class InformalWorkflowDetailsIntTest {
     void workflowDoneUnreachedToLog() {
         WorkflowDoneUnreachedDetailsInt details = WorkflowDoneUnreachedDetailsInt.builder()
                 .recIndex(4)
-                .sourceElementId("sourceElementId")
                 .completionFeedback("SENT")
                 .build();
 
-        Assertions.assertEquals("recIndex=4 sourceElementId=sourceElementId completionFeedback=SENT", details.toLog());
+        Assertions.assertEquals("recIndex=4 completionFeedback=SENT", details.toLog());
     }
 
     @Test
@@ -98,9 +97,8 @@ class InformalWorkflowDetailsIntTest {
     void workflowEndedUnreachedToLog() {
         WorkflowEndedUnreachedDetailsInt details = WorkflowEndedUnreachedDetailsInt.builder()
                 .recIndex(7)
-                .sourceElementId("sourceElementId")
                 .build();
 
-        Assertions.assertEquals("recIndex=7 sourceElementId=sourceElementId", details.toLog());
+        Assertions.assertEquals("recIndex=7", details.toLog());
     }
 }
