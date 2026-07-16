@@ -78,13 +78,7 @@ class TimelineMapperAfterFixTest {
 
         NotificationTimelineReworkedDetailsInt details = new NotificationTimelineReworkedDetailsInt();
         NotificationStatusHistoryInvalidatedElementInt invalidatedElement = new NotificationStatusHistoryInvalidatedElementInt();
-        invalidatedElement.setRelatedTimelineElements(List.of(
-                TimelineElementInternal.builder()
-                        .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
-                        .elementId("SEND_ANALOG_PROGRESS.IUN_ABC.RECINDEX_0.ATTEMPT_0")
-                        .timestamp(sourceEventTimestamp)
-                        .eventTimestamp(sourceEventTimestamp)
-                        .build()));
+        invalidatedElement.setRelatedTimelineElementIds(List.of("SEND_ANALOG_PROGRESS.IUN_ABC.RECINDEX_0.ATTEMPT_0"));
         details.setInvalidatedTimelineAndStatusHistory(List.of(invalidatedElement));
 
         TimelineElementInternal notificationReworked = TimelineElementInternal.builder()
@@ -116,7 +110,7 @@ class TimelineMapperAfterFixTest {
                         .build(),
                 TimelineElementInternal.builder()
                         .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
-                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_0")
+                        .elementId("SEND_ANALOG_PROGRESS.IUN_ABC.RECINDEX_0.ATTEMPT_0")
                         .timestamp(sourceEventTimestamp)
                         .eventTimestamp(sourceEventTimestamp)
                         .build());
@@ -135,22 +129,10 @@ class TimelineMapperAfterFixTest {
 
         NotificationTimelineReworkedDetailsInt details = new NotificationTimelineReworkedDetailsInt();
         NotificationStatusHistoryInvalidatedElementInt invalidatedElement = new NotificationStatusHistoryInvalidatedElementInt();
-        invalidatedElement.setRelatedTimelineElements(List.of(
-                TimelineElementInternal.builder()
-                        .category(TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE)
-                        .elementId("PREPARE_ANALOG_DOMICILE_.IUN_ABC.RECINDEX_0.ATTEMPT_1")
-                        .timestamp(sourceEventTimestamp)
-                        .eventTimestamp(sourceEventTimestamp)
-                        .build()));
+        invalidatedElement.setRelatedTimelineElementIds(List.of("PREPARE_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_1"));
 
         NotificationStatusHistoryInvalidatedElementInt invalidatedElement2 = new NotificationStatusHistoryInvalidatedElementInt();
-        invalidatedElement2.setRelatedTimelineElements(List.of(
-                TimelineElementInternal.builder()
-                        .category(TimelineElementCategoryInt.PREPARE_ANALOG_DOMICILE_FAILURE)
-                        .elementId("PREPARE_ANALOG_DOMICILE_FAILURE.IUN_ABC.RECINDEX_0")
-                        .timestamp(sourceEventTimestamp)
-                        .eventTimestamp(sourceEventTimestamp.plusSeconds(1000))
-                        .build()));
+        invalidatedElement2.setRelatedTimelineElementIds(List.of("PREPARE_ANALOG_DOMICILE_FAILURE.IUN_ABC.RECINDEX_0"));
 
         details.setInvalidatedTimelineAndStatusHistory(List.of(invalidatedElement, invalidatedElement2));
 
@@ -177,13 +159,13 @@ class TimelineMapperAfterFixTest {
                         .build(),
                 TimelineElementInternal.builder()
                         .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
-                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_1")
+                        .elementId("PREPARE_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_1")
                         .timestamp(sourceEventTimestamp)
                         .eventTimestamp(sourceIngestionTimestamp.minus(1, ChronoUnit.DAYS))
                         .build(),
                 TimelineElementInternal.builder()
                         .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
-                        .elementId("SEND_ANALOG_DOMICILE.IUN_ABC.RECINDEX_0.ATTEMPT_0")
+                        .elementId("PREPARE_ANALOG_DOMICILE_FAILURE.IUN_ABC.RECINDEX_0")
                         .timestamp(sourceEventTimestamp)
                         .eventTimestamp(sourceEventTimestamp)
                         .build());
