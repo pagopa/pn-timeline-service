@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS;
 
@@ -67,9 +68,12 @@ public class TimelineMapperBeforeFix extends TimelineMapper {
         if (INVALIDATE_ELEMENTS.equals(result.getReworkRequestType())) {
             NotificationTimelineReworkedDetailsInt reworkedDetailsInt = (NotificationTimelineReworkedDetailsInt) result.getDetails();
             List<NotificationStatusHistoryInvalidatedElementInt> invalidatedTimelineAndStatusHistory = reworkedDetailsInt.getInvalidatedTimelineAndStatusHistory();
+            Set<String> relatedTimelineElementIds = invalidatedTimelineAndStatusHistory.stream()
+                    .flatMap(invalidated -> invalidated.getRelatedTimelineElementIds().stream())
+                    .collect(Collectors.toSet());
 
-            Instant firstInvalidatedEventTimestamp = invalidatedTimelineAndStatusHistory.stream()
-                    .flatMap(invalidated -> invalidated.getRelatedTimelineElements().stream())
+            Instant firstInvalidatedEventTimestamp = timelineElementInternalSet.stream()
+                    .filter(element -> relatedTimelineElementIds.contains(element.getElementId()))
                     .min(Comparator.comparing(TimelineElementInternal::getEventTimestamp))
                     .map(TimelineElementInternal::getEventTimestamp)
                     .orElseThrow(() -> new PnInternalException("No invalidated timeline elements found", PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT));
