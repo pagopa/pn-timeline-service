@@ -9,6 +9,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.exceptions.PnTimelineServiceExceptionCodes;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
 import java.util.Comparator;
@@ -62,11 +63,19 @@ public class TimelineMapperAfterFix extends TimelineMapper {
                     .flatMap(invalidated -> invalidated.getRelatedTimelineElementIds().stream())
                     .collect(Collectors.toSet());
 
-            Instant firstInvalidatedEventTimestamp = timelineElementInternalSet.stream()
+            Set<TimelineElementInternal> relatedTimelineElements = invalidatedTimelineAndStatusHistory.stream()
+                    .flatMap(invalidated -> invalidated.getRelatedTimelineElements().stream())
+                    .collect(Collectors.toSet());
+
+            Instant firstInvalidatedEventTimestamp = (CollectionUtils.isEmpty(relatedTimelineElements)
+                    ? timelineElementInternalSet
+                    : relatedTimelineElements).stream()
                     .filter(element -> relatedTimelineElementIds.contains(element.getElementId()))
                     .min(Comparator.comparing(TimelineElementInternal::getEventTimestamp))
                     .map(TimelineElementInternal::getEventTimestamp)
                     .orElseThrow(() -> new PnInternalException("No invalidated timeline elements found", PnTimelineServiceExceptionCodes.ERROR_CODE_TIMELINESERVICE_TIMELINE_ELEMENT_NOT_PRESENT));
+
+
 
             result.setEventTimestamp(firstInvalidatedEventTimestamp);
             result.setTimestamp(firstInvalidatedEventTimestamp);
