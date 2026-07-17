@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS;
 
@@ -64,7 +65,9 @@ public class TimelineMapperAfterFix extends TimelineMapper {
                     .collect(Collectors.toSet());
 
             Set<TimelineElementInternal> relatedTimelineElements = invalidatedTimelineAndStatusHistory.stream()
-                    .flatMap(invalidated -> invalidated.getRelatedTimelineElements().stream())
+                    .flatMap(invalidated -> CollectionUtils.isEmpty(invalidated.getRelatedTimelineElements())
+                            ? Stream.empty()
+                            : invalidated.getRelatedTimelineElements().stream())
                     .collect(Collectors.toSet());
 
             Instant firstInvalidatedEventTimestamp = (CollectionUtils.isEmpty(relatedTimelineElements)
