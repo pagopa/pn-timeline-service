@@ -153,9 +153,6 @@ public class TimelineDaoDynamo implements TimelineDao {
             }
 
             switch (timelineElementInternal.getCategory()) {
-                case NOTIFICATION_VIEWED -> {
-                    timelineElementInternal.setLegalFactsIds(Collections.emptyList());
-                }
                 case SEND_ANALOG_PROGRESS -> {
                     if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())
                     && timelineElementInternal.getDetails() instanceof SendAnalogProgressDetailsInt sendAnalogProgressDetailsInt) {

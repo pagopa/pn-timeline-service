@@ -24,6 +24,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.springframework.util.CollectionUtils;
 import reactor.test.StepVerifier;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
@@ -355,7 +356,7 @@ class TimelineDaoDynamoTest {
     }
 
     @Test
-    void removeAttachmentsFromInvalidatedElements_shouldRemoveLegalFactsIdsForNotificationViewed() throws Exception {
+    void removeAttachmentsFromInvalidatedElements_shouldNotRemoveLegalFactsIdsForNotificationViewed() throws Exception {
         TimelineElementEntity invalidatedTimelineElementEntity = TimelineElementEntity.builder()
                 .iun("iun-test")
                 .timelineElementId("NOTIFICATION_VIEWED.IUN_test.RECINDEX_0")
@@ -373,7 +374,7 @@ class TimelineDaoDynamoTest {
 
         dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap);
 
-        Assertions.assertEquals(Collections.emptyList(), invalidatedTimelineElement.getLegalFactsIds());
+        Assertions.assertFalse(CollectionUtils.isEmpty(invalidatedTimelineElement.getLegalFactsIds()));
     }
 
     @Test
