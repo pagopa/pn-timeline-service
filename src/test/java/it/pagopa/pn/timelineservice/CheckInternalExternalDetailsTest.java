@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategory
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.informal.*;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
+import it.pagopa.pn.timelineservice.dto.timeline.details.*;
 import it.pagopa.pn.timelineservice.generated.openapi.server.v1.dto.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -104,6 +105,7 @@ class CheckInternalExternalDetailsTest {
             new Pair(NotificationTimelineReworkedDetailsInt.class, NotificationTimelineReworkedDetails.class),
             new Pair(NotificationCostValidationRequestDetailsInt.class, NotificationCostValidationRequestDetails.class),
             new Pair(NotificationCostValidationResponseDetailsInt.class, NotificationCostValidationResponseDetails.class),
+            new Pair(CourtesyChannelFailedDetailsInt.class, CourtesyChannelFailedDetails.class),
             new Pair(CoverpageCreationRequestDetailsInt.class, CoverpageCreationRequestDetails.class),
             new Pair(InformalNotificationViewedDetailsInt.class, InformalNotificationViewedDetails.class),
             new Pair(PrepareDigitalDetailsInt.class, PrepareDigitalDetails.class),

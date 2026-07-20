@@ -78,6 +78,7 @@ components:
         - NOTIFICATION_TIMELINE_REWORKED
         - NOTIFICATION_COST_VALIDATION_REQUEST
         - NOTIFICATION_COST_VALIDATION_RESPONSE
+        - COURTESY_CHANNEL_FAILED
         - SEND_DIGITAL_MESSAGE
         - SEND_DIGITAL_MESSAGE_PROGRESS
         - SEND_DIGITAL_MESSAGE_FEEDBACK
@@ -224,6 +225,7 @@ components:
         - "$ref": "#/components/schemas/NotificationTimelineReworkedDetails"
         - "$ref": "#/components/schemas/NotificationCostValidationRequestDetails"
         - "$ref": "#/components/schemas/NotificationCostValidationResponseDetails"
+        - "$ref": "#/components/schemas/CourtesyChannelFailedDetails"
         - "$ref": "#/components/schemas/SendDigitalMessageDetails"
         - "$ref": "#/components/schemas/SendDigitalMessageProgressDetails"
         - "$ref": "#/components/schemas/SendDigitalMessageFeedbackDetails"
@@ -242,6 +244,31 @@ components:
         - "$ref": "#/components/schemas/SendDigitalMessageSkipDetails"
       discriminator:
         propertyName: "categoryType"
+
+    CourtesyChannelFailedDetails:
+      x-discriminator-value: "COURTESY_CHANNEL_FAILED"
+      type: object
+      required:
+        - categoryType
+        - channelType
+        - deliveryMode
+      properties:
+        categoryType:
+          type: string
+        channelType:
+          type: string
+          description: tipo di canale di cortesia (EMAIL, SMS, APPIO, TPP ...)
+        deliveryMode:
+          $ref: '#/components/schemas/DeliveryMode'
+        failureReason:
+          $ref: '#/components/schemas/CourtesyChannelFailureReason'
+
+    CourtesyChannelFailureReason:
+      type: string
+      description: motivo di chiusura senza successo del canale di cortesia
+      enum:
+        - EXPECTED_FAILURE
+        - RETRIES_EXHAUSTED
 
     NotificationCostValidationRequestDetails:
       x-discriminator-value: "NOTIFICATION_COST_VALIDATION_REQUEST"

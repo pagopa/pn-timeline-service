@@ -63,6 +63,7 @@ public enum TimelineElementCategoryInt {
     NOTIFICATION_TIMELINE_REWORKED(NotificationTimelineReworkedDetailsInt.class, TimelineElementCategoryInt.PRIORITY_AFTER, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_COST_VALIDATION_REQUEST(NotificationCostValidationRequestDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
     NOTIFICATION_COST_VALIDATION_RESPONSE(NotificationCostValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
+    COURTESY_CHANNEL_FAILED(CourtesyChannelFailedDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
     //Timeline Element for Informal Notification
     SEND_DIGITAL_MESSAGE(SendDigitalMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_DIGITAL_MESSAGE_SKIP(SendDigitalMessageSkipDetailsInt.class, TimelineElementCategoryInt.VERSION_10),

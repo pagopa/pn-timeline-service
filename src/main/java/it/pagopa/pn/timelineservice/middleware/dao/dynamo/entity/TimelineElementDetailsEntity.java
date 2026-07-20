@@ -96,6 +96,8 @@ public class TimelineElementDetailsEntity {
     @Getter(onMethod=@__({@DynamoDbAttribute("idempotenceToken")})) private String idempotenceToken;
     @Getter(onMethod=@__({@DynamoDbAttribute("timeoutDate")})) private Instant timeoutDate;
     @Getter(onMethod=@__({@DynamoDbAttribute("invalidatedTimelineAndStatusHistory")})) private List<NotificationStatusHistoryElementEntity> invalidatedTimelineAndStatusHistory;
+    @Getter(onMethod=@__({@DynamoDbAttribute("channelType")})) private String channelType;
+    @Getter(onMethod=@__({@DynamoDbAttribute("failureReason")})) private CourtesyChannelFailureReasonEntity failureReason;
     @Getter(onMethod=@__({@DynamoDbAttribute("fileKey")})) private String fileKey;
     @Getter(onMethod=@__({@DynamoDbAttribute("requestId")})) private String requestId;
     @Getter(onMethod=@__({@DynamoDbAttribute("sourceElementId")})) private String sourceElementId;

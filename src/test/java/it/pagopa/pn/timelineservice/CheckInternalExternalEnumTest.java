@@ -4,6 +4,7 @@ import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.ResultFilterEnum;
 import it.pagopa.pn.timelineservice.dto.io.IoSendMessageResultInt;
 import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.CourtesyChannelFailureReasonInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.ServiceLevelInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.*;
@@ -88,6 +89,24 @@ class CheckInternalExternalEnumTest {
         assertDoesNotThrow( ()  ->{
             for (DeliveryMode deliveryMode : DeliveryMode.values()) {
                 DeliveryModeInt.valueOf(deliveryMode.name());
+            }
+        });
+    }
+
+    @Test
+    void checkExternalCourtesyChannelFailureReason(){
+        assertDoesNotThrow( ()  ->{
+            for (CourtesyChannelFailureReasonInt courtesyChannelFailureReasonInt : CourtesyChannelFailureReasonInt.values()) {
+                CourtesyChannelFailureReason.valueOf(courtesyChannelFailureReasonInt.name());
+            }
+        });
+    }
+
+    @Test
+    void checkInternalCourtesyChannelFailureReason(){
+        assertDoesNotThrow( ()  ->{
+            for (CourtesyChannelFailureReason courtesyChannelFailureReason : CourtesyChannelFailureReason.values()) {
+                CourtesyChannelFailureReasonInt.valueOf(courtesyChannelFailureReason.name());
             }
         });
     }
