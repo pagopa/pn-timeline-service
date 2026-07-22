@@ -54,6 +54,7 @@ class InformalTimelineStateMapTest {
     @Test
     void undeliverableMovesToCompletedReachedWhenWorkflowDoneReachedArrives() {
         assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED);
+        assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED);
     }
 
     @Test

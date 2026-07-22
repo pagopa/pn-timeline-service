@@ -77,7 +77,9 @@ public class InformalTimelineStateMap extends AbstractStateMap {
 
     private void fromStatusUndeliverable() {
         this.fromState(NotificationStatusInt.UNDELIVERABLE)
-                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT);
+                //STATE CHANGE
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT);
     }
 
     private void fromStatusCompletedReached() {
