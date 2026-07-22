@@ -138,7 +138,7 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .collectList()
                 .doOnNext(entities -> {
                     Map<String,TimelineElementInternal> invalidatedElementMap = checkIfReworksArePresentAndRetrieveInvalidatedElements(entities);
-                    removeAttachmentsFromInvalidatedElements(invalidatedElementMap);
+                    removeAttachmentsFromInvalidatedElements(invalidatedElementMap, getReworkRequestTypeFromTimeline(entities));
                     invalidatedTimelineElements.putAll(invalidatedElementMap);
                 })
                 .flatMapMany(Flux::fromIterable)
@@ -146,7 +146,14 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .filter(timelineElementInternal -> isNotInvalidated(timelineElementInternal, invalidatedTimelineElements));
     }
 
-    protected void removeAttachmentsFromInvalidatedElements(Map<String, TimelineElementInternal> invalidatedElementMap) {
+    private String getReworkRequestTypeFromTimeline(List<TimelineElementEntity> timeline) {
+        return timeline.stream().filter(entity -> NOTIFICATION_TIMELINE_REWORKED.equals(entity.getCategory()))
+                .map(TimelineElementEntity::getReworkRequestType)
+                .findFirst()
+                .orElse(null);
+    }
+
+    protected void removeAttachmentsFromInvalidatedElements(Map<String, TimelineElementInternal> invalidatedElementMap, String reworkRequestType) {
         invalidatedElementMap.values().forEach(timelineElementInternal -> {
             if (timelineElementInternal.getCategory() == null) {
                 return;
@@ -154,13 +161,14 @@ public class TimelineDaoDynamo implements TimelineDao {
 
             switch (timelineElementInternal.getCategory()) {
                 case SEND_ANALOG_PROGRESS -> {
-                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())
+                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name().equals(reworkRequestType)
                     && timelineElementInternal.getDetails() instanceof SendAnalogProgressDetailsInt sendAnalogProgressDetailsInt) {
                         sendAnalogProgressDetailsInt.setAttachments(Collections.emptyList());
+                        timelineElementInternal.setLegalFactsIds(Collections.emptyList());
                     }
                 }
                 case COMPLETELY_UNREACHABLE -> {
-                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())) {
+                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name().equals(reworkRequestType)) {
                         timelineElementInternal.setLegalFactsIds(Collections.emptyList());
                     }
                 }
