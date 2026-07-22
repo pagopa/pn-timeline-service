@@ -330,6 +330,6 @@ Resources:
               relatedFeedbackTimelineId:struct<S:string>,
               aarTemplateType:struct<S:string>
               >>,
-            campaignId:struct<S:string>,
+            campaignId:struct<NULL:boolean,S:string>,
             communicationType:struct<S:string>
           >
