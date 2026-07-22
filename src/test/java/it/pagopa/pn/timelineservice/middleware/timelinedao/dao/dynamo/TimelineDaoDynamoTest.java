@@ -368,11 +368,30 @@ class TimelineDaoDynamoTest {
                                 .category(LegalFactCategoryEntity.RECIPIENT_ACCESS)
                                 .build()))
                 .build();
+
+        TimelineElementEntity reworkTimelineElement = TimelineElementEntity.builder()
+                .iun("iun-test")
+                .timelineElementId("NOTIFICATION_TIMELINE_REWORKED.IUN_test.RECINDEX_0")
+                .category(TimelineElementCategoryEntity.NOTIFICATION_TIMELINE_REWORKED)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
+                .legalFactIds(List.of(
+                        LegalFactsIdEntity.builder()
+                                .key("legal-fact-key")
+                                .category(LegalFactCategoryEntity.RECIPIENT_ACCESS)
+                                .build()))
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .invalidatedTimelineAndStatusHistory(List.of(NotificationStatusHistoryElementEntity.builder()
+                                        .relatedTimelineElementIds(List.of("NOTIFICATION_VIEWED.IUN_test.RECINDEX_0"))
+                                .build()))
+                        .build())
+                .build();
+
         TimelineElementInternal invalidatedTimelineElement = entityToDtoTimelineMapper.entityToDto(invalidatedTimelineElementEntity, null);
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name());
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, List.of(reworkTimelineElement));
 
         Assertions.assertFalse(CollectionUtils.isEmpty(invalidatedTimelineElement.getLegalFactsIds()));
     }
@@ -395,11 +414,30 @@ class TimelineDaoDynamoTest {
                                         .build()))
                         .build())
                 .build();
+
+        TimelineElementEntity reworkTimelineElement = TimelineElementEntity.builder()
+                .iun("iun-test")
+                .timelineElementId("NOTIFICATION_TIMELINE_REWORKED.IUN_test.RECINDEX_0")
+                .category(TimelineElementCategoryEntity.NOTIFICATION_TIMELINE_REWORKED)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
+                .legalFactIds(List.of(
+                        LegalFactsIdEntity.builder()
+                                .key("legal-fact-key")
+                                .category(LegalFactCategoryEntity.RECIPIENT_ACCESS)
+                                .build()))
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .invalidatedTimelineAndStatusHistory(List.of(NotificationStatusHistoryElementEntity.builder()
+                                .relatedTimelineElementIds(List.of("SEND_ANALOG_PROGRESS.IUN_test.RECINDEX_0.ATTEMPT_0.IDX_1"))
+                                .build()))
+                        .build())
+                .build();
+
         TimelineElementInternal invalidatedTimelineElement = entityToDtoTimelineMapper.entityToDto(invalidatedTimelineElementEntity, null);
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name());
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, List.of(reworkTimelineElement));
 
         Assertions.assertEquals(Collections.emptyList(), ((SendAnalogProgressDetailsInt) invalidatedTimelineElement.getDetails()).getAttachments());
     }
@@ -422,11 +460,15 @@ class TimelineDaoDynamoTest {
                                         .build()))
                         .build())
                 .build();
+
+
+
         TimelineElementInternal invalidatedTimelineElement = entityToDtoTimelineMapper.entityToDto(invalidatedTimelineElementEntity, null);
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, TimelineElement.ReworkRequestTypeEnum.REWORK.name());
+        TimelineElementEntity reworkTimelineElement = buildTimelineReworkElement(invalidatedTimelineElement.getElementId());
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, List.of(reworkTimelineElement));
 
         Assertions.assertNotNull(((SendAnalogProgressDetailsInt) invalidatedTimelineElement.getDetails()).getAttachments());
     }
@@ -448,7 +490,8 @@ class TimelineDaoDynamoTest {
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, TimelineElement.ReworkRequestTypeEnum.REWORK.name());
+        TimelineElementEntity reworkTimelineElement = buildTimelineReworkElement(invalidatedTimelineElement.getElementId());
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, List.of(reworkTimelineElement));
 
         Assertions.assertNotNull(invalidatedTimelineElement.getLegalFactsIds());
     }
@@ -470,7 +513,8 @@ class TimelineDaoDynamoTest {
         Map<String, TimelineElementInternal> invalidatedElementMap = new HashMap<>();
         invalidatedElementMap.put(invalidatedTimelineElement.getElementId(), invalidatedTimelineElement);
 
-        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name());
+        TimelineElementEntity reworkTimelineElement = buildTimelineReworkElement(invalidatedTimelineElement.getElementId());
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedElementMap, List.of(reworkTimelineElement));
 
         Assertions.assertEquals(Collections.emptyList(), invalidatedTimelineElement.getLegalFactsIds());
     }
@@ -528,7 +572,10 @@ class TimelineDaoDynamoTest {
         Map<String, TimelineElementInternal> invalidatedTimelineElements = new HashMap<>();
         invalidatedTimelineElements.put(invalidatedSendId, entityToDtoTimelineMapper.entityToDto(invalidatedSend, null));
         invalidatedTimelineElements.put(invalidatedUnreachableId, entityToDtoTimelineMapper.entityToDto(invalidatedUnreachable, null));
-        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedTimelineElements, TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name());
+        TimelineElementEntity reworkTimelineElement = buildTimelineReworkElement(invalidatedSendId);
+        TimelineElementEntity reworkTimelineElement_unreachable = buildTimelineReworkElement(invalidatedUnreachableId);
+
+        dao.removeAttachmentsFromInvalidatedElementsForTest(invalidatedTimelineElements, List.of(reworkTimelineElement, reworkTimelineElement_unreachable));
 
         TimelineElementInternal reworkElement = entityToDtoTimelineMapper.entityToDto(rework, invalidatedTimelineElements);
         Assertions.assertEquals(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED, reworkElement.getCategory());
@@ -986,9 +1033,30 @@ class TimelineDaoDynamoTest {
             super(dynamoDbEnhancedClient, cfg, dto2entity, entity2dto);
         }
 
-        void removeAttachmentsFromInvalidatedElementsForTest(Map<String, TimelineElementInternal> invalidatedElementMap, String reworkRequestType) {
-            super.removeAttachmentsFromInvalidatedElements(invalidatedElementMap, reworkRequestType);
+        void removeAttachmentsFromInvalidatedElementsForTest(Map<String, TimelineElementInternal> invalidatedElementMap, List<TimelineElementEntity> timeline) {
+            super.removeAttachmentsFromInvalidatedElements(invalidatedElementMap, timeline);
         }
+    }
+
+    private TimelineElementEntity buildTimelineReworkElement(String elementIdInvalidated) {
+        TimelineElementEntity reworkTimelineElement = TimelineElementEntity.builder()
+                .iun("iun-test")
+                .timelineElementId("NOTIFICATION_TIMELINE_REWORKED.IUN_test.RECINDEX_0")
+                .category(TimelineElementCategoryEntity.NOTIFICATION_TIMELINE_REWORKED)
+                .reworkRequestType(TimelineElement.ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name())
+                .legalFactIds(List.of(
+                        LegalFactsIdEntity.builder()
+                                .key("legal-fact-key")
+                                .category(LegalFactCategoryEntity.RECIPIENT_ACCESS)
+                                .build()))
+                .details(TimelineElementDetailsEntity.builder()
+                        .recIndex(0)
+                        .invalidatedTimelineAndStatusHistory(List.of(NotificationStatusHistoryElementEntity.builder()
+                                .relatedTimelineElementIds(List.of(elementIdInvalidated))
+                                .build()))
+                        .build())
+                .build();
+        return reworkTimelineElement;
     }
 
 }
