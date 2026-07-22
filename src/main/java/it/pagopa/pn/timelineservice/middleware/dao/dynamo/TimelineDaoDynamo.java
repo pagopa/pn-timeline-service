@@ -6,6 +6,7 @@ import it.pagopa.pn.timelineservice.config.PnTimelineServiceConfigs;
 import it.pagopa.pn.timelineservice.dto.timeline.ReworkRequestTypeEnum;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineEventIdParser;
+import it.pagopa.pn.timelineservice.dto.timeline.details.legal.NotificationTimelineReworkedDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogProgressDetailsInt;
 import it.pagopa.pn.timelineservice.middleware.dao.TimelineDao;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.DigitalAddressEntity;
@@ -15,6 +16,7 @@ import it.pagopa.pn.timelineservice.middleware.dao.dynamo.entity.TimelineElement
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.DtoToEntityTimelineMapper;
 import it.pagopa.pn.timelineservice.middleware.dao.dynamo.mapper.EntityToDtoTimelineMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -138,7 +140,7 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .collectList()
                 .doOnNext(entities -> {
                     Map<String,TimelineElementInternal> invalidatedElementMap = checkIfReworksArePresentAndRetrieveInvalidatedElements(entities);
-                    removeAttachmentsFromInvalidatedElements(invalidatedElementMap);
+                    removeAttachmentsFromInvalidatedElements(invalidatedElementMap, entities);
                     invalidatedTimelineElements.putAll(invalidatedElementMap);
                 })
                 .flatMapMany(Flux::fromIterable)
@@ -146,21 +148,38 @@ public class TimelineDaoDynamo implements TimelineDao {
                 .filter(timelineElementInternal -> isNotInvalidated(timelineElementInternal, invalidatedTimelineElements));
     }
 
-    protected void removeAttachmentsFromInvalidatedElements(Map<String, TimelineElementInternal> invalidatedElementMap) {
+    private String getReworkRequestTypeFromTimeline(List<TimelineElementEntity> timeline, String elementId) {
+        return timeline.stream().filter(entity -> NOTIFICATION_TIMELINE_REWORKED.equals(entity.getCategory()) && elementIdIsInvalidated(elementId, entity))
+                .findFirst()
+                .map(TimelineElementEntity::getReworkRequestType)
+                .orElse(Strings.EMPTY);
+    }
+
+    private boolean elementIdIsInvalidated(String elementId, TimelineElementEntity entity) {
+        return  entity.getDetails().getInvalidatedTimelineAndStatusHistory().stream()
+                .flatMap(timelineElem -> timelineElem.getRelatedTimelineElementIds().stream())
+                .anyMatch(id -> id.equals(elementId));
+    }
+
+    protected void removeAttachmentsFromInvalidatedElements(Map<String, TimelineElementInternal> invalidatedElementMap, List<TimelineElementEntity> timeline) {
         invalidatedElementMap.values().forEach(timelineElementInternal -> {
+
+            String reworkRequestType = getReworkRequestTypeFromTimeline(timeline, timelineElementInternal.getElementId());
+
             if (timelineElementInternal.getCategory() == null) {
                 return;
             }
 
             switch (timelineElementInternal.getCategory()) {
                 case SEND_ANALOG_PROGRESS -> {
-                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())
+                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name().equals(reworkRequestType)
                     && timelineElementInternal.getDetails() instanceof SendAnalogProgressDetailsInt sendAnalogProgressDetailsInt) {
                         sendAnalogProgressDetailsInt.setAttachments(Collections.emptyList());
+                        timelineElementInternal.setLegalFactsIds(Collections.emptyList());
                     }
                 }
                 case COMPLETELY_UNREACHABLE -> {
-                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.equals(timelineElementInternal.getReworkRequestType())) {
+                    if (ReworkRequestTypeEnum.INVALIDATE_ELEMENTS.name().equals(reworkRequestType)) {
                         timelineElementInternal.setLegalFactsIds(Collections.emptyList());
                     }
                 }
