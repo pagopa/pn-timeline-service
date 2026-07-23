@@ -1,5 +1,6 @@
 {
   "Parameters" : {
-    "TimelinesGlueTableName": "pn_timelines"
+    "TimelinesGlueTableName": "pn_timelines",
+    "TimelinesInformalGlueTableName": "pn_timelines_informal"
   }
 }

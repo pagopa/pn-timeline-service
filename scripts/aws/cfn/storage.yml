@@ -68,7 +68,7 @@ Resources:
         StreamViewType: NEW_IMAGE
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
-
+  
   TimelinesCounterTable:
     Type: AWS::DynamoDB::Table
     UpdateReplacePolicy: Retain
