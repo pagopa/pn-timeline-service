@@ -162,6 +162,87 @@ class TimelineServiceImplTest {
     }
 
     @Test
+    void getTimelineAndStatusHistoryRemapsInvalidatedElementsWithoutChangingTimeline() {
+        // GIVEN
+        String iun = "iun-rework";
+        Instant notificationCreatedAt = Instant.now();
+        Instant remappedInvalidatedTimestamp = notificationCreatedAt.plus(Duration.ofMinutes(10));
+
+        TimelineElementInternal invalidatedElement = TimelineElementInternal.builder()
+                .elementId("invalidated-1")
+                .iun(iun)
+                .timestamp(notificationCreatedAt.minus(Duration.ofMinutes(5)))
+                .eventTimestamp(notificationCreatedAt.minus(Duration.ofMinutes(5)))
+                .category(TimelineElementCategoryInt.SEND_ANALOG_DOMICILE)
+                .details(SendAnalogDetailsInt.builder()
+                        .recIndex(0)
+                        .sentAttemptMade(0)
+                        .build())
+                .build();
+
+        NotificationStatusHistoryInvalidatedElementInt invalidatedStatusHistory = NotificationStatusHistoryInvalidatedElementInt.builder()
+                .relatedTimelineElements(List.of(invalidatedElement))
+                .build();
+
+        TimelineElementInternal timelineReworkedElement = TimelineElementInternal.builder()
+                .elementId("rework-1")
+                .iun(iun)
+                .timestamp(notificationCreatedAt)
+                .eventTimestamp(notificationCreatedAt)
+                .category(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED)
+                .details(NotificationTimelineReworkedDetailsInt.builder()
+                        .invalidatedTimelineAndStatusHistory(List.of(invalidatedStatusHistory))
+                        .build())
+                .build();
+
+        Mockito.when(timelineDao.getTimeline(iun))
+                .thenReturn(Flux.just(timelineReworkedElement));
+        Mockito.when(communicationTypeClassifier.resolveFromTimelineElements(Mockito.any()))
+                .thenReturn(CommunicationType.LEGAL);
+        Mockito.when(confidentialInformationService.getTimelineConfidentialInformation(iun))
+                .thenReturn(Mono.just(Map.of()));
+        Mockito.when(statusHistoryService.getStatusHistory(Mockito.anySet(), Mockito.anyInt(), Mockito.any(Instant.class), Mockito.any(CommunicationType.class)))
+                .thenReturn(new ArrayList<>(List.of(
+                        NotificationStatusHistoryElementInt.builder()
+                                .status(NotificationStatusInt.ACCEPTED)
+                                .activeFrom(notificationCreatedAt)
+                                .build()
+                )));
+
+        TimelineOperations timelineOperations = Mockito.mock(TimelineOperations.class);
+        TimelineTimestampMapper timelineTimestampMapper = Mockito.mock(TimelineTimestampMapper.class);
+        Mockito.when(timelineOperationsResolver.resolve(Mockito.any(CommunicationType.class)))
+                .thenReturn(timelineOperations);
+        Mockito.when(timelineOperations.timelineTimestampMapper())
+                .thenReturn(timelineTimestampMapper);
+        Mockito.when(timelineTimestampMapper.mapTimelineTimestamps(Mockito.any()))
+                .thenAnswer(invocation -> {
+                    TimelineElementInternal element = ((TimelineTimestampMapper.TimestampMapperPayload) invocation.getArgument(0)).timelineElementInternal();
+                    if ("invalidated-1".equals(element.getElementId())) {
+                        return element.toBuilder()
+                                .timestamp(remappedInvalidatedTimestamp)
+                                .eventTimestamp(remappedInvalidatedTimestamp)
+                                .build();
+                    }
+                    return element;
+                });
+
+        // WHEN & THEN
+        StepVerifier.create(timeLineService.getTimelineAndStatusHistory(iun, 1, notificationCreatedAt))
+                .assertNext(notificationHistoryResponse -> {
+                    Assertions.assertEquals(1, notificationHistoryResponse.getTimeline().size());
+                    Assertions.assertEquals("rework-1", notificationHistoryResponse.getTimeline().getFirst().getElementId());
+
+                    NotificationTimelineReworkedDetailsInt reworkDetails = (NotificationTimelineReworkedDetailsInt) notificationHistoryResponse.getTimeline().getFirst().getDetails();
+                    TimelineElementInternal remappedInvalidatedElement = reworkDetails.getInvalidatedTimelineAndStatusHistory().getFirst().getRelatedTimelineElements().getFirst();
+
+                    Assertions.assertEquals(remappedInvalidatedTimestamp, remappedInvalidatedElement.getTimestamp());
+                    Assertions.assertEquals(remappedInvalidatedTimestamp, remappedInvalidatedElement.getEventTimestamp());
+                })
+                .verifyComplete();
+    }
+
+    @Test
     void getSendPaperFeedbackTimelineElement() {
         // GIVEN
         String iun = "iun";

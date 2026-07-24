@@ -234,6 +234,7 @@ public class TimelineServiceImpl implements TimelineService {
 
         List<NotificationStatusHistoryElementInt> statusHistory = getStatusHistory(elements, numberOfRecipients, createdAt, communicationType);
         List<TimelineElementInternal> remappedTimeline = remapAndSortTimelineElements(elements, communicationType);
+        remapAndSortInvalidatedTimelineElements(remappedTimeline, communicationType);
         NotificationStatusInt currentStatus = StatusUtils.getCurrentStatus(statusHistory);
 
         NotificationHistoryInt result = new NotificationHistoryInt();
@@ -241,6 +242,29 @@ public class TimelineServiceImpl implements TimelineService {
         result.setNotificationStatusHistory(statusHistory);
         result.setNotificationStatus(currentStatus);
         return result;
+    }
+
+    private void remapAndSortInvalidatedTimelineElements(List<TimelineElementInternal> remappedTimeline, CommunicationType communicationType) {
+        List<NotificationTimelineReworkedDetailsInt> reworkDetailsList = remappedTimeline.stream()
+                .filter(element -> element.getDetails() instanceof NotificationTimelineReworkedDetailsInt)
+                .map(element -> (NotificationTimelineReworkedDetailsInt) element.getDetails())
+                .toList();
+
+        List<TimelineElementInternal> invalidatedElements = reworkDetailsList.stream()
+                .flatMap(reworkDetails -> reworkDetails.getInvalidatedTimelineAndStatusHistory().stream())
+                .map(NotificationStatusHistoryInvalidatedElementInt::getRelatedTimelineElements)
+                .flatMap(Collection::stream)
+                .toList();
+
+        Map<String, TimelineElementInternal> remappedInvalidatedElementsById = remapAndSortTimelineElements(invalidatedElements, communicationType).stream()
+                .collect(Collectors.toMap(TimelineElementInternal::getElementId, element -> element));
+
+        reworkDetailsList.forEach(reworkDetails -> reworkDetails.getInvalidatedTimelineAndStatusHistory().forEach(invalidatedElement -> {
+            List<TimelineElementInternal> remappedRelatedElements = invalidatedElement.getRelatedTimelineElements().stream()
+                    .map(relatedElement -> remappedInvalidatedElementsById.getOrDefault(relatedElement.getElementId(), relatedElement))
+                    .toList();
+            invalidatedElement.setRelatedTimelineElements(remappedRelatedElements);
+        }));
     }
 
     private List<NotificationStatusHistoryElementInt> getStatusHistory(List<TimelineElementInternal> timelineElements, int numberOfRecipients, Instant createdAt, CommunicationType communicationType) {
