@@ -15,6 +15,7 @@ import reactor.test.StepVerifier;
 import java.time.Instant;
 import java.util.List;
 
+import static it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt.VALIDATED_F24;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -112,6 +113,8 @@ class LegalFactServiceImplTest {
 
         TimelineElementInternal element = new TimelineElementInternal();
         element.setLegalFactsIds(List.of(factId));
+        element.setElementId("elementId");
+        element.setCategory(VALIDATED_F24);
         element.setTimestamp(timestamp);
         return element;
     }
