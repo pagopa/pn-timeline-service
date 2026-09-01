@@ -16,6 +16,14 @@ class InformalTimelineStateMapTest {
     }
 
     @Test
+    void acceptedKeepsStateForAddressAndCourtesyEvents() {
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.GET_ADDRESS, NotificationStatusInt.ACCEPTED);
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.SEND_COURTESY_MESSAGE, NotificationStatusInt.ACCEPTED);
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.ACCEPTED);
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.PUBLIC_REGISTRY_RESPONSE, NotificationStatusInt.ACCEPTED);
+    }
+
+    @Test
     void processingKeepsStateForReachedAndDeliveryProgressEvents() {
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_SKIP, NotificationStatusInt.PROCESSING);
@@ -28,6 +36,10 @@ class InformalTimelineStateMapTest {
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.DELIVERED, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.PROCESSING);
+        assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.GET_ADDRESS, NotificationStatusInt.PROCESSING);
+        assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.SEND_COURTESY_MESSAGE, NotificationStatusInt.PROCESSING);
+        assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.PROCESSING);
+        assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PUBLIC_REGISTRY_RESPONSE, NotificationStatusInt.PROCESSING);
     }
 
     @Test

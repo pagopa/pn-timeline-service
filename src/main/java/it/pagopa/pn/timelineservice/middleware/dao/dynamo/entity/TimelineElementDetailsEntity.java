@@ -103,6 +103,7 @@ public class TimelineElementDetailsEntity {
     @Getter(onMethod=@__({@DynamoDbAttribute("sourceElementId")})) private String sourceElementId;
     @Getter(onMethod=@__({@DynamoDbAttribute("deliveryDetail")})) private DeliveryDetailsEntity deliveryDetail;
     @Getter(onMethod=@__({@DynamoDbAttribute("channel")})) private String channel;
+    @Getter(onMethod=@__({@DynamoDbAttribute("isTosAccepted")})) private String isTosAccepted;
     @Getter(onMethod=@__({@DynamoDbAttribute("deliveryType")})) private AnalogDeliveryTypeEntity deliveryType;
     @Getter(onMethod=@__({@DynamoDbAttribute("completionFeedback")})) private String completionFeedback;
 }

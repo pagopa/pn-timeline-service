@@ -535,6 +535,13 @@ components:
           type: string
           description: Data tentativo
           format: date-time
+        digitalAddress:
+          $ref: './schemas-addresses.yaml#/components/schemas/DigitalAddress'
+        isTosAccepted:
+          type: boolean
+          description: Indica se l'utente ha accettato i termini di servizio per la consultazione dell'indirizzo
+        channel:
+          $ref: '#/components/schemas/DigitalNotificationChannel'
 
     NotificationViewedCreationRequestDetails:
       x-discriminator-value: "NOTIFICATION_VIEWED_CREATION_REQUEST"
@@ -2003,8 +2010,6 @@ components:
           type: string
         channel:
           $ref: '#/components/schemas/DigitalNotificationChannel'
-        digitalAddressSource:
-          $ref: '#/components/schemas/DigitalAddressSource'
         retryNumber:
           type: integer
           description: numero dei tentativi effettuati
