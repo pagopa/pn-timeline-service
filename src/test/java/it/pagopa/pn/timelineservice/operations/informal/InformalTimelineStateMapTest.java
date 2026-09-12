@@ -40,6 +40,7 @@ class InformalTimelineStateMapTest {
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.SEND_COURTESY_MESSAGE, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PUBLIC_REGISTRY_RESPONSE, NotificationStatusInt.PROCESSING);
+        assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.COURTESY_CHANNEL_FAILED, NotificationStatusInt.PROCESSING);
     }
 
     @Test
