@@ -17,6 +17,7 @@ import java.time.Instant;
 @ToString
 public class InformalNotificationViewedDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails, ElementTimestampTimelineElementDetails {
     private int recIndex;
+    private boolean firstView;
     private Instant eventTimestamp;
     private String sourceChannel;
     private String sourceChannelDetails;
@@ -24,11 +25,12 @@ public class InformalNotificationViewedDetailsInt extends CategoryTypeTimelineEl
     @Override
     public String toLog() {
         return String.format(
-                "recIndex=%d sourceChannel=%s sourceChannelDetails=%s eventTimestamp=%s",
+                "recIndex=%d sourceChannel=%s sourceChannelDetails=%s eventTimestamp=%s firstView=%b",
                 recIndex,
                 sourceChannel,
                 sourceChannelDetails,
-                eventTimestamp
+                eventTimestamp,
+                firstView
         );
     }
 
