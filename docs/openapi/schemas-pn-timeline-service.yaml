@@ -2519,8 +2519,7 @@ components:
         firstView:
           type: boolean
           description: >
-            Indica se il destinatario ha già aperto la notifica almeno una volta
-            (true = la notifica è stata aperta in precedenza)
+            Indica se l'elemento rappresenta la prima visualizzazione della notifica
         sourceChannel:
           type: string
           description: >
