@@ -33,8 +33,16 @@ public class InformalTimelineStateMap extends AbstractStateMap {
 
     private void fromStatusAccepted() {
         this.fromState(NotificationStatusInt.ACCEPTED)
+                //STATE UNCHANGE
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_SKIP, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.COVERPAGE_CREATION_REQUEST, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PREPARE_ANALOG_DELIVERY, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                // STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT);
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_UNDELIVERABLE, NotificationStatusInt.UNDELIVERABLE, SINGLE_RECIPIENT)
+        ;
     }
 
     private void fromStatusProcessing() {
@@ -44,6 +52,7 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_SKIP, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_PROGRESS, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_FEEDBACK, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.COVERPAGE_CREATION_REQUEST, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PREPARE_ANALOG_DELIVERY, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_PROGRESS, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
@@ -77,6 +86,9 @@ public class InformalTimelineStateMap extends AbstractStateMap {
 
     private void fromStatusUndeliverable() {
         this.fromState(NotificationStatusInt.UNDELIVERABLE)
+                //STATE UNCHANGE
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.UNDELIVERABLE, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.UNDELIVERABLE, SINGLE_RECIPIENT)
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT);
