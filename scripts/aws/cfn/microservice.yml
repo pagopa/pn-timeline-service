@@ -184,6 +184,16 @@ Parameters:
   LogAlarmStrategy:
     Type: String
     Default: 'FATAL'
+    
+  CpuArchitecture:
+    Type: String
+    Description: "CPU architecture for the microservice"
+    Default: 'ARM'
+
+  JavaToolOptions:
+    Type: String
+    Description: "Java tool options for the microservice"
+    Default: ''
 
 Resources:
 
@@ -229,6 +239,8 @@ Resources:
         TaskRoleManagedPolicyArn: !Ref TimelineServiceMicroserviceTaskManagedPolicy
         LogAlarmStrategyV1: !Ref LogAlarmStrategy
         EcsLogGroup: !Ref EcsLogGroup
+        CpuArchitecture: !Ref CpuArchitecture
+        JavaToolOptions: !Ref JavaToolOptions
 
   TimelineServiceMicroserviceTaskManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
