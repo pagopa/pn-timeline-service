@@ -1,5 +1,6 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details;
 import it.pagopa.pn.timelineservice.dto.address.DigitalAddressSourceInt;
+import it.pagopa.pn.timelineservice.dto.address.InformalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.address.LegalDigitalAddressInt;
 import it.pagopa.pn.timelineservice.dto.informalnotification.DigitalChannelsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.GetAddressInfoDetailsInt;
@@ -17,7 +18,7 @@ class GetAddressInfoDetailsIntTest {
         detailsInt.setAttemptDate(instant);
         detailsInt.setDigitalAddressSource(DigitalAddressSourceInt.GENERAL);
         detailsInt.setIsAvailable(Boolean.TRUE);
-        detailsInt.setDigitalAddress(new LegalDigitalAddressInt().toBuilder().type(LegalDigitalAddressInt.LEGAL_DIGITAL_ADDRESS_TYPE.PEC).build());
+        detailsInt.setDigitalAddress(new InformalDigitalAddressInt().toBuilder().type(InformalDigitalAddressInt.INFORMAL_DIGITAL_ADDRESS_TYPE.PEC).build());
         detailsInt.setRecIndex(1);
         detailsInt.setIsTosAccepted(Boolean.TRUE);
         detailsInt.setChannel(DigitalChannelsInt.PEC);
@@ -55,10 +56,10 @@ class GetAddressInfoDetailsIntTest {
     }
     @Test
     void testToString() {
-        String expected = "GetAddressInfoDetailsInt(recIndex=1, digitalAddressSource=GENERAL, isAvailable=true, attemptDate=2021-09-16T15:24:00Z, digitalAddress=LegalDigitalAddressInt(type=PEC), isTosAccepted=true, channel=PEC)";
+        String expected = "GetAddressInfoDetailsInt(recIndex=1, digitalAddressSource=GENERAL, isAvailable=true, attemptDate=2021-09-16T15:24:00Z, digitalAddress=InformalDigitalAddressInt(type=PEC), isTosAccepted=true, channel=PEC)";
         Assertions.assertEquals(expected, detailsInt.toString());
     }
     private GetAddressInfoDetailsInt buildGetAddressInfoDetailsInt() {
-        return GetAddressInfoDetailsInt.builder().recIndex(1).attemptDate(instant).digitalAddressSource(DigitalAddressSourceInt.GENERAL).isAvailable(Boolean.TRUE).isTosAccepted(Boolean.TRUE).channel(DigitalChannelsInt.PEC).digitalAddress(new LegalDigitalAddressInt().toBuilder().type(LegalDigitalAddressInt.LEGAL_DIGITAL_ADDRESS_TYPE.PEC).build()).build();
+        return GetAddressInfoDetailsInt.builder().recIndex(1).attemptDate(instant).digitalAddressSource(DigitalAddressSourceInt.GENERAL).isAvailable(Boolean.TRUE).isTosAccepted(Boolean.TRUE).channel(DigitalChannelsInt.PEC).digitalAddress(new InformalDigitalAddressInt().toBuilder().type(InformalDigitalAddressInt.INFORMAL_DIGITAL_ADDRESS_TYPE.PEC).build()).build();
     }
 }
