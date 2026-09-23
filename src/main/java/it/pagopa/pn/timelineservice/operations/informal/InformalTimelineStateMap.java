@@ -114,6 +114,8 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_COURTESY_MESSAGE, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.COURTESY_CHANNEL_FAILED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT);
     }
 }
