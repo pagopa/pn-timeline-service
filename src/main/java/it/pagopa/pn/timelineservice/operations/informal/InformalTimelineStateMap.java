@@ -38,7 +38,13 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.COVERPAGE_CREATION_REQUEST, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PREPARE_ANALOG_DELIVERY, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
-                // STATE CHANGE
+                .withTimelineGoToState(TimelineElementCategoryInt.GET_ADDRESS, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_COURTESY_MESSAGE, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_RESPONSE, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.COURTESY_CHANNEL_FAILED, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+
+                //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_UNDELIVERABLE, NotificationStatusInt.UNDELIVERABLE, SINGLE_RECIPIENT)
@@ -60,6 +66,11 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.DELIVERED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.GET_ADDRESS, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.SEND_COURTESY_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_RESPONSE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.COURTESY_CHANNEL_FAILED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
