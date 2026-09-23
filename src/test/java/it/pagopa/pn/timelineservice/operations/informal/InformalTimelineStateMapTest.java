@@ -36,6 +36,7 @@ class InformalTimelineStateMapTest {
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.DELIVERED, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.PROCESSING);
+        assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.COVERPAGE_CREATION_REQUEST, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.GET_ADDRESS, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.SEND_COURTESY_MESSAGE, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.PROCESSING);
@@ -66,6 +67,9 @@ class InformalTimelineStateMapTest {
 
     @Test
     void undeliverableMovesToCompletedReachedWhenWorkflowDoneReachedArrives() {
+        assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.UNDELIVERABLE);
+        assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.UNDELIVERABLE);
+
         assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED);
         assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED);
     }
@@ -79,6 +83,16 @@ class InformalTimelineStateMapTest {
         assertTransition(NotificationStatusInt.COMPLETED_REACHED, TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.COMPLETED_REACHED);
         assertTransition(NotificationStatusInt.COMPLETED_REACHED, TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.COMPLETED_REACHED);
         assertTransition(NotificationStatusInt.COMPLETED_REACHED, TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED);
+    }
+
+    @Test
+    void acceptedKeepsStateForAllowedEventsAndMovesToUndeliverable() {
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE_SKIP, NotificationStatusInt.ACCEPTED);
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.COVERPAGE_CREATION_REQUEST, NotificationStatusInt.ACCEPTED);
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.PREPARE_ANALOG_DELIVERY, NotificationStatusInt.ACCEPTED);
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.ACCEPTED);
+
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.WORKFLOW_ENDED_UNDELIVERABLE, NotificationStatusInt.UNDELIVERABLE);
     }
 
     private void assertTransition(NotificationStatusInt fromStatus, TimelineElementCategoryInt elementCategory, NotificationStatusInt expectedStatus) {
