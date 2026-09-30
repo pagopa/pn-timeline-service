@@ -7,6 +7,7 @@ import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendDigitalFeedba
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampBaseMapper;
 import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
+import it.pagopa.pn.timelineservice.service.mapper.InformalTimelineMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class InformalTimelineTimestampMapperTest {
     // Testo l'integrazione reale senza mock.
     private final TimelineTimestampBaseMapper timelineTimestampBaseMapper = new TimelineTimestampBaseMapper();
-    private final InformalTimelineTimestampMapper informalTimelineTimestampMapper = new InformalTimelineTimestampMapper(timelineTimestampBaseMapper);
+    private final InformalTimelineTimestampMapper informalTimelineTimestampMapper =
+            new InformalTimelineTimestampMapper(timelineTimestampBaseMapper, new InformalTimelineMapper());
 
      /*
         Test che verifica che se viene passato un payload con timelineElementInternal null, allora il risultato è null e non viene lanciata nessuna eccezione
