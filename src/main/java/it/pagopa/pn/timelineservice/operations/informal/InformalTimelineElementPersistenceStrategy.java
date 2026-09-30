@@ -46,7 +46,7 @@ public class InformalTimelineElementPersistenceStrategy implements TimelineEleme
     public TimelineElementInternal applyBusinessTimestamp(TimelineElementInternal dto, Set<TimelineElementInternal> currentTimeline) {
         // calcolo e aggiungo il businessTimestamp
         Instant cachedTimestamp = dto.getTimestamp();
-        TimelineTimestampMapper.TimestampMapperPayload payload = new TimelineTimestampMapper.TimestampMapperPayload(dto, null);
+        TimelineTimestampMapper.TimestampMapperPayload payload = new TimelineTimestampMapper.TimestampMapperPayload(dto, currentTimeline);
         TimelineElementInternal mappedDto = timelineTimestampMapper.mapTimelineTimestamps(payload);
         mappedDto.setTimestamp(cachedTimestamp);
         return mappedDto;
