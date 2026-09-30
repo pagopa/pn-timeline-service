@@ -65,7 +65,7 @@ public enum TimelineElementCategoryInt {
     NOTIFICATION_COST_VALIDATION_RESPONSE(NotificationCostValidationResponseDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
     COURTESY_CHANNEL_FAILED(CourtesyChannelFailedDetailsInt.class, TimelineElementCategoryInt.VERSION_28),
     //Timeline Element for Informal Notification
-    SEND_DIGITAL_MESSAGE(SendDigitalMessageDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
+    SEND_DIGITAL_MESSAGE(SendDigitalMessageDetailsInt.class, TimelineElementCategoryInt.PRIORITY_SEND_DIGITAL_MESSAGE, TimelineElementCategoryInt.VERSION_10),
     SEND_DIGITAL_MESSAGE_SKIP(SendDigitalMessageSkipDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_DIGITAL_MESSAGE_PROGRESS(SendDigitalMessageProgressDetailsInt.class, TimelineElementCategoryInt.VERSION_10),
     SEND_DIGITAL_MESSAGE_FEEDBACK(SendDigitalMessageFeedbackDetailsInt.class, TimelineElementCategoryInt.PRIORITY_SEND_DIGITAL_MESSAGE_FEEDBACK, TimelineElementCategoryInt.VERSION_10),
@@ -96,6 +96,7 @@ public enum TimelineElementCategoryInt {
     public static final int PRIORITY_ANALOG_FAILURE_WORKFLOW_TIMEOUT = 70;
     public static final int PRIORITY_DELIVERED = 40;
     public static final int PRIORITY_SEND_ANALOG_MESSAGE_FEEDBACK = 30;
+    public static final int PRIORITY_SEND_DIGITAL_MESSAGE = 20;
     public static final int PRIORITY_SEND_DIGITAL_MESSAGE_FEEDBACK = 30;
 
     public static final int PRIORITY_BEFORE = 10;
