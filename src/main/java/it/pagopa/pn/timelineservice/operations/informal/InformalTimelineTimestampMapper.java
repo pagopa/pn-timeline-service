@@ -3,6 +3,7 @@ package it.pagopa.pn.timelineservice.operations.informal;
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampBaseMapper;
 import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampMapper;
+import it.pagopa.pn.timelineservice.service.mapper.InformalTimelineMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import java.time.Instant;
 @Slf4j
 public class InformalTimelineTimestampMapper implements TimelineTimestampMapper {
     private final TimelineTimestampBaseMapper timelineTimestampBaseMapper;
+    private final InformalTimelineMapper informalTimelineMapper;
 
     @Override
     public TimelineElementInternal mapTimelineTimestamps(TimestampMapperPayload payload) {
@@ -26,11 +28,7 @@ public class InformalTimelineTimestampMapper implements TimelineTimestampMapper 
         // Viene effettuato il mapping dell'elemento di timeline per andare a leggere l'eventuale eventTimestamp presente nei dettagli e sovrascrivere il timestamp dell'elemento di timeline con questo valore.
         // Se non è presente un eventTimestamp nei dettagli, il timestamp rimane invariato.
         TimelineElementInternal result = timelineTimestampBaseMapper.mapTimelineInternal(source);
-
-        //Se è presente un eventTimestamp nei dettagli, questo è stato mappato nel campo timestamp del risultato, altrimenti è rimasto invariato.
-        //In entrambi i casi, per sicurezza, sovrascriviamo l'eventTimestamp con il timestamp dell'evento.
-        result.setEventTimestamp(result.getTimestamp());
-        result.setIngestionTimestamp(ingestionTimestamp);
+        informalTimelineMapper.remapSpecificTimelineElementData(payload.timelineElementInternalSet(), result, ingestionTimestamp);
         return result;
     }
 }

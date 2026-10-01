@@ -5,6 +5,7 @@ import it.pagopa.pn.timelineservice.dto.notification.status.NotificationStatusIn
 import it.pagopa.pn.timelineservice.dto.timeline.TimelineElementInternal;
 import it.pagopa.pn.timelineservice.dto.timeline.details.TimelineElementCategoryInt;
 import it.pagopa.pn.timelineservice.operations.common.TimelineTimestampBaseMapper;
+import it.pagopa.pn.timelineservice.service.mapper.InformalTimelineMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,8 @@ class InformalTimelineStatusHistoryTest {
 
     @BeforeEach
     void setup() {
-        InformalTimelineTimestampMapper informalTimelineTimestampMapper = new InformalTimelineTimestampMapper(new TimelineTimestampBaseMapper());
+        InformalTimelineTimestampMapper informalTimelineTimestampMapper =
+                new InformalTimelineTimestampMapper(new TimelineTimestampBaseMapper(), new InformalTimelineMapper());
         this.informalTimelineStatusHistoryStrategy = new InformalTimelineStatusHistoryCalculator(informalTimelineTimestampMapper);
     }
 
