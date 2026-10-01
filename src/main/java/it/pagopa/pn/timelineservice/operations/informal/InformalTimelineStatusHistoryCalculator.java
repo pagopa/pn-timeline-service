@@ -29,7 +29,7 @@ public class InformalTimelineStatusHistoryCalculator implements StatusHistoryCal
 
         //Map TimelineElementInternal per cambio timestamp con business timestamp
         Set<TimelineElementInternal> timelineElementListMapped = timelineElementList.stream()
-                .map(el -> new TimelineTimestampMapper.TimestampMapperPayload(el, null))
+                .map(el -> new TimelineTimestampMapper.TimestampMapperPayload(el, timelineElementList))
                 .map(timelineTimestampMapper::mapTimelineTimestamps)
                 .collect(Collectors.toSet());
 
