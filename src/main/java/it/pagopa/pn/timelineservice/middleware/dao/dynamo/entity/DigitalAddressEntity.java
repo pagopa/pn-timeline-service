@@ -19,6 +19,7 @@ public class DigitalAddressEntity {
         PEC("PEC"),
         EMAIL("EMAIL"),
         SMS("SMS"),
+        WHATSAPP("WHATSAPP"),
         APPIO("APPIO"),
         SERCQ("SERCQ"),
         TPP("TPP");
