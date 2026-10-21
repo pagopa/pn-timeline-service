@@ -2,10 +2,7 @@ package it.pagopa.pn.timelineservice.dto.timeline.details.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.ToString;
-
 @Getter
-@ToString
 @AllArgsConstructor
 public enum ReceiverAddressSourceTypeInt {
 
@@ -15,4 +12,9 @@ public enum ReceiverAddressSourceTypeInt {
     INDAGINE("INDAGINE");
 
     private final String value;
+
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
 }
