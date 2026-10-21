@@ -1,7 +1,7 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details.legal;
 
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.CategorizedAttachmentsResultInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.common.ReceiverAddressSourceType;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ReceiverAddressSourceTypeInt;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -27,7 +27,7 @@ public class SendAnalogDetailsInt extends BaseAnalogDetailsInt implements Analog
     private List<String> f24Attachments;
     private CategorizedAttachmentsResultInt categorizedAttachmentsResult;
     private Integer vat;
-    private ReceiverAddressSourceType receiverAddressSourceType;
+    private ReceiverAddressSourceTypeInt receiverAddressSourceType;
     
     @Override
     public String toLog() {

@@ -1267,6 +1267,8 @@ components:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
         vat:
           type: integer
+        receiverAddressSourceType:
+          $ref: '#/components/schemas/ReceiverAddressSourceType'
     CategorizedAttachmentsResult:
       type: object
       properties:
@@ -2255,8 +2257,6 @@ components:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
         vat:
           type: integer
-        receiverAddressSourceType:
-          $ref: '#/components/schemas/ReceiverAddressSourceType'
 
     ReceiverAddressSourceType:
       type: string

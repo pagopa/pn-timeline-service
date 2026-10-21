@@ -7,7 +7,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor
-public enum ReceiverAddressSourceType {
+public enum ReceiverAddressSourceTypeInt {
 
     MITTENTE("MITTENTE"),
     ANPR("ANPR"),

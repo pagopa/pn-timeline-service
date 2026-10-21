@@ -2,7 +2,7 @@ package it.pagopa.pn.timelineservice.dto.timeline.details;
 import it.pagopa.pn.timelineservice.dto.address.PhysicalAddressInt;
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.CategorizedAttachmentsResultInt;
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.ResultFilterInt;
-import it.pagopa.pn.timelineservice.dto.timeline.details.common.ReceiverAddressSourceType;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ReceiverAddressSourceTypeInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.legal.SendAnalogDetailsInt;
 import it.pagopa.pn.timelineservice.dto.timeline.details.common.ServiceLevelInt;
 import org.junit.jupiter.api.Assertions;
@@ -22,7 +22,7 @@ class SendAnalogDetailsIntTest {
         detailsInt.setAnalogCost(100);
         detailsInt.setServiceLevel(ServiceLevelInt.REGISTERED_LETTER_890);
         detailsInt.setSentAttemptMade(2);
-        detailsInt.setReceiverAddressSourceType(ReceiverAddressSourceType.MITTENTE);
+        detailsInt.setReceiverAddressSourceType(ReceiverAddressSourceTypeInt.MITTENTE);
         detailsInt.setCategorizedAttachmentsResult(CategorizedAttachmentsResultInt.builder().acceptedAttachments(List.of(ResultFilterInt.builder().fileKey("fileKey").build())).build());
     }
 
@@ -75,10 +75,10 @@ class SendAnalogDetailsIntTest {
     }
     @Test
     void getReceiverAddressSourceType() {
-        Assertions.assertEquals(ReceiverAddressSourceType.MITTENTE, detailsInt.getReceiverAddressSourceType());
+        Assertions.assertEquals(ReceiverAddressSourceTypeInt.MITTENTE, detailsInt.getReceiverAddressSourceType());
     }
 
     private SendAnalogDetailsInt buildSendAnalogDetailsInt() {
-        return SendAnalogDetailsInt.builder().serviceLevel(ServiceLevelInt.REGISTERED_LETTER_890).physicalAddress(PhysicalAddressInt.builder().address("address").build()).analogCost(100).relatedRequestId("abc").sentAttemptMade(2).recIndex(3).categorizedAttachmentsResult(CategorizedAttachmentsResultInt.builder().acceptedAttachments(List.of(ResultFilterInt.builder().fileKey("fileKey").build())).build()).receiverAddressSourceType(ReceiverAddressSourceType.MITTENTE).build();
+        return SendAnalogDetailsInt.builder().serviceLevel(ServiceLevelInt.REGISTERED_LETTER_890).physicalAddress(PhysicalAddressInt.builder().address("address").build()).analogCost(100).relatedRequestId("abc").sentAttemptMade(2).recIndex(3).categorizedAttachmentsResult(CategorizedAttachmentsResultInt.builder().acceptedAttachments(List.of(ResultFilterInt.builder().fileKey("fileKey").build())).build()).receiverAddressSourceType(ReceiverAddressSourceTypeInt.MITTENTE).build();
     }
 }
