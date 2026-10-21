@@ -1,6 +1,7 @@
 package it.pagopa.pn.timelineservice.dto.timeline.details.legal;
 
 import it.pagopa.pn.timelineservice.dto.ext.externalchannel.CategorizedAttachmentsResultInt;
+import it.pagopa.pn.timelineservice.dto.timeline.details.common.ReceiverAddressSourceType;
 import it.pagopa.pn.timelineservice.utils.AuditLogUtils;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -26,11 +27,12 @@ public class SendAnalogDetailsInt extends BaseAnalogDetailsInt implements Analog
     private List<String> f24Attachments;
     private CategorizedAttachmentsResultInt categorizedAttachmentsResult;
     private Integer vat;
+    private ReceiverAddressSourceType receiverAddressSourceType;
     
     @Override
     public String toLog() {
         return String.format(
-                "recIndex=%d sentAttemptMade=%d relatedRequestId=%s physicalAddress=%s analogCost=%d productType=%s prepareRequestId=%s f24Attachments=%s, vat=%s",
+                "recIndex=%d sentAttemptMade=%d relatedRequestId=%s physicalAddress=%s analogCost=%d productType=%s prepareRequestId=%s f24Attachments=%s, vat=%s receiverAddressSourceType=%s",
                 recIndex,
                 sentAttemptMade,
                 relatedRequestId,
@@ -39,7 +41,8 @@ public class SendAnalogDetailsInt extends BaseAnalogDetailsInt implements Analog
                 productType,
                 prepareRequestId,
                 !CollectionUtils.isEmpty(f24Attachments) ? String.join(",", f24Attachments) : Collections.emptyList(),
-                vat
+                vat,
+                receiverAddressSourceType
         );
     }
 }

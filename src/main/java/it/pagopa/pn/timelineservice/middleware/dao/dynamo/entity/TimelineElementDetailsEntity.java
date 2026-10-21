@@ -107,4 +107,5 @@ public class TimelineElementDetailsEntity {
     @Getter(onMethod=@__({@DynamoDbAttribute("deliveryType")})) private AnalogDeliveryTypeEntity deliveryType;
     @Getter(onMethod=@__({@DynamoDbAttribute("completionFeedback")})) private String completionFeedback;
     @Getter(onMethod_ = {@DynamoDbAttribute("firstView")} ) private Boolean firstView;
+    @Getter(onMethod_ = {@DynamoDbAttribute("receiverAddressSourceType")} ) private ReceiverAddressSourceTypeEntity receiverAddressSourceType;
 }

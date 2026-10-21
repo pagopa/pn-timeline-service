@@ -1095,6 +1095,9 @@ components:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
         vat:
           type: integer
+        receiverAddressSourceType:
+          $ref: '#/components/schemas/ReceiverAddressSourceType'
+
     SendAnalogFeedbackDetails:
       x-discriminator-value: "SEND_ANALOG_FEEDBACK"
       type: object
@@ -2252,7 +2255,16 @@ components:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
         vat:
           type: integer
+        receiverAddressSourceType:
+          $ref: '#/components/schemas/ReceiverAddressSourceType'
 
+    ReceiverAddressSourceType:
+      type: string
+      enum:
+        - MITTENTE
+        - ANPR
+        - REGISTRO_IMPRESE
+        - INDAGINE
     SendAnalogMessageProgressDetails:
       x-discriminator-value: "SEND_ANALOG_MESSAGE_PROGRESS"
       type: object
