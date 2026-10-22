@@ -23,7 +23,7 @@ class SendAnalogDetailsIntTest {
         detailsInt.setServiceLevel(ServiceLevelInt.REGISTERED_LETTER_890);
         detailsInt.setSentAttemptMade(2);
         detailsInt.setReceiverAddressSourceType(ReceiverAddressSourceTypeInt.MITTENTE);
-        detailsInt.setCarrierInvestigationPerformed(true);
+        detailsInt.setHasOnSiteInvestigation(true);
         detailsInt.setCategorizedAttachmentsResult(CategorizedAttachmentsResultInt.builder().acceptedAttachments(List.of(ResultFilterInt.builder().fileKey("fileKey").build())).build());
     }
 
@@ -44,7 +44,7 @@ class SendAnalogDetailsIntTest {
         Assertions.assertEquals(expected.getF24Attachments(), detailsInt.getF24Attachments());
         Assertions.assertEquals(expected.getNumberOfPages(), detailsInt.getNumberOfPages());
         Assertions.assertEquals(expected.getReceiverAddressSourceType(), detailsInt.getReceiverAddressSourceType());
-        Assertions.assertEquals(expected.getCarrierInvestigationPerformed(), detailsInt.getCarrierInvestigationPerformed());
+        Assertions.assertEquals(expected.getHasOnSiteInvestigation(), detailsInt.getHasOnSiteInvestigation());
 
     }
     @Test
@@ -81,11 +81,11 @@ class SendAnalogDetailsIntTest {
     }
     @Test
     void getCarrierInvestigationPerformed() {
-        Assertions.assertEquals(true, detailsInt.getCarrierInvestigationPerformed());
+        Assertions.assertEquals(true, detailsInt.getHasOnSiteInvestigation());
     }
 
     private SendAnalogDetailsInt buildSendAnalogDetailsInt() {
-        return SendAnalogDetailsInt.builder().serviceLevel(ServiceLevelInt.REGISTERED_LETTER_890).physicalAddress(PhysicalAddressInt.builder().address("address").build()).analogCost(100).relatedRequestId("abc").sentAttemptMade(2).recIndex(3).categorizedAttachmentsResult(CategorizedAttachmentsResultInt.builder().acceptedAttachments(List.of(ResultFilterInt.builder().fileKey("fileKey").build())).build()).carrierInvestigationPerformed(true).receiverAddressSourceType(ReceiverAddressSourceTypeInt.MITTENTE).build();
+        return SendAnalogDetailsInt.builder().serviceLevel(ServiceLevelInt.REGISTERED_LETTER_890).physicalAddress(PhysicalAddressInt.builder().address("address").build()).analogCost(100).relatedRequestId("abc").sentAttemptMade(2).recIndex(3).categorizedAttachmentsResult(CategorizedAttachmentsResultInt.builder().acceptedAttachments(List.of(ResultFilterInt.builder().fileKey("fileKey").build())).build()).hasOnSiteInvestigation(true).receiverAddressSourceType(ReceiverAddressSourceTypeInt.MITTENTE).build();
     }
 
     @Test
@@ -100,7 +100,7 @@ class SendAnalogDetailsIntTest {
                         + "physicalAddress='Sensitive information' analogCost=100 "
                         + "productType=AR prepareRequestId=prepareRequestId "
                         + "f24Attachments=f24-1,f24-2, receiverAddressSourceType=MITTENTE "
-                        + "carrierInvestigationPerformed=true vat=22",
+                        + "hasOnSiteInvestigation=true vat=22",
                 detailsInt.toLog()
         );
     }

@@ -1096,7 +1096,7 @@ components:
         receiverAddressSourceType:
           $ref: '#/components/schemas/ReceiverAddressSourceType'
           description: Tipo di sorgente recuperato dell’indirizzo per la spedizione
-        carrierInvestigationPerformed:
+        hasOnSiteInvestigation:
           type: boolean
           description: Rappresenta un valore booleano dell’eventuale indirizzo scoperto dal postino
         vat:
@@ -1203,6 +1203,9 @@ components:
           type: string
           description: Codice della raccomandata
           maxLength: 128
+        hasOnSiteInvestigation:
+          type: boolean
+          description: Rappresenta un valore booleano dell’eventuale indirizzo scoperto dal postino
     BaseRegisteredLetterDetails:
       x-discriminator-value: "PREPARE_SIMPLE_REGISTERED_LETTER"
       type: object
