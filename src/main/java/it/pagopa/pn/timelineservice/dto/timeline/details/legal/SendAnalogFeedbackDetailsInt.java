@@ -34,11 +34,12 @@ public class SendAnalogFeedbackDetailsInt extends CategoryTypeTimelineElementDet
     private List<AttachmentDetailsInt> attachments;
     private String sendRequestId;
     private String registeredLetterCode;
+    private Boolean hasOnSiteInvestigation;
 
     public String toLog() {
         return String.format(
                 "recIndex=%d sentAttemptMade=%d responseStatus=%s deliveryFailureCause=%s " +
-                        "physicalAddress=%s requestTimelineId=%s deliveryDetailCode=%s attachments=%s",
+                        "physicalAddress=%s requestTimelineId=%s deliveryDetailCode=%s attachments=%s hasOnSiteInvestigation=%b",
                 recIndex,
                 sentAttemptMade,
                 responseStatus,
@@ -46,7 +47,8 @@ public class SendAnalogFeedbackDetailsInt extends CategoryTypeTimelineElementDet
                 AuditLogUtils.SENSITIVE,
                 requestTimelineId,
                 deliveryDetailCode,
-                attachments
+                attachments,
+                hasOnSiteInvestigation
         );
     }
 
