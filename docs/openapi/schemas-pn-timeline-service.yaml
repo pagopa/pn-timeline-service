@@ -2259,6 +2259,9 @@ components:
             type: string
         categorizedAttachmentsResult:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
+        receiverAddressSourceType:
+          $ref: '#/components/schemas/ReceiverAddressSourceType'
+          description: Tipo di sorgente recuperato dell’indirizzo per la spedizione
         vat:
           type: integer
 
