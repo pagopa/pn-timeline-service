@@ -1093,11 +1093,14 @@ components:
             type: string
         categorizedAttachmentsResult:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
-        vat:
-          type: integer
         receiverAddressSourceType:
           $ref: '#/components/schemas/ReceiverAddressSourceType'
-
+          description: Tipo di sorgente recuperato dell’indirizzo per la spedizione
+        carrierInvestigationPerformed:
+          type: boolean
+          description: Rappresenta un valore booleano dell’eventuale indirizzo scoperto dal postino
+        vat:
+          type: integer
     SendAnalogFeedbackDetails:
       x-discriminator-value: "SEND_ANALOG_FEEDBACK"
       type: object
@@ -1265,10 +1268,11 @@ components:
             type: string
         categorizedAttachmentsResult:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
-        vat:
-          type: integer
         receiverAddressSourceType:
           $ref: '#/components/schemas/ReceiverAddressSourceType'
+          description: Tipo di sorgente recuperato dell’indirizzo per la spedizione
+        vat:
+          type: integer
     CategorizedAttachmentsResult:
       type: object
       properties:

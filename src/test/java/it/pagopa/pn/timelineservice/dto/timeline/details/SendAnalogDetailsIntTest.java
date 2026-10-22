@@ -23,6 +23,7 @@ class SendAnalogDetailsIntTest {
         detailsInt.setServiceLevel(ServiceLevelInt.REGISTERED_LETTER_890);
         detailsInt.setSentAttemptMade(2);
         detailsInt.setReceiverAddressSourceType(ReceiverAddressSourceTypeInt.MITTENTE);
+        detailsInt.setCarrierInvestigationPerformed(true);
         detailsInt.setCategorizedAttachmentsResult(CategorizedAttachmentsResultInt.builder().acceptedAttachments(List.of(ResultFilterInt.builder().fileKey("fileKey").build())).build());
     }
 
@@ -43,6 +44,7 @@ class SendAnalogDetailsIntTest {
         Assertions.assertEquals(expected.getF24Attachments(), detailsInt.getF24Attachments());
         Assertions.assertEquals(expected.getNumberOfPages(), detailsInt.getNumberOfPages());
         Assertions.assertEquals(expected.getReceiverAddressSourceType(), detailsInt.getReceiverAddressSourceType());
+        Assertions.assertEquals(expected.getCarrierInvestigationPerformed(), detailsInt.getCarrierInvestigationPerformed());
 
     }
     @Test
@@ -77,8 +79,29 @@ class SendAnalogDetailsIntTest {
     void getReceiverAddressSourceType() {
         Assertions.assertEquals(ReceiverAddressSourceTypeInt.MITTENTE, detailsInt.getReceiverAddressSourceType());
     }
+    @Test
+    void getCarrierInvestigationPerformed() {
+        Assertions.assertEquals(true, detailsInt.getCarrierInvestigationPerformed());
+    }
 
     private SendAnalogDetailsInt buildSendAnalogDetailsInt() {
-        return SendAnalogDetailsInt.builder().serviceLevel(ServiceLevelInt.REGISTERED_LETTER_890).physicalAddress(PhysicalAddressInt.builder().address("address").build()).analogCost(100).relatedRequestId("abc").sentAttemptMade(2).recIndex(3).categorizedAttachmentsResult(CategorizedAttachmentsResultInt.builder().acceptedAttachments(List.of(ResultFilterInt.builder().fileKey("fileKey").build())).build()).receiverAddressSourceType(ReceiverAddressSourceTypeInt.MITTENTE).build();
+        return SendAnalogDetailsInt.builder().serviceLevel(ServiceLevelInt.REGISTERED_LETTER_890).physicalAddress(PhysicalAddressInt.builder().address("address").build()).analogCost(100).relatedRequestId("abc").sentAttemptMade(2).recIndex(3).categorizedAttachmentsResult(CategorizedAttachmentsResultInt.builder().acceptedAttachments(List.of(ResultFilterInt.builder().fileKey("fileKey").build())).build()).carrierInvestigationPerformed(true).receiverAddressSourceType(ReceiverAddressSourceTypeInt.MITTENTE).build();
+    }
+
+    @Test
+    void toLogWithAttachments() {
+        detailsInt.setProductType("AR");
+        detailsInt.setPrepareRequestId("prepareRequestId");
+        detailsInt.setF24Attachments(List.of("f24-1", "f24-2"));
+        detailsInt.setVat(22);
+
+        Assertions.assertEquals(
+                "recIndex=3 sentAttemptMade=2 relatedRequestId=abc "
+                        + "physicalAddress='Sensitive information' analogCost=100 "
+                        + "productType=AR prepareRequestId=prepareRequestId "
+                        + "f24Attachments=f24-1,f24-2, receiverAddressSourceType=MITTENTE "
+                        + "carrierInvestigationPerformed=true vat=22",
+                detailsInt.toLog()
+        );
     }
 }
