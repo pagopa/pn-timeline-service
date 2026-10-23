@@ -1095,10 +1095,10 @@ components:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
         receiverAddressSourceType:
           $ref: '#/components/schemas/ReceiverAddressSourceType'
-          description: Tipo di sorgente recuperato dell’indirizzo per la spedizione
+          description: Sorgente di provenienza dell'indirizzo di spedizione utilizzato
         hasOnSiteInvestigation:
           type: boolean
-          description: Rappresenta un valore booleano dell’eventuale indirizzo scoperto dal postino
+          description: Se presente, indica l'avvenuta indagine in loco da parte dell'addetto alla spedizione
         vat:
           type: integer
     SendAnalogFeedbackDetails:
@@ -1205,7 +1205,7 @@ components:
           maxLength: 128
         hasOnSiteInvestigation:
           type: boolean
-          description: Rappresenta un valore booleano dell’eventuale indirizzo scoperto dal postino
+          description: Se presente, indica l'avvenuta indagine in loco da parte dell'addetto alla spedizione
     BaseRegisteredLetterDetails:
       x-discriminator-value: "PREPARE_SIMPLE_REGISTERED_LETTER"
       type: object
@@ -1273,7 +1273,7 @@ components:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
         receiverAddressSourceType:
           $ref: '#/components/schemas/ReceiverAddressSourceType'
-          description: Tipo di sorgente recuperato dell’indirizzo per la spedizione
+          description: Sorgente di provenienza dell'indirizzo di spedizione utilizzat
         vat:
           type: integer
     CategorizedAttachmentsResult:
@@ -2267,6 +2267,7 @@ components:
 
     ReceiverAddressSourceType:
       type: string
+      description: Sorgente di provenienza dell'indirizzo del destinatario
       enum:
         - MITTENTE
         - ANPR
