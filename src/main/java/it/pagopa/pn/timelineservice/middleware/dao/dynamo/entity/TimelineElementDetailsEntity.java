@@ -5,6 +5,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttri
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Builder( toBuilder = true )
@@ -58,10 +59,18 @@ public class TimelineElementDetailsEntity {
     @Getter(onMethod=@__({@DynamoDbAttribute("completionWorkflowDate")})) private Instant completionWorkflowDate;
     @Getter(onMethod=@__({@DynamoDbAttribute("status")})) private String endWorkflowStatus;
     @Getter(onMethod=@__({@DynamoDbAttribute("recipientType")})) private String recipientType;
+    @Getter(onMethod=@__({@DynamoDbAttribute("iuv")})) private String iuv;
     @Getter(onMethod=@__({@DynamoDbAttribute("amount")})) private Integer amount;
+    @Getter(onMethod=@__({@DynamoDbAttribute("fee")})) private Integer fee;
     @Getter(onMethod=@__({@DynamoDbAttribute("creditorTaxId")})) private String creditorTaxId;
     @Getter(onMethod=@__({@DynamoDbAttribute("noticeCode")})) private String noticeCode;
+    @Getter(onMethod=@__({@DynamoDbAttribute("companyName")})) private String companyName;
     @Getter(onMethod=@__({@DynamoDbAttribute("paymentSourceChannel")})) private String paymentSourceChannel;
+    @Getter(onMethod=@__({@DynamoDbAttribute("dueDate")})) private LocalDate dueDate;
+    @Getter(onMethod=@__({@DynamoDbAttribute("eventId")})) private String eventId;
+    @Getter(onMethod=@__({@DynamoDbAttribute("pagopaPersistedTimestamp")})) private Instant pagopaPersistedTimestamp;
+    @Getter(onMethod=@__({@DynamoDbAttribute("pagopaPublishedTimestamp")})) private Instant pagopaPublishedTimestamp;
+    @Getter(onMethod=@__({@DynamoDbAttribute("sendIngestionTimestamp")})) private Instant sendIngestionTimestamp;
     @Getter(onMethod=@__({@DynamoDbAttribute("schedulingDate")})) private Instant schedulingDate;
     @Getter(onMethod=@__({@DynamoDbAttribute("ioSendMessageResult")})) private IoSendMessageResultEntity ioSendMessageResult;
     @Getter(onMethod=@__({@DynamoDbAttribute("envelopeWeight")})) private Integer envelopeWeight;
