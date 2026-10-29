@@ -2262,6 +2262,9 @@ components:
             type: string
         categorizedAttachmentsResult:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
+        receiverAddressSourceType:
+          $ref: '#/components/schemas/ReceiverAddressSourceType'
+          description: Sorgente di provenienza dell'indirizzo del destinatario
         vat:
           type: integer
 
