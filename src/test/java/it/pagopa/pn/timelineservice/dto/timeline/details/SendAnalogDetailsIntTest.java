@@ -80,7 +80,7 @@ class SendAnalogDetailsIntTest {
         Assertions.assertEquals(ReceiverAddressSourceTypeInt.MITTENTE, detailsInt.getReceiverAddressSourceType());
     }
     @Test
-    void getCarrierInvestigationPerformed() {
+    void getHasOnSiteInvestigation() {
         Assertions.assertEquals(true, detailsInt.getHasOnSiteInvestigation());
     }
 
