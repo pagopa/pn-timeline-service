@@ -1093,6 +1093,12 @@ components:
             type: string
         categorizedAttachmentsResult:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
+        receiverAddressSourceType:
+          $ref: '#/components/schemas/ReceiverAddressSourceType'
+          description: Sorgente di provenienza dell'indirizzo di spedizione utilizzato
+        hasOnSiteInvestigation:
+          type: boolean
+          description: Se presente, indica l'avvenuta indagine in loco da parte dell'addetto alla spedizione
         vat:
           type: integer
     SendAnalogFeedbackDetails:
@@ -1197,6 +1203,9 @@ components:
           type: string
           description: Codice della raccomandata
           maxLength: 128
+        hasOnSiteInvestigation:
+          type: boolean
+          description: Se presente, indica l'avvenuta indagine in loco da parte dell'addetto alla spedizione
     BaseRegisteredLetterDetails:
       x-discriminator-value: "PREPARE_SIMPLE_REGISTERED_LETTER"
       type: object
@@ -1262,6 +1271,9 @@ components:
             type: string
         categorizedAttachmentsResult:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
+        receiverAddressSourceType:
+          $ref: '#/components/schemas/ReceiverAddressSourceType'
+          description: Sorgente di provenienza dell'indirizzo di spedizione utilizzat
         vat:
           type: integer
     CategorizedAttachmentsResult:
@@ -2250,9 +2262,20 @@ components:
             type: string
         categorizedAttachmentsResult:
           $ref: '#/components/schemas/CategorizedAttachmentsResult'
+        receiverAddressSourceType:
+          $ref: '#/components/schemas/ReceiverAddressSourceType'
+          description: Sorgente di provenienza dell'indirizzo del destinatario
         vat:
           type: integer
 
+    ReceiverAddressSourceType:
+      type: string
+      description: Sorgente di provenienza dell'indirizzo del destinatario
+      enum:
+        - MITTENTE
+        - ANPR
+        - REGISTRO_IMPRESE
+        - INDAGINE
     SendAnalogMessageProgressDetails:
       x-discriminator-value: "SEND_ANALOG_MESSAGE_PROGRESS"
       type: object
