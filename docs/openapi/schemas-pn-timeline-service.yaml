@@ -2655,7 +2655,7 @@ components:
             $ref: '#/components/schemas/LegalFactWithRecIndex'
 
     NotificationCost:
-      description: Costo notifica in euro cents, può essere nullo se la notifica si è perfezionata prima per decorrenza termini
+      description: Costo notifica in euro cents, può essere nullo se per la notifica esistono altri elementi di timeline fatturabili
       example: 1220
       type: integer
       format: int32
