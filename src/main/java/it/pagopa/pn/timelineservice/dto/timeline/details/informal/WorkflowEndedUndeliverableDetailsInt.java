@@ -14,9 +14,10 @@ import lombok.experimental.SuperBuilder;
 @ToString
 public class WorkflowEndedUndeliverableDetailsInt extends CategoryTypeTimelineElementDetailsInt implements RecipientRelatedTimelineElementDetails {
     private int recIndex;
+    private Integer notificationCost;
 
     @Override
     public String toLog() {
-        return String.format("recIndex=%d", recIndex);
+        return String.format("recIndex=%d notificationCost=%d", recIndex, notificationCost);
     }
 }
