@@ -2460,6 +2460,8 @@ components:
           $ref: '#/components/schemas/RecIndex'
         sourceElementId:
           type: string
+        notificationCost:
+          $ref: '#/components/schemas/NotificationCost'
 
     WorkflowEndedUnreachedDetails:
       x-discriminator-value: "WORKFLOW_ENDED_UNREACHED"
@@ -2472,6 +2474,8 @@ components:
           type: string
         recIndex:
           $ref: '#/components/schemas/RecIndex'
+        notificationCost:
+          $ref: '#/components/schemas/NotificationCost'
 
     WorkflowEndedUndeliverableDetails:
       x-discriminator-value: "WORKFLOW_ENDED_UNDELIVERABLE"
@@ -2484,6 +2488,8 @@ components:
           type: string
         recIndex:
           $ref: '#/components/schemas/RecIndex'
+        notificationCost:
+          $ref: '#/components/schemas/NotificationCost'
 
     WorkflowDoneReachedDetails:
       x-discriminator-value: "WORKFLOW_DONE_REACHED"
@@ -2504,6 +2510,8 @@ components:
           maxLength: 512
         completionFeedback:
           $ref: '#/components/schemas/CompletionFeedback'
+        notificationCost:
+          $ref: '#/components/schemas/NotificationCost'
 
     WorkflowDoneUnreachedDetails:
       x-discriminator-value: "WORKFLOW_DONE_UNREACHED"
@@ -2524,6 +2532,8 @@ components:
           maxLength: 512
         completionFeedback:
           $ref: '#/components/schemas/CompletionFeedback'
+        notificationCost:
+          $ref: '#/components/schemas/NotificationCost'
 
     InformalNotificationViewedDetails:
       x-discriminator-value: "INFORMAL_NOTIFICATION_VIEWED"
@@ -2643,3 +2653,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LegalFactWithRecIndex'
+
+    NotificationCost:
+      description: Costo notifica in euro cents, può essere nullo se per la notifica esistono altri elementi di timeline fatturabili
+      example: 1220
+      type: integer
+      format: int32
