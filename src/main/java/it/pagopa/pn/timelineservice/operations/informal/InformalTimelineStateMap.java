@@ -25,6 +25,8 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.NORMALIZED_ADDRESS, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_VALIDATION_CALL, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_VALIDATION_RESPONSE, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_COST_VALIDATION_REQUEST, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_COST_VALIDATION_RESPONSE, NotificationStatusInt.IN_VALIDATION, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
@@ -43,6 +45,7 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_RESPONSE, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.COURTESY_CHANNEL_FAILED, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_DIGITAL_MESSAGE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
@@ -71,6 +74,7 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PUBLIC_REGISTRY_RESPONSE, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.COURTESY_CHANNEL_FAILED, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.PROCESSING, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
@@ -89,6 +93,7 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.COMPLETED_UNREACHED, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
@@ -100,6 +105,7 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 //STATE UNCHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.UNDELIVERABLE, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.UNDELIVERABLE, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.UNDELIVERABLE, SINGLE_RECIPIENT)
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT);
@@ -116,6 +122,7 @@ public class InformalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_COURTESY_MESSAGE, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.COURTESY_CHANNEL_FAILED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED, SINGLE_RECIPIENT);
     }
 }

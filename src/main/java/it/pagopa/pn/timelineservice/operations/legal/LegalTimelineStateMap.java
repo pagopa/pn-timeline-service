@@ -49,6 +49,7 @@ public class LegalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.GENERATED_F24, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.GENERATE_F24_REQUEST, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.ACCEPTED, SINGLE_RECIPIENT)
 
 
                 //STATE CHANGE
@@ -98,6 +99,7 @@ public class LegalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT, NotificationStatusInt.DELIVERING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT, NotificationStatusInt.DELIVERING, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED, NotificationStatusInt.DELIVERING, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.DELIVERING, SINGLE_RECIPIENT)
 
 
                 //STATE CHANGE
@@ -129,6 +131,7 @@ public class LegalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_PROGRESS, NotificationStatusInt.DELIVERED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST, NotificationStatusInt.DELIVERED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED, NotificationStatusInt.DELIVERED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.CANCELLED, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_VIEWED, NotificationStatusInt.VIEWED, SINGLE_RECIPIENT)
@@ -179,6 +182,7 @@ public class LegalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT, NotificationStatusInt.EFFECTIVE_DATE, ONLY_MULTI_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT, NotificationStatusInt.EFFECTIVE_DATE, ONLY_MULTI_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED, NotificationStatusInt.EFFECTIVE_DATE, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.EFFECTIVE_DATE, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_VIEWED, NotificationStatusInt.VIEWED, SINGLE_RECIPIENT)
@@ -231,6 +235,7 @@ public class LegalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT, NotificationStatusInt.VIEWED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT, NotificationStatusInt.VIEWED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED, NotificationStatusInt.VIEWED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.VIEWED, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.ANALOG_WORKFLOW_RECIPIENT_DECEASED, NotificationStatusInt.RETURNED_TO_SENDER, SINGLE_RECIPIENT)
@@ -246,6 +251,7 @@ public class LegalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_RADD_RETRIEVED, NotificationStatusInt.UNREACHABLE, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST, NotificationStatusInt.UNREACHABLE, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED, NotificationStatusInt.UNREACHABLE, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.UNREACHABLE, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_VIEWED, NotificationStatusInt.VIEWED, SINGLE_RECIPIENT)
@@ -343,6 +349,7 @@ public class LegalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_TIMEOUT, NotificationStatusInt.CANCELLED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.ANALOG_FAILURE_WORKFLOW_TIMEOUT, NotificationStatusInt.CANCELLED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED, NotificationStatusInt.CANCELLED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.CANCELLED, SINGLE_RECIPIENT)
 
         ;
 

@@ -95,6 +95,7 @@ components:
         - INFORMAL_NOTIFICATION_VIEWED
         - COVERPAGE_CREATION_REQUEST
         - SEND_DIGITAL_MESSAGE_SKIP
+        - PAYMENT_NOTICE_PAID
     StatusInfo:
       type: object
       properties:
@@ -226,6 +227,7 @@ components:
         - "$ref": "#/components/schemas/NotificationCostValidationRequestDetails"
         - "$ref": "#/components/schemas/NotificationCostValidationResponseDetails"
         - "$ref": "#/components/schemas/CourtesyChannelFailedDetails"
+        - "$ref": "#/components/schemas/PaymentNoticePaidDetails"
         - "$ref": "#/components/schemas/SendDigitalMessageDetails"
         - "$ref": "#/components/schemas/SendDigitalMessageProgressDetails"
         - "$ref": "#/components/schemas/SendDigitalMessageFeedbackDetails"
@@ -2554,6 +2556,61 @@ components:
           type: string
           maxLength: 128
           description: Identificativo del frontespizio per il quale è stata richiesta la creazione
+
+    PaymentNoticePaidDetails:
+      x-discriminator-value: "PAYMENT_NOTICE_PAID"
+      type: object
+      required:
+        - recIndex
+        - recipientType
+        - categoryType
+        - noticeCode
+        - creditorTaxId
+        - eventTimestamp
+        - amount
+      properties:
+        recIndex:
+          type: integer
+          description: Index destinatario che ha effettuato il pagamento della notifica
+          format: int32
+        recipientType:
+          $ref: '#/components/schemas/RecipientType'
+        categoryType:
+          type: string
+        iuv:
+          type: string
+        noticeCode:
+          $ref: 'remote-refs.yaml#/components/schemas/NoticeCode'
+        creditorTaxId:
+          $ref: 'remote-refs.yaml#/components/schemas/PaTaxId'
+        companyName:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        dueDate:
+          type: string
+          format: date
+        paymentSourceChannel:
+          type: string
+        amount:
+          type: integer
+          format: int32
+        fee:
+          type: integer
+          format: int32
+        eventId:
+          type: string
+        pagopaPersistedTimestamp:
+          type: string
+          format: date-time
+        pagopaPublishedTimestamp:
+          type: string
+          format: date-time
+        sendIngestionTimestamp:
+          type: string
+          format: date-time
+
 
     RecipientType:
       type: string
