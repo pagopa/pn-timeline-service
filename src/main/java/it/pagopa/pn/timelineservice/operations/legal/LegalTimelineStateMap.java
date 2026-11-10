@@ -131,7 +131,7 @@ public class LegalTimelineStateMap extends AbstractStateMap {
                 .withTimelineGoToState(TimelineElementCategoryInt.SEND_ANALOG_PROGRESS, NotificationStatusInt.DELIVERED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_CANCELLED_DOCUMENT_CREATION_REQUEST, NotificationStatusInt.DELIVERED, SINGLE_RECIPIENT)
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_TIMELINE_REWORKED, NotificationStatusInt.DELIVERED, SINGLE_RECIPIENT)
-                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.CANCELLED, SINGLE_RECIPIENT)
+                .withTimelineGoToState(TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.DELIVERED, SINGLE_RECIPIENT)
 
                 //STATE CHANGE
                 .withTimelineGoToState(TimelineElementCategoryInt.NOTIFICATION_VIEWED, NotificationStatusInt.VIEWED, SINGLE_RECIPIENT)
