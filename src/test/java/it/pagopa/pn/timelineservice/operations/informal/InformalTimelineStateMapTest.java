@@ -13,6 +13,8 @@ class InformalTimelineStateMapTest {
     @Test
     void requestAcceptedMovesFromInValidationToProcessing() {
         assertTransition(NotificationStatusInt.IN_VALIDATION, TimelineElementCategoryInt.REQUEST_ACCEPTED, NotificationStatusInt.ACCEPTED);
+        assertTransition(NotificationStatusInt.IN_VALIDATION, TimelineElementCategoryInt.NOTIFICATION_COST_VALIDATION_REQUEST, NotificationStatusInt.IN_VALIDATION);
+        assertTransition(NotificationStatusInt.IN_VALIDATION, TimelineElementCategoryInt.NOTIFICATION_COST_VALIDATION_RESPONSE, NotificationStatusInt.IN_VALIDATION);
     }
 
     @Test
@@ -21,6 +23,7 @@ class InformalTimelineStateMapTest {
         assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.SEND_COURTESY_MESSAGE, NotificationStatusInt.ACCEPTED);
         assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.ACCEPTED);
         assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.PUBLIC_REGISTRY_RESPONSE, NotificationStatusInt.ACCEPTED);
+        assertTransition(NotificationStatusInt.ACCEPTED, TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.ACCEPTED);
     }
 
     @Test
@@ -42,6 +45,7 @@ class InformalTimelineStateMapTest {
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PUBLIC_REGISTRY_CALL, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PUBLIC_REGISTRY_RESPONSE, NotificationStatusInt.PROCESSING);
         assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.COURTESY_CHANNEL_FAILED, NotificationStatusInt.PROCESSING);
+        assertTransition(NotificationStatusInt.PROCESSING, TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.PROCESSING);
     }
 
     @Test
@@ -61,6 +65,7 @@ class InformalTimelineStateMapTest {
         assertTransition(NotificationStatusInt.COMPLETED_UNREACHED, TimelineElementCategoryInt.SEND_ANALOG_MESSAGE_FEEDBACK, NotificationStatusInt.COMPLETED_UNREACHED);
         assertTransition(NotificationStatusInt.COMPLETED_UNREACHED, TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.COMPLETED_UNREACHED);
         assertTransition(NotificationStatusInt.COMPLETED_UNREACHED, TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.COMPLETED_UNREACHED);
+        assertTransition(NotificationStatusInt.COMPLETED_UNREACHED, TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.COMPLETED_UNREACHED);
         assertTransition(NotificationStatusInt.COMPLETED_UNREACHED, TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED);
         assertTransition(NotificationStatusInt.COMPLETED_UNREACHED, TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED);
     }
@@ -69,7 +74,7 @@ class InformalTimelineStateMapTest {
     void undeliverableMovesToCompletedReachedWhenWorkflowDoneReachedArrives() {
         assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.UNDELIVERABLE);
         assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.UNDELIVERABLE);
-
+        assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.UNDELIVERABLE);
         assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.WORKFLOW_DONE_REACHED, NotificationStatusInt.COMPLETED_REACHED);
         assertTransition(NotificationStatusInt.UNDELIVERABLE, TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED);
     }
@@ -83,6 +88,7 @@ class InformalTimelineStateMapTest {
         assertTransition(NotificationStatusInt.COMPLETED_REACHED, TimelineElementCategoryInt.PAYMENT, NotificationStatusInt.COMPLETED_REACHED);
         assertTransition(NotificationStatusInt.COMPLETED_REACHED, TimelineElementCategoryInt.INFORMAL_NOTIFICATION_VIEWED, NotificationStatusInt.COMPLETED_REACHED);
         assertTransition(NotificationStatusInt.COMPLETED_REACHED, TimelineElementCategoryInt.WORKFLOW_ENDED_REACHED, NotificationStatusInt.COMPLETED_REACHED);
+        assertTransition(NotificationStatusInt.COMPLETED_REACHED, TimelineElementCategoryInt.PAYMENT_NOTICE_PAID, NotificationStatusInt.COMPLETED_REACHED);
     }
 
     @Test
