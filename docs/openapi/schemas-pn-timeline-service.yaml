@@ -2623,7 +2623,6 @@ components:
           format: date-time
         dueDate:
           type: string
-          format: date
         paymentSourceChannel:
           type: string
         amount:
