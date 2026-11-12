@@ -66,7 +66,7 @@ public class TimelineElementDetailsEntity {
     @Getter(onMethod=@__({@DynamoDbAttribute("noticeCode")})) private String noticeCode;
     @Getter(onMethod=@__({@DynamoDbAttribute("companyName")})) private String companyName;
     @Getter(onMethod=@__({@DynamoDbAttribute("paymentSourceChannel")})) private String paymentSourceChannel;
-    @Getter(onMethod=@__({@DynamoDbAttribute("dueDate")})) private LocalDate dueDate;
+    @Getter(onMethod=@__({@DynamoDbAttribute("dueDate")})) private String dueDate;
     @Getter(onMethod=@__({@DynamoDbAttribute("eventId")})) private String eventId;
     @Getter(onMethod=@__({@DynamoDbAttribute("pagopaPersistedTimestamp")})) private Instant pagopaPersistedTimestamp;
     @Getter(onMethod=@__({@DynamoDbAttribute("pagopaPublishedTimestamp")})) private Instant pagopaPublishedTimestamp;
